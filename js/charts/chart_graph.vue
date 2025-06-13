@@ -1,0 +1,632 @@
+<template>
+	<div class="chartouterframe">
+		<div class="chartheader">
+			<h3>{{ title }}</h3>
+		</div>
+
+		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
+
+			<div class="scrollframe" :style="{ width: frameWidth + 'px', height: rowHeight + 'px'}">
+
+				<div class="scrollinner" :style="{ width: chartWidth + 'px', marginLeft: -scrollLeft + 'px' }"
+					v-if="dataPresent">
+
+					<!-- Add canvas element at the top -->
+					<canvas ref="heatmapCanvas" :style="{
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						width: '100%',
+						height: '100%',
+						zIndex: 0,
+						opacity: this.backgroundOpacity
+					}" :width="1" :height="rowHeight"></canvas>
+
+					<div v-for="(sensor, i) in sensors" :key="'chart-container-'+i" class="chartcontainer"
+						:style="{ height: rowHeight + 'px', width: chartWidth + 'px'}">
+
+						<svg :width="chartWidth" :height="rowHeight" class="sensor-chart-svg">
+							<!-- Sensor line -->
+							<path v-if="sensor.data && sensor.data.length" class="line-path" fill="none"
+								stroke-width="1" :ref="el => linePathRefs[i] = el" />
+
+
+						</svg>
+
+					</div>
+
+
+
+				</div>
+				<div class="dotcontainer" :style="{ height: rowHeight + 'px', width: frameWidth + 'px'}">
+
+					<svg :width="chartWidth" :height="rowHeight" class="dot-svg">
+						<template v-for="(sensor, i) in sensors">
+							<circle v-if="validHoverData(sensor.key)" :cx="(hoverPosition + .5)"
+								:cy="getYPosition(hoverData[sensor.key].value)" r="3" class="hover-dot"
+								:style="{ fill: getDepthColor(getDepthValue(sensor.key))}" />
+						</template>
+					</svg>
+
+				</div>
+				<div class="hoverline" v-show="hoverPosition >= 0" :style="{ left: (hoverPosition ) + 'px' }"></div>
+
+				<div class="scrolloverlay" v-if="dataPresent">
+					<div class="date" v-if="hoverData && hoverData.ts">
+						{{ hoverData && hoverData.ts ? new Date(hoverData.ts).toLocaleString(undefined, { 
+						year: 'numeric',
+						month: 'numeric',
+						day: 'numeric',
+						hour: '2-digit',
+						minute: '2-digit',
+						hour12: false
+					}).replace(',', '') : '' }}
+					</div>
+
+
+
+				</div>
+
+			</div>
+
+			<!-- y-axis -->
+			<div class="y-axis" :style="{ height: rowHeight + 'px' }">
+				<div v-for="tick in yAxisTicks" :key="tick.value" class="y-axis-tick" :style="{ 
+					top: tick.position + 'px',
+					transform: 'translateY(-50%)'
+				}">
+					{{ tick.value }}
+				</div>
+			</div>
+
+
+
+			<ToolTip :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
+
+			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
+
+
+		</div>
+		<ChartTime :chart-width="chartWidth" :frame-width="frameWidth" :scroll-left="scrollLeft"
+			:start-timestamp="startTimestamp" :number-of-days="numberOfDays" :data-present="dataPresent"
+			:hover-position="hoverPosition"></ChartTime>
+		<!-- :insideGraph="true" -->
+
+		<!-- <div class="depths" >
+			<div class="sensor"
+				v-for="(sensor, i) in sensors"
+				:key="'label-'+i"
+				>
+				<div class="graphcolor" :style="{ backgroundColor: getDepthColor(getDepthValue(sensor.key)) }"></div>
+				<div class="depth">{{ getDisplayDepth(sensor.key) }}</div>
+			</div>
+		</div> -->
+
+	</div>
+
+
+
+</template>
+
+<script>
+import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
+import ToolTip from './tooltip.vue'
+import ChartTime from './chart_timeaxis.vue'
+import * as d3 from 'd3'
+import { displayutil } from '../displayutil.js'
+import { config } from '../config.js'
+import { dataModel } from '@/datamodel.js'
+import { state } from '@/state.js'
+
+export default {
+	name: 'ChartGraph',
+	components: {
+		ChartTime,
+		ToolTip,
+	},
+	data() {
+		return {
+			strokeWidth: 1.5,
+			backgroundOpacity: .5,
+			rowMargin: 0,
+			linePathRefs: [],
+			heatmapImages: [],
+			lastData: [],
+			filteredSensors: [],
+			mouseOverChart: false,
+			loading: true,
+		}
+	},
+	props: {
+		title: {
+			type: String,
+			default: ''
+		},
+		sensors: {
+			type: Array,
+			default: () => [],
+		},
+		device: {
+			required: true,
+			type: Object,
+		},
+		chartWidth: {
+			type: Number,
+			required: true
+		},
+		frameWidth: {
+			type: Number,
+			required: true
+		},
+		scrollLeft: {
+			type: Number,
+			required: true
+		},
+		hoverPosition: {
+			type: Number,
+			required: false
+		},
+		numberOfDays: {
+			type: Number,
+			required: true
+		},
+		startTimestamp: {
+			type: Number,
+			required: true
+		},
+		latestTimestamp: {
+			type: Number,
+			required: false,
+			default: 0
+		},
+		baseline: {
+			type: Number,
+			required: false
+		},
+		ceiling: {
+			type: Number,
+			required: false
+		},
+		offsetTop: {
+			type: Number,
+			required: false,
+			default: 10
+		},
+		offsetBottom: {
+			type: Number,
+			required: false,
+			default: 10
+		},
+		coloring: {
+			type: String,
+			required: false,
+		    default: 'bodenfeuchteflat'
+		},
+		hoverData: {
+			type: Object,
+			required: false
+		},
+	},
+	computed: {
+		globalExtentY() {
+			const allValues = this.filteredSensors.flatMap(s => s.data?.map(d => d.value) || [])
+			if (!allValues.length) return [0, 100]
+
+			let yMin = Math.min(...allValues)
+			let yMax = Math.max(...allValues)
+			if (this.baseline !== undefined) {
+				yMin = this.baseline;
+			}
+			if (this.ceiling) {
+				yMax = this.ceiling;
+			}
+
+			return [yMin, yMax]
+		},
+		dataTimeRange() {
+			const allDataPoints = this.sensors.flatMap(sensor => sensor.data || []);
+			if (!allDataPoints.length) return null;
+			
+			return {
+				earliest: Math.min(...allDataPoints.map(d => new Date(d.ts).getTime())),
+				latest: Math.max(...allDataPoints.map(d => new Date(d.ts).getTime()))
+			};
+		},
+		globalExtentX() {
+			const startDate = new Date(this.startTimestamp);
+			const endDate = new Date(this.startTimestamp + (this.numberOfDays * 24 * 60 * 60 * 1000));
+			
+			return [startDate, endDate];
+		},
+		totalHeight() {
+			return this.sensors.length * (this.rowHeight+this.rowMargin) + this.xAxisHeight
+		},
+		dataPresent() {
+			return this.sensors.some(sensor => sensor.data?.length && sensor.data.length > 1);
+		},
+		yAxisTicks() {
+			const [yMin, yMax] = this.globalExtentY;
+			const numberOfTicks = 5;
+
+			const tickValues = d3.ticks(Math.round(yMin), Math.round(yMax), numberOfTicks).filter(v => Number.isInteger(v));
+
+			const ticks = tickValues.map(value => {
+				const position = this.getYPosition(value);
+				return { value, position };
+			});
+
+			return ticks;
+		},
+		rowHeight() {
+			return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
+		}, 
+		colorScheme() {
+			return state.colorScheme;
+		},
+	},
+	methods: {
+		
+		drawCharts() {
+
+			this.drawHeatmap();
+			
+			if (!this.filteredSensors.length || this.chartWidth <= 0 || this.frameWidth <= 0) {
+				return;
+			}
+
+			let [yMin, yMax] = this.globalExtentY;
+			const yScale = d3.scaleLinear().domain([yMin, yMax]).range([this.rowHeight-this.offsetBottom, this.offsetTop]);
+			const [xStart, xEnd] = this.globalExtentX;
+
+			const xScale = d3.scaleTime()
+				.domain([xStart, xEnd])
+				.range([0, this.chartWidth]);
+
+			this.filteredSensors.forEach((sensor, i) => {
+				if (!this.linePathRefs[i]) {
+					return;
+				}
+				const parentNode = this.linePathRefs[i].parentNode;
+				if (!parentNode) {
+					return;
+				}
+
+				d3.select(parentNode)
+					.selectAll('.top-line')
+					.remove();	
+				this.heatmapImages[i] = null;
+
+				if (!sensor.data?.length || sensor.data.length <= 1) {
+					return;
+				}
+				
+				const areaPathEl = this.linePathRefs[i];
+				if (!areaPathEl) return;
+
+				if (sensor.data && sensor.data.length) {
+
+					const areaGen = d3.area()
+						.x(d => xScale(new Date(d.ts)))
+						.y0(this.rowHeight)
+						.y1(d => yScale(d.value));
+
+					const lineGen = d3.line()
+						.x(d => xScale(new Date(d.ts)))
+						.y(d => yScale(d.value));
+
+					// Get the depth color before drawing
+					const depth = this.getDepthValue(sensor.key);
+					const lineColor = this.getDepthColor(depth);
+
+					// Split into segments based on data gaps
+					const segments = this.splitByGaps(sensor.data, config.dataGapLength);
+
+					// Clear and redraw all segments
+					segments.forEach(segment => {
+						if (segment.length < 2) return; // need at least 2 points
+
+						// Area path (optional: you can skip if you don't want area fill)
+						d3.select(parentNode)
+							.append('path')
+							.attr('d', areaGen(segment))
+							.attr('class', 'area')
+							.style('fill', 'none'); // or use heatmap fill if you have one
+
+						// Line path
+						d3.select(parentNode)
+							.append('path')
+							.attr('d', lineGen(segment))
+							.attr('fill', 'none')
+							.attr('stroke', lineColor)
+							.attr('stroke-width', this.strokeWidth)
+							.attr('class', 'top-line')
+							.style('opacity', 1);
+					});
+							
+				
+				}
+			});
+		},
+		drawChartsNextTick() {
+			nextTick(() => {
+				this.drawCharts();
+			});
+		},
+		getDepthValue(key) {
+			return displayutil.depthValue(key)
+		},
+		getDepthColor(depth) {
+			const match = config.graphColors.find(dc => dc.depth === depth);
+			return match ? match.color : '#000000';
+		},
+		getDisplayDepth(key) {
+			return displayutil.depth(key)
+		},
+		getDisplayTitle(key) {
+			return displayutil.title(key)
+		},
+		getDisplayUnit(key) {
+			return displayutil.unit(key)
+		},
+		updateLastData() {
+			this.lastData = this.sensors.map(sensor => {
+				if (!sensor.data?.length) return null;
+				return sensor.data[sensor.data.length - 1];
+			});
+		},
+		filterSensors() {
+
+			this.filteredSensors = this.sensors.map(sensor => {
+				if (!sensor.data?.length) return sensor;
+				
+				return {
+					...sensor,
+					data: sensor.data.filter(d => {
+						if (this.minValue !== undefined && d.value < this.minValue) return false;
+						if (this.maxValue !== undefined && d.value > this.maxValue) return false;
+						return true;
+					})
+				};
+			});
+		},
+		getYPosition(value) {
+			const [yMin, yMax] = this.globalExtentY;
+			return d3.scaleLinear()
+				.domain([yMin, yMax])
+				.range([this.rowHeight-this.offsetBottom, this.offsetTop])(value);
+		},
+		validHoverData(key) {
+			return this.hoverData && this.hoverData[key] && this.hoverData[key].valid
+		},
+		drawHeatmap() {
+			const canvas = this.$refs.heatmapCanvas;
+			if (!canvas) return;
+
+			const ctx = canvas.getContext('2d');
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			const [yMin, yMax] = this.globalExtentY;
+			
+			for (let y = 0; y < this.rowHeight; y++) {
+
+				const value = d3.scaleLinear()
+					.domain([this.rowHeight - this.offsetBottom, this.offsetTop])
+					.range([yMin, yMax])(y);
+
+				let color;
+				if (this.title === 'Bodenfeuchte') {
+					color = dataModel.get_vol_color_flat(this.device, value);
+				} else if (this.title === 'Bodentemperatur') {
+					color = dataModel.get_temperature_color_flat(this.device, value);
+				}
+				ctx.fillStyle = color;
+				ctx.fillRect(0, y, 1, 1);
+			}
+		},
+		splitByGaps(data, maxGap) {
+			const segments = [];
+			let segment = [];
+
+			for (let i = 0; i < data.length; i++) {
+				if (i === 0) {
+					segment.push(data[i]);
+				} else {
+					const gap = data[i].ts - data[i - 1].ts;
+					if (gap > maxGap) {
+						segments.push(segment);
+						segment = [];
+					}
+					segment.push(data[i]);
+				}
+			}
+
+			if (segment.length > 0) {
+				segments.push(segment);
+			}
+
+			return segments;
+		}
+	},
+	watch: {
+		sensors: {
+			handler() {
+				this.filterSensors();
+				this.updateLastData();
+				nextTick(() => {
+					this.drawCharts();
+				});
+
+				if (!this.dataPresent) {
+					window.setTimeout(() => {
+						if (!this.dataPresent) {
+							this.loading = true;
+						}
+					}, 200);
+				} else {
+					this.loading = false;
+				}
+			},
+			immediate: true
+		},
+		chartWidth: {
+			handler() {
+				nextTick(() => {
+					this.drawCharts();
+				});
+			},
+			immediate: true
+		},
+		numberOfDays: {
+			handler() {
+				nextTick(() => {
+					this.drawCharts();
+				});
+			},
+			immediate: true
+		},
+		colorScheme() {
+			this.drawCharts();
+		},
+		dataPresent: {
+			handler() {
+				this.loading = false;
+			},
+			immediate: true
+		}
+	},
+	mounted() {
+		window.addEventListener('sidebar:toggleFullWindow', this.drawCharts);
+		window.addEventListener('resize', this.drawCharts);
+		window.addEventListener('chartstyleselected', this.drawCharts);
+		this.updateLastData();
+		this.filterSensors();
+		nextTick(() => {
+			this.drawCharts();
+		});		
+	},
+	beforeUnmount() {
+		window.removeEventListener('resize', this.drawCharts)
+		window.removeEventListener('sidebar:toggleFullWindow', this.drawCharts)
+		window.removeEventListener('chartstyleselected',this.drawCharts)
+	},
+
+}
+</script>
+
+<style lang="stylus" scoped>
+
+.scrollview
+	margin 0
+	position relative
+	filter var(--chartdropshadowfilter)
+
+.dotcontainer
+.chartcontainer
+	position absolute
+	top 0
+	left 0
+	width 100%
+	height 100%
+
+.scrollframe
+	border-radius var(--chartborderradius)
+	position: relative;
+	overflow: hidden;
+	background var(--uibrighter)
+	border var(--chartborderstyle)
+	box-sizing content-box
+
+.scrollinner
+	height: 100%;
+	position: relative;
+	background #fff
+
+.scrolloverlay
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+
+.sensorlabel
+	right 0
+	bottom 0
+	position absolute
+	display flex
+	flex-direction row
+	justify-content flex-end
+	align-items baseline
+
+.depths
+	display inline-flex
+	flex-direction column
+	margin 0 2px -.5em
+	.sensor
+		display flex
+		flex-direction row
+		align-items baseline
+		justify-content flex-start
+		flex-basis auto
+		flex-grow 0
+		flex-shrink 0
+		margin 0
+		.graphcolor
+			width 18px
+			height 2px
+			align-self center
+			margin-right 3px
+		.depth
+			font-weight bold
+			font-weight normal
+			opacity .7
+			font-size 8pt
+			margin-right 12px
+		.value
+			font-size 10pt
+		.unit
+			font-weight normal
+			display inline-block
+			margin-left .15em
+			font-size 9.5pt
+			opacity .8
+		.data
+			display inline-block
+			margin-left 8px
+
+.date
+	position absolute
+	top 0
+	right 0
+	padding .3em .6em
+	font-size 8pt
+	opacity .8
+	display none
+
+.y-axis
+	position absolute
+	right -24px
+	width 24px
+	top 0
+	pointer-events none
+	z-index 1
+	
+.y-axis-tick
+	position absolute
+	text-align left
+	left 7px
+	font-size 9px
+	color #000000cc
+
+@media (max-width: 600px)
+	.y-axis-tick
+		left -12px
+
+
+.hover-dot
+	stroke-width 0
+	pointer-events none
+
+
+
+
+</style>

@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Vite/Cache
+.vite/
+
+# Environment variables
+.env
+
+# System/IDE files
+.DS_Store
+.vscode/
+
+# Temporary/Drive files
+.tmp.drivedownload
+.tmp.driveupload
+
+# Cursor IDE
+.cursor
+.cursorignore
+
+# Repomix-related
+.repomixignore
+repomix-output.xml
+
+# Logs
+*.log
+
+# API-specific ignores
+api/config.php
+api/cache/

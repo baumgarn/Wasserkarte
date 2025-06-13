@@ -1,0 +1,288 @@
+<template>
+	<canvas ref="barrelCanvas"></canvas>
+	</template>
+	
+	<script>
+	import { state } from '@/state.js'
+	import { dataModel } from '@/datamodel.js'
+	import linePatternUrl from '/img/totwasser2.png';
+
+	export default {
+	name: 'Barrel',
+	setup() {
+		return {state};
+	},
+	props: {
+		device: Object,
+		hoverData: Object
+	},
+	data() {
+		return {
+			ellipseRatio: 0.25,
+			margin: 1,
+			dpr: window.devicePixelRatio || 1,
+			patternImage : null,
+		};
+	},
+	mounted() {
+		this.patternImage = new Image();
+		this.patternImage.src = linePatternUrl;
+		this.patternImage.onload = () => {
+			this.drawBarrel();
+		}
+		this.drawBarrel();
+	},
+	computed: {
+		barrel_width() {
+			return (state.windowWidth < 500) ? 135 : 175;
+		},
+		barrel_height() {
+			return (state.windowWidth < 500) ? 120 : 150;
+		},
+		canvasWidth() {
+			return this.barrel_width + this.margin * 2;x
+		},
+		canvasHeight() {
+			const ellipseH = this.ellipseRatio * this.barrel_width;
+			return this.barrel_height + ellipseH + this.margin * 2;
+		},
+		wassergehalt_oberboden() {
+			const wassergehalt = dataModel.wassergehalt_oberboden(this.device, this.hoverData);
+			if (!wassergehalt) return '–';
+			if (wassergehalt < 10 ) return parseFloat(wassergehalt.toFixed(1));
+			return wassergehalt.toFixed(0)	 
+		},
+		gesamtkapazität_oberboden() {
+			return dataModel.gesamtkapazität_oberboden(this.device);
+		},
+		vol() {
+			const vol = dataModel.vol(this.device, this.hoverData);
+			if (isNaN(vol)) return '–'
+			return parseFloat(vol.toFixed(1));
+		},
+		nfk() {
+			const nfk = dataModel.nfk(this.device, this.hoverData);
+			if (isNaN(nfk)) return '–'
+			return parseFloat(nfk.toFixed(0));
+		},
+		hasSoilAttributes() {
+			return (this.device.attributes.totwasserbereich && this.device.attributes.feldkapazität)
+		},
+		percentage() {
+			const p = this.wassergehalt_oberboden / this.gesamtkapazität_oberboden
+			return Math.min( Math.max(p, 0), 1)  ;
+		},
+		totwasser_percentage() {
+			const p = this.device.attributes.totwasserbereich / this.device.attributes.feldkapazität
+			return p;
+			// return Math.min( Math.max(p, 0), 1)  ;
+		},
+		colorScheme() {
+			return state.colorScheme;
+		}, 
+		windowWidth() {
+			return state.windowWidth;
+		}
+	},
+	watch: {
+		nfk() {
+			this.drawBarrel();
+		},
+		percentage() {
+			this.drawBarrel();
+		},
+		ellipseRatio() {
+			this.drawBarrel();
+		},
+		colorScheme() {
+			this.drawBarrel();
+		},
+		windowWidth() {
+			this.drawBarrel();
+		}
+	},
+	methods: {
+		drawBarrel() {
+			const liquidColor = dataModel.get_nfk_color(this.nfk);
+			// const strokeColor = '#000';
+			// const strokeWidth = 1;
+			const strokeColor = '#aaa';
+			const strokeWidth = 1.5;
+
+			const canvas = this.$refs.barrelCanvas;
+			const ctx = canvas.getContext('2d');
+			const dpr = this.dpr;
+
+			canvas.width = this.canvasWidth * dpr;
+			canvas.height = this.canvasHeight * dpr;
+			canvas.style.width = this.canvasWidth + 'px';
+			canvas.style.height = this.canvasHeight + 'px';
+
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.scale(dpr, dpr);
+
+			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+			const ellipseH = this.ellipseRatio * this.barrel_width;
+			const centerX = this.canvasWidth / 2;
+			const centerY = this.canvasHeight / 2;
+
+			const topY = centerY - this.barrel_height / 2;
+			const bottomY = centerY + this.barrel_height / 2;
+
+			const liquidTopY = topY + (bottomY - topY) * (1 - this.percentage);
+
+			const totwasserTopY = topY + (bottomY - topY) * (1 - this.totwasser_percentage);
+
+			if (this.nfk != '–') {
+				// Liquid body
+				ctx.beginPath();
+				ctx.moveTo(centerX - this.barrel_width / 2, liquidTopY);
+				ctx.lineTo(centerX - this.barrel_width / 2, bottomY);
+				ctx.lineTo(centerX + this.barrel_width / 2, bottomY);
+				ctx.lineTo(centerX + this.barrel_width / 2, liquidTopY);
+				ctx.closePath();
+				ctx.fillStyle = liquidColor;
+				ctx.fill();
+
+				// Liquid bottom ellipse
+				ctx.beginPath();
+				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				ctx.fillStyle = liquidColor;
+				ctx.fill();
+
+				// Liquid top ellipse
+				ctx.beginPath();
+				ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				ctx.fillStyle = liquidColor;
+				ctx.fill();
+
+				// Draw bottom half of bottom ellipse (thinner line)
+				ctx.beginPath();
+				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI);
+				ctx.lineWidth = strokeWidth;
+				ctx.strokeStyle = strokeColor;
+				ctx.stroke();
+			} else {
+				// Draw bottom ellipse
+				ctx.beginPath();
+				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				ctx.lineWidth = strokeWidth;
+				ctx.strokeStyle = strokeColor;
+				ctx.stroke();
+			}
+
+			// Totwasser area offscreen canvas
+
+			if (this.nfk != '–') {
+
+				// Create offscreen canvas
+				const offscreen = document.createElement('canvas');
+				offscreen.width = this.canvasWidth;
+				offscreen.height = this.canvasHeight;
+				const offCtx = offscreen.getContext('2d');
+				const maskTopY = Math.max(totwasserTopY, liquidTopY)
+
+				// Draw black mask shapes on offscreen
+				offCtx.fillStyle = '#000';
+				offCtx.beginPath();
+				offCtx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				offCtx.fill();
+
+				offCtx.beginPath();
+				offCtx.moveTo(centerX - this.barrel_width / 2, maskTopY);
+				offCtx.lineTo(centerX - this.barrel_width / 2, bottomY);
+				offCtx.lineTo(centerX + this.barrel_width / 2, bottomY);
+				offCtx.lineTo(centerX + this.barrel_width / 2, maskTopY);
+				offCtx.closePath();
+				offCtx.fill();
+
+				// Draw white ellipse mask area (will exclude pattern here)
+				offCtx.globalCompositeOperation = 'destination-out';
+				offCtx.beginPath();
+				offCtx.ellipse(centerX, maskTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				offCtx.fill();
+
+				// Draw pattern only inside black mask (source-in)
+				offCtx.globalCompositeOperation = 'source-in';
+
+				// Create pattern from patternImage
+				const pattern = offCtx.createPattern(this.patternImage, 'repeat');
+				offCtx.globalAlpha = .3;
+				offCtx.fillStyle = pattern;
+				offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+				offCtx.globalAlpha = 1;
+
+				// Draw the offscreen canvas with the pattern mask on top of main canvas
+				ctx.drawImage(offscreen, 0, 0);
+			}
+
+			// Liquid top ellipse fill and line
+			
+			ctx.beginPath();
+			ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+			if (this.percentage > this.totwasser_percentage) {
+				ctx.fillStyle = '#ffffff22';
+				ctx.strokeStyle = '#ffffff88';
+			} else {
+				ctx.fillStyle = '#0000002';
+				ctx.strokeStyle = '#ffffff10';
+			}	
+			ctx.fill();
+			if (this.percentage < 1) {
+				ctx.lineWidth = 2;
+				ctx.stroke();
+			}
+			
+			ctx.beginPath();
+			ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, Math.PI, 0);
+			ctx.lineWidth = 1.5;
+			ctx.strokeStyle = '#00000020';
+			ctx.stroke();
+
+
+
+			// totwasser ellipsis only if percentage less than totwasser
+			if (this.percentage < this.totwasser_percentage) {
+
+				ctx.beginPath();
+				ctx.lineWidth = 1;
+				ctx.setLineDash([2, 2]);
+				ctx.strokeStyle = '#00000077';
+				ctx.ellipse(centerX, totwasserTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				ctx.stroke();
+				ctx.setLineDash([]);
+
+				}
+
+
+
+			// Draw sides
+			ctx.beginPath();
+			ctx.moveTo(centerX - this.barrel_width / 2, topY);
+			ctx.lineTo(centerX - this.barrel_width / 2, bottomY);
+			ctx.moveTo(centerX + this.barrel_width / 2, topY);
+			ctx.lineTo(centerX + this.barrel_width / 2, bottomY);
+			ctx.strokeStyle = strokeColor;
+			ctx.lineWidth = strokeWidth;
+			ctx.stroke();
+
+			// Draw top ellipse
+			ctx.beginPath();
+			ctx.ellipse(centerX, topY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+			ctx.lineWidth = strokeWidth;
+			ctx.strokeStyle = strokeColor;
+			ctx.stroke();
+		}
+	}
+	};
+	</script>
+	
+	<style scoped>
+
+		canvas {
+			display: block;
+			margin: auto;
+		}
+
+	</style>

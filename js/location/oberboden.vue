@@ -1,0 +1,408 @@
+<template>
+
+	<div class="oberboden_uebersicht" v-if="hasSoilAttributes">
+
+			<div class="nfklabel mobile">
+				<div class="name" :style="'color:'+nfk_color">
+					{{ nfk_label }}
+				</div>
+				<div class="nameoverlay">
+					{{ nfk_label }}
+				</div>
+			</div>
+
+			<div class="toparea">
+
+			<div class="barrell">
+				<Barrell v-if="hasSoilAttributes" :device :hoverData />
+			</div>
+			
+			<div class="datacol">
+				
+				<div class="nfklabel">
+					<div class="name" :style="'color:'+nfk_color">
+						{{ nfk_label }}
+					</div>
+					<div class="nameoverlay">
+						{{ nfk_label }}
+					</div>
+				</div>
+
+				<div class="datarow wassergehalt">
+
+					<div class="icon"></div>
+				
+					<div class="label">
+						Wassergehalt
+					</div>
+					
+					<div class="num">
+						<span class="value">{{ formatNumber(wassergehalt_oberboden) }} </span>
+						<span class="unit"><div class="smaller">Liter</div></span>
+					</div>
+					<div class="num light">
+						<span class="value">{{ vol }}</span>
+						<span class="unit"><span class="smaller">Vol</span> %</span>
+					</div>
+
+
+				</div>
+				
+				<div class="datarow pflanzenverfuegbar">
+
+					<div class="icon"></div>
+					
+					<div class="label">
+						Pflanzenverfügbar
+					</div>
+
+					<div class="num">
+						<span class="value">{{ nfk_liter }}</span>
+						<span class="unit"><span class="smaller">Liter</span></span>
+					</div>
+
+
+					<div class="num light">
+						<span class="value">{{ nfk }}</span>
+						<span class="unit"><span class="smaller">nFK</span> %</span>
+					</div>
+
+				</div>
+				
+				<div class="datarow totwasser">
+
+					<div class="icon"></div>
+
+					<div class="label">
+						Totwasser
+					</div>
+					
+					<div class="num">
+						<span class="value">{{ formatNumber(TW_liter) }}</span>
+						<span class="unit"><span class="smaller">Liter</span></span>
+					</div>
+
+					<div class="num light">
+						<span class="before"><</span>
+						<span class="value">{{ TW }}</span>
+						<span class="unit"><span class="smaller">Vol</span> %</span>
+					</div>
+
+				</div>
+
+				<div class="datarow gesamtkapazitaet" >
+
+					<div class="icon"></div>
+
+					<div class="label">
+						Gesamtkapazität
+					</div>
+					
+					<div class="num">
+						<span class="value">{{ gesamtkapazität_oberboden }}</span>
+						<span class="unit"><div class="smaller">Liter</div></span>
+					</div>
+				
+					<div class="num light">
+						<span class="value">{{ device.attributes.feldkapazität }}</span>
+						<span class="unit"><span class="smaller">Vol</span> %</span>
+					</div>
+					
+				</div>
+
+				<div class="hinweis">
+					Modellierte Annäherungswerte Oberboden 1m², 60cm Tiefe
+				</div>
+
+			</div>
+
+		</div>
+
+		<div class="hinweis mobile">
+			Modellierte Annäherungswerte Oberboden 1m² bis 60cm Tiefe
+		</div>
+			
+		<div class="soilinfo">
+
+			<span class="soil" v-if="soilName && humusName" >
+
+				<!-- <span v-if="soilName" class="soiltype" :style="'background:'+soilColor"> -->
+				<span v-if="soilName" class="soiltype" >
+					{{ soilName }}
+				</span>
+				<span class="separator"></span>
+				<!-- <span v-if="humusName" class="humustype" :style="'background:'+humusColor"> -->
+				<span v-if="humusName" class="humustype">
+					{{ humusName }}
+				</span>
+				<span class="separator"></span>
+			</span>
+
+			<span v-if="device.attributes.Beschreibung" class="beschreibung">
+				{{ device.attributes.Beschreibung }}
+			</span>
+
+		</div>
+				
+		</div>
+		
+
+</template>
+
+<script>
+	import { displayutil } from '@/displayutil.js'
+	import { dataModel } from '@/datamodel.js'
+	import { state } from '@/state.js'
+
+	import Barrell from '@/charts/barrell.vue';
+
+	export default {
+		name: 'Wassergehalt',
+		components: {Barrell},
+		props: {device: Object, hoverData: Object},
+		setup() {
+			return {state};
+		},
+		computed: {
+			wassergehalt_oberboden() {
+				const wassergehalt = dataModel.wassergehalt_oberboden(this.device, this.hoverData);
+				if (!wassergehalt) return '–';
+				if (wassergehalt < 10 ) return parseFloat(wassergehalt.toFixed(1));
+				return wassergehalt.toFixed(0)	 
+			},
+			gesamtkapazität_oberboden() {
+				return dataModel.gesamtkapazität_oberboden(this.device);
+			},
+			FK() {
+				return this.device.attributes.feldkapazität
+			},
+			TW() {
+				return this.device.attributes.totwasserbereich
+			},
+			TW_liter(){
+				if (isNaN(this.nfk)) return (this.gesamtkapazität_oberboden / this.FK * this.TW);
+				return Math.min((this.gesamtkapazität_oberboden / this.FK * this.TW), this.wassergehalt_oberboden);
+			},
+			vol() {
+				const vol = dataModel.vol(this.device, this.hoverData);
+				if (isNaN(vol)) return '–'
+				return parseFloat(vol.toFixed(0));
+			},
+			nfk() {
+				const nfk = dataModel.nfk(this.device, this.hoverData);
+				if (isNaN(nfk)) return '–'
+				return parseFloat(nfk.toFixed(0));
+			},
+			nfk_liter() {
+				if (isNaN(this.nfk)) return '–'
+				let l =  Math.max(0, this.wassergehalt_oberboden - this.TW_liter);
+				return parseFloat(l.toFixed(0));
+			},
+			nfk_label() {
+				return dataModel.get_nfk_label(this.nfk);
+			},
+			nfk_color() {
+				return dataModel.get_nfk_color(this.nfk);
+			},
+			hasSoilAttributes() {
+				return (this.device.attributes.totwasserbereich && this.device.attributes.feldkapazität)
+			},
+			soilName() {
+				return dataModel.get_soil_name(this.device);
+			},
+			soilColor() {
+				return dataModel.get_soil_color(this.device);
+			},
+			humusName() {
+				return dataModel.get_humus_name(this.device);
+			},
+			humusColor() {
+				return dataModel.get_humus_color(this.device);
+			},
+		},
+		methods: {
+			formatNumber(floatString) {
+				if (typeof floatString == 'Number') {
+
+					const num = parseFloat(floatString);
+					const formatted = num.toFixed(1);
+					return formatted.endsWith('.0') ? num.toString().replace('.', ',') : formatted.replace('.', ',');
+				}
+				else {
+					return floatString;
+				}
+			}
+			
+		},
+		watch: {
+			
+		}
+
+	}
+
+</script>
+
+<style lang="stylus" scoped>
+
+	.oberboden_uebersicht
+		margin 1em 0
+		max-width 600px
+		display flex
+		flex-direction column
+	.toparea
+		display flex
+		flex-direction row
+		align-items center
+		margin .2em 0
+	.barrell
+		flex-grow 0
+		flex-shrink 0
+		margin-right 1.65em
+	.datacol	
+		flex-grow 1
+	.nfklabel
+		font-weight bold
+		font-size 13.5pt
+		height 20px
+		margin 0 0 .3em
+		letter-spacing 0.03em;
+		position relative
+		> *
+			position absolute
+		.nameoverlay
+			opacity .12
+	.nfklabel.mobile
+	.hinweis.mobile
+		display none
+	.hinweis
+		font-size 8pt
+		opacity .55
+		flex-grow 1
+		padding-top .65em
+	.datarow
+		display flex
+		flex-direction row
+		align-items baseline
+		white-space nowrap
+		height 35px
+		padding 0
+		position relative
+		border-bottom var(--separatorline)
+		border-bottom 1px solid #eee
+		.label
+			flex-basis 42%
+		.num
+			flex-basis 60px
+			text-align right
+		.num.light
+			flex-basis 30%
+			padding-right .6em
+	.datarow .icon
+		content ''
+		display inline-block
+		position relative
+		width 30px
+		height 30px
+		opacity .45
+		margin-right 8px
+		margin-top -8px
+		top 10px
+		background-size contain
+		background-position center
+		background-repeat no-repeat
+	.datarow.wassergehalt .icon
+		opacity .9
+		background-image url(/img/drop.png)
+	.datarow.pflanzenverfuegbar .icon
+		background-image url(/img/plant.svg)
+		opacity .55
+		// top 10px
+	.datarow.totwasser .icon
+		background-size auto
+		opacity .55
+		box-sizing border-box
+		background-image url(/img/totwasser2.png)
+		background-repeat repeat
+		background-position -3px 0
+	.datarow.gesamtkapazitaet .icon
+		background-image url(/img/barrellflat.png)
+		opacity .44
+	.value
+		display inline-block
+		font-size 13.5pt
+		margin-right .2em
+	.num.light .value
+		font-weight normal
+		font-size 9pt
+		opacity .55
+		margin-right .2em
+	.num.light .unit
+		margin-left .1em
+	.before
+		font-size 9pt
+		opacity .55
+		display inline-block
+		margin-right .4em
+	.unit
+		display inline-block
+		font-size 9pt
+		opacity .55
+		text-align left
+		.smaller
+			font-size 8pt
+	.label
+		font-size 9pt
+		opacity 1
+		font-weight bold
+		color #000
+		color #000000aa
+		font-weight 600
+		letter-spacing .01em
+	.soilinfo
+		margin 2em 0 .7em
+		font-size 9pt
+		.description
+		.soil
+			margin .2em 0
+			display inline-block
+		.soil
+			font-weight bold
+		.separator
+			opacity .3
+			display inline-block
+			margin 0 .3em
+			&:before
+				content '–'
+		.soiltype
+		.humustype
+			display inline-block
+
+	@media (max-width 500px)
+		.oberboden_uebersicht
+			max-width 100%
+			> .nfklabel.mobile
+				display block
+				margin-bottom .75em
+			> .hinweis.mobile
+				display block
+		.barrell
+			// margin-bottom .75em
+			margin-right 12px
+		.toparea
+			.nfklabel
+			.hinweis
+				display none
+		.datarow .label
+			font-size 10px
+		.datarow.totwasser .icon
+			top 10px
+		.datarow.gesamtkapazitaet
+			border-bottom none
+		.soilinfo
+			margin 1.8em 0 1.2em
+			font-size 13px
+		.num.light
+			display none
+		.num
+			flex-grow 1
+</style>
