@@ -11,47 +11,14 @@
 					<template v-if="selectedSoil != 'Alle' && !isSelectedSoil">
 
 						<div class="map-marker disabled">
-							<!-- <div class="disabled">
+							<div class="disabled">
 								
-							</div>	 -->
+							</div>	
 						</div>
 					
 					</template>
 
-					<template v-else-if="markerStyle == 'Bodenfeuchte Alle'">
-
-						<div 
-							v-if="bodenfeuchteSensors.length > 0"
-							class="map-marker alle"
-							:class="{ mouseover, selected: isSelected }"
-							@mouseenter="onMouseEnter"
-							@mouseleave="onMouseLeave"
-							@click="click"
-							@wheel="wheelForward"
-							>
-
-							<div class="schichten">
-
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_10cm))">
-									<div class="value">{{ parseFloat(getLastValue(telemetry.Bodenfeuchte_10cm)).toFixed(0) }}<span class="unit">%</span></div>
-								</div>
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_30cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_30cm))">
-									<div class="value">{{ parseFloat(getLastValue(telemetry.Bodenfeuchte_30cm)).toFixed(0) }}<span class="unit">%</span></div>
-								</div>
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_60cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_60cm))">
-									<div class="value">{{ parseFloat(getLastValue(telemetry.Bodenfeuchte_60cm)).toFixed(0) }}<span class="unit">%</span></div>
-								</div>
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_80cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_80cm))">
-									<div class="value">{{ parseFloat(getLastValue(telemetry.Bodenfeuchte_80cm)).toFixed(0) }}<span class="unit">%</span></div>
-								</div>
-
-							</div>
-							
-						</div>
-
-					</template>
-
-					<template v-else-if="markerStyle == 'Bodenfeuchte Farbkreis'">
+					<template v-else-if="markerStyle == 'Bodenfeuchte_Farbkreis'">
 
 						<div 
 							class="map-marker kreis"
@@ -75,6 +42,40 @@
 
 							</div>
 
+						</div>
+
+					</template>
+					
+					<template v-else-if="markerStyle == 'Bodenfeuchte_vol'">
+						
+						<div 
+							class="map-marker einzeln"
+							:class="{ mouseover, selected: isSelected }"
+							@mouseenter="onMouseEnter"
+							@mouseleave="onMouseLeave"
+							@click="click"
+							@wheel="wheelForward"
+							>
+							<div class="schicht" :style="'background:'+nfk_color">
+								<div class="value">{{ vol.toFixed(0) }}<span class="unit">%</span></div>
+							</div>	  
+						</div>
+
+					</template>
+
+					<template v-else-if="markerStyle == 'Bodenfeuchte_nfk'">
+						
+						<div 
+							class="map-marker einzeln"
+							:class="{ mouseover, selected: isSelected }"
+							@mouseenter="onMouseEnter"
+							@mouseleave="onMouseLeave"
+							@click="click"
+							@wheel="wheelForward"
+							>
+							<div v-if="!Number.isNaN(nfk)" class="schicht" :style="'background:'+nfk_color">
+								<div class="value">{{ nfk.toFixed(0) }}<span class="unit">%</span></div>
+							</div>	  
 						</div>
 
 					</template>
@@ -115,13 +116,17 @@ export default {
 	components: {
 		MapPopup
 	},
+	setup() {
+		return {dataModel, displayutil}
+	},
 	data() {
 		return {
 			mouseover: false,
 			schichten: ['Bodenfeuchte_10cm','Bodenfeuchte_30cm','Bodenfeuchte_60cm','Bodenfeuchte_80cm'],
-			displayutil,
-			dataModel,
 			popupBelow: false,
+			vol: null,
+			nfk: null,
+			nfk_color: null,
 		};
 	},
 	props: {
@@ -161,7 +166,7 @@ export default {
 		},
 		isSelectedSoil() {
 			return (state.selectedSoil == this.device.attributes?.soilType)
-		}
+		},
 	},
 	methods: {
 		position(device) {
@@ -172,29 +177,27 @@ export default {
 		},
 		onMouseEnter(event) {
 			this.mouseover = true;
-			// if (state.selectedDevice != this.device.name) {
-				this.map.mouseoverDevice = this.device;
-			// } else {
-				// this.map.mouseoverDevice = null;
-			// }
+			this.map.mouseoverDevice = this.device;
 			this.setZindex()
+		},
+		calculateValues() {
+			this.vol = dataModel.vol(this.device);
+			this.nfk = dataModel.vol_to_nfk(this.device, this.vol);
+			this.nfk_color = dataModel.get_nfk_color(this.nfk);
 		},
 		onMouseLeave(event) {
 			this.mouseover = false;
 			this.map.mouseoverDevice = null;
 			this.setZindex()
-			// if (this.selectedDevice != this.device) {
-			// }
 		},
 		click(event) {
-			// this.map.mouseoverDevice = null;
 			state.markerClicked = true;
 			state.selectedDevice = this.device?.name || null;
 		},
 		wheelForward(event) {
 
-			event.preventDefault(); // block scrollview
-			event.stopPropagation(); // block scrollview
+			event.preventDefault();
+			event.stopPropagation();
 			const mapContainer = (this.map ? this.map.$el : document).querySelector('.ol-viewport');
 			if (mapContainer) {
 				const wheelEvent = new WheelEvent('wheel', {
@@ -231,7 +234,15 @@ export default {
 		},
 		selectedSoil() {
 			this.setZindex()
-		}
+		},
+		markerStyle() {
+			if (this.markerStyle == 'Bodenfeuchte_vol' || this.markerStyle == 'Bodenfeuchte_nfk' ) {
+				this.calculateValues();
+			}
+		},
+		// device() {
+			// this.calculateValues();
+		// },
 	},
 	mounted() {
 		this.$nextTick(() => {

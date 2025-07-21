@@ -10,13 +10,13 @@
 
 			<div v-for="device in faultyDevices" :key="device.name" class="menu-item" :class="[{ 
 						selected: selectedDevice === device.name,
-						red: (!nowarning && (timeSinceLastTelemetry(device.id.id) >= 24 || noLocationAttributes(device) || noSoilAttributes(device)) ),
+						red: (!nowarning && (timeSinceLastTelemetry(device.id.id) >= 48 || noLocationAttributes(device) || noSoilAttributes(device)) ),
 					}]" @click="selectDevice(device)">
 
 				<div class="title">
 					{{ device.attributes?.Anzeigename || device.name }}
 				</div>
-				<div class="latestdate message" v-if="timeSinceLastTelemetry(device.id.id) >= 24">
+				<div class="latestdate message" v-if="timeSinceLastTelemetry(device.id.id) >= 48">
 					Keine Telemetrie seit {{daysSinceLastTelemetry(device.id.id)}} {{daysSinceLastTelemetry(device.id.id) == 1 ? 'Tag' : 'Tagen'}}
 				</div>
 					

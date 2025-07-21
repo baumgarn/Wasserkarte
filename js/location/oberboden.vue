@@ -13,12 +13,12 @@
 
 			<div class="toparea">
 
-			<div class="barrell">
-				<Barrell v-if="hasSoilAttributes" :device :hoverData />
-			</div>
-			
-			<div class="datacol">
+				<div class="barrell">
+					<Barrell v-if="hasSoilAttributes" :device :hoverData />
+				</div>
 				
+				<div class="datacol">
+					
 				<div class="nfklabel">
 					<div class="name" :style="'color:'+nfk_color">
 						{{ nfk_label }}
@@ -74,7 +74,7 @@
 					<div class="icon"></div>
 
 					<div class="label">
-						Totwasser
+						Nicht verfügbar
 					</div>
 					
 					<div class="num">
@@ -126,15 +126,20 @@
 
 			<span class="soil" v-if="soilName && humusName" >
 
-				<!-- <span v-if="soilName" class="soiltype" :style="'background:'+soilColor"> -->
 				<span v-if="soilName" class="soiltype" >
 					{{ soilName }}
 				</span>
 				<span class="separator"></span>
-				<!-- <span v-if="humusName" class="humustype" :style="'background:'+humusColor"> -->
 				<span v-if="humusName" class="humustype">
 					{{ humusName }}
 				</span>
+				<template v-if="device.attributes.Bewässerung">
+					<span class="separator"></span>
+
+					<span class="bewaesserung">
+						regelmäßig bewässert
+					</span>
+				</template>
 				<span class="separator"></span>
 			</span>
 
@@ -144,7 +149,7 @@
 
 		</div>
 				
-		</div>
+	</div>
 		
 
 </template>
@@ -221,18 +226,13 @@
 			},
 		},
 		methods: {
-			formatNumber(floatString) {
-				if (typeof floatString == 'Number') {
-
-					const num = parseFloat(floatString);
-					const formatted = num.toFixed(1);
-					return formatted.endsWith('.0') ? num.toString().replace('.', ',') : formatted.replace('.', ',');
-				}
-				else {
-					return floatString;
-				}
-			}
-			
+			formatNumber(value) {
+				const num = Number(value);
+				if (Number.isNaN(num)) return value;
+				const withOneDecimal = num.toFixed(1);
+				const cleaned = withOneDecimal.replace(/\.0$/, '');
+				return cleaned.replace('.', ',');
+			}	
 		},
 		watch: {
 			
@@ -302,6 +302,9 @@
 		display inline-block
 		position relative
 		width 30px
+		flex-basis 30px
+		flex-grow 0
+		flex-shrink 0
 		height 30px
 		opacity .45
 		margin-right 8px
@@ -311,8 +314,9 @@
 		background-position center
 		background-repeat no-repeat
 	.datarow.wassergehalt .icon
-		opacity .9
-		background-image url(/img/drop.png)
+		opacity .85
+		background-image url(/img/tropfen_flat.png)
+		background-size 60% 90%
 	.datarow.pflanzenverfuegbar .icon
 		background-image url(/img/plant.svg)
 		opacity .55
@@ -355,7 +359,7 @@
 		opacity 1
 		font-weight bold
 		color #000
-		color #000000aa
+		color #000000a8
 		font-weight 600
 		letter-spacing .01em
 	.soilinfo

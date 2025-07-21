@@ -9,6 +9,10 @@
 				<span class="time">{{ displayutil.formatDateTime(hoverData.ts) }}</span>
 			</div>
 
+			<div v-else-if="hoverData" class="latestdate">
+				
+			</div>
+
 			<div v-else-if="showDate" class="latestdate">
 				{{ displayutil.formatDateShort(latestTimestamp) }}
 				<span class="time">{{ displayutil.formatDateTime(latestTimestamp) }}</span>
@@ -16,16 +20,6 @@
 
 		</div>
 
-		<!-- <ChartTime 
-		:chart-width="chartWidth" 
-		:frame-width="frameWidth" 
-		:scroll-left="scrollLeft" 
-		:start-timestamp="startTimestamp"
-		:number-of-days="numberOfDays"
-		:data-present="dataPresent"
-		:hover-position="hoverPosition"
-		></ChartTime>
-		:insideGraph="true" -->
 
 		<div class="scrollview chart-heat" :class="heatmap ? 'heatmap' : 'schichten'">
 				
@@ -77,13 +71,8 @@
 					</div>
 					
 				</div>
-				<div 
-					class="hoverline" 
-					v-show="hoverPosition >= 0" 
-					:style="{ left: (hoverPosition ) + 'px' }"
-				>
-				</div>
-				
+
+				<div class="hoverline" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
 				
 				<div class="scrolloverlay" v-if="dataPresent">
 					
@@ -93,9 +82,9 @@
 						:key="'label-'+i"
 						:style="{ height: ( rowHeight + rowMargin) + 'px'}">
 
-						<div v-if="!heatmap && validHoverData(sensor.key)"
+						<div v-if="!heatmap && hoverData?.xpos"
 							:style="{
-								left: (hoverPosition + 0.5) + 'px',
+								left: (hoverData?.xpos + 0.5) + 'px',
 								top: getYPosition(hoverData[sensor.key].value) + 'px'
 							}"
 							class="hover-dot"></div>
@@ -110,7 +99,7 @@
 								<div class="bodenfeuchtedata" v-if="validData(sensor.key)">
 	
 									<div class="bodenfeuchteName">
-										<span class="name">{{ getNFKName(sensor.key) }}</span>
+									<span class="name">{{ getNFKName(sensor.key) }}</span>
 									</div>
 									<div class="bodenfeuchteNFK" v-if="hasSoilAttributes">
 										<span class="value">{{ getNFKValue(sensor.key) }}</span>
@@ -152,6 +141,16 @@
 			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
 
 		</div>
+		<ChartTime 
+		:chart-width="chartWidth" 
+		:frame-width="frameWidth" 
+		:scroll-left="scrollLeft" 
+		:start-timestamp="startTimestamp"
+		:number-of-days="numberOfDays"
+		:data-present="dataPresent"
+		:hover-position="hoverPosition"
+		></ChartTime>
+
 	</div>
 </template>
 
@@ -257,7 +256,7 @@ export default {
 	},
 	computed: {
 		globalExtentY() {
-			const allValues = this.sensors.flatMap(s => s.data?.map(d => d.value) || [])
+			const allValues = this.filteredSensors.flatMap(s => s.data?.map(d => d.value) || [])
 			if (!allValues.length) return [0, 100]
 
 			let yMin = Math.min(...allValues)
@@ -296,7 +295,8 @@ export default {
 			return this.heatmap ? 0 : 20;
 		},
 		rowHeight() {
-			return Math.max((this.frameWidth / 10), 100) - this.rowMargin;
+			return 115 - this.rowMargin
+			// return Math.max((this.frameWidth / 10), 100) - this.rowMargin;
 		}, 
 		hasSoilAttributes() {
 			return (this.device.attributes.totwasserbereich && this.device.attributes.feldkapazität)
@@ -304,6 +304,10 @@ export default {
 		colorScheme() {
 			return state.colorScheme;
 		},
+		filterFaultyValues() {
+			return state.filterFaultyValues;
+		},
+
 
 	},
 	methods: {
@@ -484,14 +488,21 @@ export default {
 			});
 		},
 		filterSensors() {
+			this.minValue = null;
+			this.maxValue = null;
+			if (state.filterFaultyValues) {
+				this.minValue = config.minMaxValues[this.title].min;
+				this.maxValue = config.minMaxValues[this.title].max;
+			}
+			
 			this.filteredSensors = this.sensors.map(sensor => {
 				if (!sensor.data?.length) return sensor;
 				
 				return {
 					...sensor,
 					data: sensor.data.filter(d => {
-						if (this.minValue !== undefined && d.value < this.minValue) return false;
-						if (this.maxValue !== undefined && d.value > this.maxValue) return false;
+						if (this.minValue !== null && d.value < this.minValue) return false;
+						if (this.maxValue !== null && d.value > this.maxValue) return false;
 						return true;
 					})
 				};
@@ -593,6 +604,10 @@ export default {
 				this.loading = false;
 			},
 			immediate: true
+		},
+		filterFaultyValues() {
+			this.filterSensors();
+			this.drawCharts();
 		}
 	},
 	mounted() {
@@ -624,9 +639,9 @@ export default {
 .scrollframe
 	position: relative;
 	overflow: hidden;
-	background var(--uibrighter)
-	background #fff
-	border 1px solid #fff
+	// background var(--uibrighter)
+	// background #fff
+	border 1px solid transparent
 	box-sizing content-box
 
 .heatmap .scrollframe
@@ -636,7 +651,7 @@ export default {
 .scrollinner
 	height: 100%;
 	position: relative;
-	background linear-gradient(to bottom, transparent, #fff)
+	// background linear-gradient(to bottom, transparent, #fff)
 
 
 .scrolloverlay
@@ -661,14 +676,7 @@ export default {
 	border-top 1px solid transparent
 .schichten .labelinner
 	border-top 1px solid #00000022
-	// background white
-	// z-index 200
 	background linear-gradient(to bottom, #00000008 0%, #00000000 25%, transparent 50%)
-	// :not(.heatmap) .sensorlabel:last-of-type
-// 	border-bottom 1px solid transparent
-
-// .heatmap .labelinner
-// 	padding 0 4px
 .labelinner
 	position absolute		
 	left 0

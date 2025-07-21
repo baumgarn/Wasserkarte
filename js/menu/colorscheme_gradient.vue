@@ -12,16 +12,16 @@
 	name: 'ColorScheme',
 	props: {
 		colorScheme: {
-		type: Array,
-		required: true,
+			type: Array,
+			required: true,
 		},
 		width: {
-		type: Number,
-		required: true,
+			type: Number,
+			required: true,
 		},
 		height: {
-		type: Number,
-		required: true,
+			type: Number,
+			required: true,
 		},
 	},
 	setup(props) {

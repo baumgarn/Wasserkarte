@@ -3,18 +3,12 @@
 	<template v-if="markerStyle == 'Bodenfeuchte Farbkreis'">
 
 		<div 
-			class="map-marker kreis faux"
-			:class="{ mouseover, selected: isSelected }"
-			@mouseenter="onMouseEnter"
-			@mouseleave="onMouseLeave"
-			@click="click"
-			@wheel="wheelForward"
-			>
+			class="map-marker kreis faux">
 			
 			<div class="schichten">
 
-				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(60)"></div>
-				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(8)"></div>
+				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(40)"></div>
+				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(10)"></div>
 				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(30)"></div>
 				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(2)"></div>
 			
@@ -82,7 +76,7 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-	.map-marker
+	.map-marker.faux
 		pointer-events none
 
 	.map-marker.kreis

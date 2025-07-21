@@ -25,6 +25,7 @@ dist/
 # Repomix-related
 .repomixignore
 repomix-output.xml
+repomix.config.json
 
 # Logs
 *.log

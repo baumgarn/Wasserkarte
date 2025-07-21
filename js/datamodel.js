@@ -14,50 +14,35 @@ export const dataModel = {
 				{ value: 100, color: '#4ce6cc'},
 				{ value: 120, color: '#55c9f0'},
 			],
-			// dwd: [
-			// 	{ value: 0, color: '#c8632c'},
-			// 	{ value: 10, color: '#ff961f'},
-			// 	{ value: 20, color: '#fac83d'},
-			// 	{ value: 30, color: '#ffe765'},
-			// 	{ value: 40, color: '#fafa4b'},
-			// 	{ value: 50, color: '#bee68c'},
-			// 	{ value: 60, color: '#c7fa4b'},
-			// 	{ value: 70, color: '#00b401'},
-			// 	{ value: 80, color: '#008c01'},
-			// 	{ value: 90, color: '#82e7fa'},
-			// 	{ value: 100, color: '#34c8fa'},
-			// 	{ value: 110, color: '#0082fa'},
-			// 	{ value: 120, color: '#0000fa'},
-			// ],
+			dwd: [
+				{ value: 0, color: '#c8632c'},
+				{ value: 10, color: '#ff961f'},
+				{ value: 20, color: '#fac83d'},
+				{ value: 30, color: '#ffe765'},
+				{ value: 40, color: '#fafa4b'},
+				{ value: 50, color: '#bee68c'},
+				{ value: 60, color: '#c7fa4b'},
+				{ value: 70, color: '#00b401'},
+				{ value: 80, color: '#008c01'},
+				{ value: 90, color: '#82e7fa'},
+				{ value: 100, color: '#34c8fa'},
+				{ value: 110, color: '#0082fa'},
+				{ value: 120, color: '#0000fa'},
+			],
 			blue: [
 				{ value: 0, color: '#d8f5ff'},
 				{ value: 120, color: '#407dff'},
-			],
-			// red: [
-			// 	{ value: 0, color: '#ff684a'},
-			// 	{ value: 120, color: '#ffff00'},
-			// ],
-			// black: [
-			// 	{ value: 0, color: '#ffffff'},
-			// 	{ value: 120, color: '#444444'},
-			// ],
-			magma: [
-				{ value: 0, color: '#fcfdbf' },
-				{ value: 40, color: '#feb078' },
-				{ value: 80, color: '#d8456c' },
-				{ value: 120, color: '#932b80' },
 			],
 		},
 		
 	},
 
 	nfk_labels : [
-		{ value: 0, name: 'Wasser nicht verfügbar'},
-		{ value: 10, name: 'Extremer Trockenstress'},
-		{ value: 50, name: 'Trockenstress'},
-		{ value: 70, name: 'Ausreichende Wasserversorgung'},
-		{ value: 100, name: 'Gute Wasserversorgung'},
-		{ value: 120, name: 'Wasserübersättigung'},
+		{ value: 10, name: 'Sehr trocken'},
+		{ value: 50, name: 'Trocken'},
+		{ value: 80, name: 'Optimal'},
+		{ value: 100, name: 'Nass'},
+		{ value: 120, name: 'Sehr Nass'},
 	],
 
 	soil_table : {
@@ -233,7 +218,7 @@ export const dataModel = {
 				const g = Math.round(c1.g + (c2.g - c1.g) * t);
 				const b = Math.round(c1.b + (c2.b - c1.b) * t);
 
-				return rgbToHex(r, g, b);
+				return rgbToHex(r, g, b); 
 			}
 		}
 	},
@@ -254,6 +239,13 @@ export const dataModel = {
 				return curr.color;
 			}
 		}
+	},
+	
+	get_nfk_color_alpha(value, alpha) {
+		var color = this.get_nfk_color(value);
+		var hex = color.replace(/^#/, '');
+		const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+		return `#${hex}${alphaHex}`;
 	},
 
 	get_vol_nfk_label(device, value) {
@@ -288,7 +280,7 @@ export const dataModel = {
 		const boden = device.attributes.Bodenart;
 
 		if (!this.soil_table[boden] || !this.soil_table[boden].FK[humus] || !this.soil_table[boden].TW[humus]) {
-			console.warn("Ungültige Kombination aus Bodenart oder Humusklasse:", boden, humus);
+			console.warn("Unberücksichtigte Kombination aus Bodenart und Humusklasse:", boden, humus);
 			return;
 		}
 

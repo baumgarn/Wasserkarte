@@ -5,7 +5,7 @@ import { config } from '@/config.js';
 
 
 export const state = reactive({
-	markerStyle: 'Bodenfeuchte Farbkreis',
+	markerStyle: 'Bodenfeuchte_Farbkreis',
 	selectedSoil: 'Alle',
 	selectedDevice: null,
 	selectedDeviceEmbed: null,
@@ -42,6 +42,7 @@ localStorageState('chartStyle', 'schichten');
 localStorageState('showHelp', true);
 localStorageState('showInfoOnStart', true);
 localStorageState('showErrors', false);
+localStorageState('filterFaultyValues', true);
 localStorageState('colorScheme', 'normal');
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );

@@ -141,7 +141,7 @@
 					.domain(this.globalExtentX)
 					.range([0, this.chartWidth]);
 
-				const timestamp = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
+				const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
 
 				let hoverdata = {};
 
@@ -149,15 +149,15 @@
 					const data = this.sensorData[key];
 
 					if (!data || data.length === 0) {
-						hoverdata[key] = { ts: timestamp, value: '-', valid: false };
+						hoverdata[key] = { value: '-', valid: false };
 						continue;
 					}
 
 					// Case: After last point
-					if (timestamp > data[data.length - 1].ts) {
-						const gap = timestamp - data[data.length - 1].ts;
+					if (hovertime > data[data.length - 1].ts) {
+						const gap = hovertime - data[data.length - 1].ts;
 						hoverdata[key] = {
-							ts: timestamp,
+							ts: hovertime,
 							value: gap > config.dataGapLength ? '-' : data[data.length - 1].value,
 							valid: gap <= config.dataGapLength
 						};
@@ -165,37 +165,37 @@
 					}
 
 					// Case: Before first point
-					if (timestamp < data[0].ts) {
-						hoverdata[key] = { ts: timestamp, value: '-', valid: false };
+					if (hovertime < data[0].ts) {
+						hoverdata[key] = { value: '-', valid: false };
 						continue;
 					}
 
-					// Find the data segment containing the hover timestamp
-					let found = false;
-					for (let i = 0; i < data.length - 1; i++) {
-						const a = data[i];
-						const b = data[i + 1];
-						if (a.ts <= timestamp && timestamp <= b.ts) {
-							const gap = b.ts - a.ts;
-							if (gap <= config.dataGapLength) {
-								hoverdata[key] = { ts: timestamp, value: a.value, valid: true };
-							} else {
-								hoverdata[key] = { ts: timestamp, value: '-', valid: false };
-							}
-							found = true;
-							break;
+					// Find the closest point
+					let closest = null;
+					let minDiff = Infinity;
+
+					for (let i = 0; i < data.length; i++) {
+						const point = data[i];
+						const diff = Math.abs(point.ts - hovertime);
+
+						// If equal diff, prefer the *later* point
+						if (diff < minDiff || (diff === minDiff && point.ts > closest.ts)) {
+							closest = point;
+							minDiff = diff;
 						}
 					}
 
-					// Fallback if no segment matched (should not normally happen)
-					if (!found && !hoverdata[key]) {
-						hoverdata[key] = { ts: timestamp, value: '-', valid: false };
-					}
+					const isValid = minDiff <= config.dataGapLength;
+					hoverdata[key] = {
+						ts: closest.ts,
+						value: isValid ? closest.value : '-',
+						valid: isValid
+					};
 
-					// Set global hover timestamp to first valid one
-					if (hoverdata[key].valid && !hoverdata.ts) {
+					if (isValid && !hoverdata.ts) {
+						hoverdata.ts = closest.ts;
+						hoverdata.xpos = xScale(new Date(closest.ts)) - this.scrollLeft - 1;
 					}
-					hoverdata.ts = timestamp;
 				}
 
 				return hoverdata;
@@ -307,7 +307,6 @@
 		watch: {
 			device() {
 				this.loadSensorData();
-				console.log('device', this.device)
 			},
 			dataAggregation() {
 				this.loadSensorData();
@@ -449,33 +448,34 @@
 							:hoverPosition
 							:hoverData
 							/>
+							<!-- :ceiling="35"
+							:baseline="0" -->
 
 					</div>
 				</div>
 			</div>
 
-			<div v-if="hasBodentemperaturSensors">
+			<!-- <div v-if="hasBodentemperaturSensors">
 
-				<!-- <hr/> -->
 
 				<div v-if="chartStyle === 'schichten'">
 
 					<div class="graph">
 						<ChartHeat 
-						title="Bodentemperatur"
-						:sensors="bodentemperaturSensors" 
-						:device
-						:chartWidth 
-						:frameWidth 
-						:scrollLeft 
-						:startTimestamp
-						:latestTimestamp
-						:numberOfDays
-						:dataPresent
-						:hoverPosition
-						:hoverData
-						:coloring="'temperatur'"
-						:showDate="false"
+							title="Bodentemperatur"
+							:sensors="bodentemperaturSensors" 
+							:device
+							:chartWidth 
+							:frameWidth 
+							:scrollLeft 
+							:startTimestamp
+							:latestTimestamp
+							:numberOfDays
+							:dataPresent
+							:hoverPosition
+							:hoverData
+							:coloring="'temperatur'"
+							:showDate="false"
 						/>
 					</div>
 
@@ -527,7 +527,7 @@
 
 					</div>
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 
@@ -541,13 +541,9 @@
 	</div>
 
 	<div class="additional" v-if="context=='sidebar'">
-		<!-- <hr> -->
 		<a :href="apiUrl" class="apiurl">API</a>
 		<SensorData :device="device" :showTitle="false"></SensorData>
-
 	</div>
-
-	<!-- <ToolTip :sensors="allSensors" :device :hoverData :hoverPosition /> -->
 
 </div>
 
@@ -555,7 +551,8 @@
 
 <style lang="stylus" scoped>
 	.location
-		margin 12px 24px 0
+		padding 12px 24px 0
+		// background #ff999944
 	h2
 		margin 0 0 .2em
 		font-size 18pt
@@ -597,10 +594,11 @@
 		display flex
 		flex-direction row
 		gap 24px
-		margin-top 24px
-		margin-bottom 24px
-		.locationheader
-			min-height 320px
+		height 322px
+		// margin-top 24px
+		// margin-bottom 24px
+		// .locationheader
+			// min-height 280px
 		.left
 			flex-basis calc(50% - 12px)
 			flex-grow 0
@@ -610,21 +608,29 @@
 			flex-grow 0
 			flex-shrink 0
 	
-	.map
-		height 400px
+	// .map
+	// 	height 200px
+	// 	border 1px solid red
 
-	.mapcontainer
+	#mapcontainer
 		width 100%
-		height 100%
+		margin 0 0 0
+		height 320px
+		// border 1px solid red
 		border-radius var(--chartborderradius)
-		filter var(--dropshadowfilter)
+		// filter var(--dropshadowfilter)
 		overflow hidden
 
-
+	.additional
+		position relative
+		margin-bottom 12px
 	.apiurl
 		display inline-block
 		margin-top 0em
 		font-size 10pt
+		position absolute
+		right 0
+		top 0
 	.apiurl
 	.sensordata
 		margin-left var(--sidebartextmargin)

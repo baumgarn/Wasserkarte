@@ -13,6 +13,7 @@
 			@keydown.enter.space.prevent="selectColorScheme(key)">
 
 			<ColorSchemeGradient :width="220" :height="20" :colorScheme="colorSchemes[key]" />
+			<!-- <ColorSchemeItem :width="220" :height="20" :colorScheme="colorSchemes[key]" /> -->
 
 		</div>
 	</div>
@@ -25,12 +26,14 @@ import { dataModel } from '@/datamodel.js'
 import { state } from '@/state.js'
 import ColorScheme from '@/menu/colorscheme_item.vue'
 import ColorSchemeGradient from '@/menu/colorscheme_gradient.vue'
+import ColorSchemeItem from '@/menu/colorscheme_item.vue'
 
 export default {
 	name: 'ColorschemeMenu',
 	components: {
 		ColorScheme,
 		ColorSchemeGradient,
+		ColorSchemeItem,
 	},
 	setup() {
 		return {state};

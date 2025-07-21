@@ -3,7 +3,7 @@
 	<div class="windowbuttons">
 		<div class="windowbuttonsinner">
 			<div class="iconbutton close" v-on:click="closefunc()"></div>
-			<!-- <div v-if="showswitch" class="iconbutton switchfullwindow" v-on:click="switchSidebarWidth()"></div> -->
+			<div v-if="showswitch" class="iconbutton switchfullwindow" v-on:click="switchSidebarWidth()"></div>
 			<div class="iconbutton more" ref="toggleMore" v-on:click="openMore()"></div>
 			<PopoverMenu ref="moreRef" :items="moreItems" @select="handleMoreMenu" />
 		</div>

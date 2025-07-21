@@ -4,69 +4,109 @@
 
 		<div class="scrollcontent">
 			<div class="content">
-				<div class="contentoben">
+				<div class="infoschicht" :style="'background:'+ dataModel.get_nfk_color_alpha(120, alpha)">
+					<h1>
+						W<span class="tropfenA" v-if="state.colorScheme == 'normal'">A<div class="tropfenbild"></div></span><span v-else class="tropfenFarbschema">A<div class="tropfenbild" :style="'background:'+dataModel.get_nfk_color(120)"></div></span>SSERKARTE
+					</h1>
+					Diese Karte befindet sich aktuell in Entwicklung. Inhalt und Funktion kann sich ändern. 
+				</div>
+				<!-- <div class="infoschicht" :style="'background:'+coloralpha(100)"> -->
+				<div class="infoschicht" :style="'background:'+dataModel.get_nfk_color_alpha(70, alpha)">
+					<h2>Wie feucht sind unsere Böden wirklich?</h2>
+					<p>
+						Die Wassermeisterei ist ein Citizen Science Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten um Böden besser zu verstehen und Strategien für eine dürre-resiliente Landschaft zu entwickeln. Erfahre mehr über das Projekt und werde Wassermeister*in auf <a href="http://wassermeisterei.org">wassermeisterei.org</a>
 
-
-					<p class="wassermeisterei">
-						<a href="http://wassermeisterei.org" class="logolink">
-							<img src="/img/logonetzwerk.png">
-						</a>
 					</p>
-
-					<p class="beschreibung">
-						Die Wassermeisterei ist ein Citizen Science Projekt im Hohen Fläming. In der trockensten Region
-						Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten um Böden besser zu
-						verstehen und Strategien für eine dürre-resiliente Landschaft zu entwickeln. Geplant ist die
-						Errichtung von 100 Messstationen. Die aktuell in Entwicklung befindliche Datenkarte zeigt alle
-						Sensorstandorte und visualisiert die gesammelten Daten.
-					</p>
-					
-					<p class="beschreibung">
-						Die Farbkreise stellen die Bodenfeuchte in verschiedenen Schichttiefen dar.<br>
-						Ein Klick auf die Standorte öffnet detaillierte Sensordaten.
-					</p>
-					
-					<!-- <Legend /> -->
-
-					<div class="credits">
-
-
-
-						<p>
-							<em>Erfahre mehr über das Projekt und werde Wassermeister*in auf</em><br><a class="redlink"
-								href="http://wassermeisterei.org">wassermeisterei.org</a><br>
-						</p>
-
-						<p>
-							<em>Kontakt</em><br>
-							<a class="redlink" href="mailto:post@wassermeisterei.org">post@wassermeisterei.org</a>
-						</p>
-
-						<p>
-							<em>Projektleitung Wassermeisterei</em><br>
-							Daniel Diehl<br>
-						</p>
-
-						<p>
-							<em>Design & Programmierung Datenkarte</em><br>
-							Nikolaus Baumgarten
-						</p>
-
-						<p>
-							<em>Mit freundlicher Unterstützung von</em><br>
-							Zukunftsschusterei Smart City Modellprojekt Bad Belzig & Wiesenburg
-						</p>
-
-
-
+				</div>
+				<div class="infoschicht" :style="'background:'+dataModel.get_nfk_color_alpha(50, alpha)">
+					<h3>Benutzungshinweise</h3>
+					<div class="legenditem">
+						<div class="legendimage">
+							<FauxMarker/>
+						</div>
+						<div class="legendtext">
+							Die Farbkreise zeigen die gemessene Bodenfeuchte in verschiedenen Schichttiefen.<br>
+							Klick auf die Standorte öffnet detaillierte Sensordaten.
+						</div>
 					</div>
 
+					<Legend/>
+
+					<div class="legenditem clickable" @click="openMenu('orte', $event )">
+						<div class="legendimage">
+							<div class="icon orte"></div>
+						</div>
+						<div class="legendtext">
+							Liste aller Sensorstandorte
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('bodenfeuchte', $event )">
+						<div class="legendimage">
+							<div class="icon bodenfeuchte"></div>
+						</div>
+						<div class="legendtext">
+							Optionen für Bodenfeuchte Kartendarstellung
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('karten', $event )">
+						<div class="legendimage">
+							<div class="icon karten"></div>
+						</div>
+						<div class="legendtext">
+							Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('glossar', $event )">
+						<div class="legendimage">
+							<div class="icon glossar"></div>
+						</div>
+						<div class="legendtext">
+							Glossar zu Bodenkundethemen
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">
+						<div class="legendimage">
+							<div class="icon einstellungen"></div>
+						</div>
+						<div class="legendtext">
+							Einstellungen sowie alternative Farbschemata
+						</div>
+					</div>
+					<div class="legenditem">
+						<div class="legendimage">
+							<div class="icon moreinfo"></div>
+						</div>
+						<div class="legendtext">
+							In der Standortansicht lassen sich hier Iframes sowie QR Codes erstellen
+						</div>
+					</div>
 
 				</div>
-				<div class="contentunten">
-
+				<div class="infoschicht" :style="'background:'+dataModel.get_nfk_color_alpha(0, alpha)">
+					<h3>Umsetzung des Projektes</h3>
+					
+					<p>
+						Die Durchführung des Projektes erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und
+						dem Smart City Modellprojekt der Stadt Bad Belzig (Zukunftsschusterei).
+					</p>
+					<p>
+						Projektleitung Wassermeisterei: Daniel Diehl<br>
+						Projektleitung Zukunftsschusterei: Konrad Traupe<br>
+						Ansprechpartner Zukunftsschusterei: Malte Specht<br>
+						Design und Programmierung Wasserkarte: Nikolaus Baumgarten<br>
+					</p>
+						<div class="settings-item">
+						<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
+						<label for="showinfoonstart">Infofenster bei Start anzeigen</label>
+					</div>
+				</div>
+				<div class="infoschicht">
+			
 					<div class="logos">
-
+						<a href="http://wassermeisterei.org" class="wassermeisterei">
+							<img src="/img/wassermeistereilogo.png">
+						</a>
+						
 						<a href="https://zukunftsschusterei.de/" class="zukunftsschusterei">
 							<img src="/img/zukunftsschusterei.png">
 						</a>
@@ -78,16 +118,13 @@
 					</div>
 
 					<div class="foerderleiste">
-						Gefördert durch:
+						Gefördert durch:<br>
 						<img src="/img/foerderleiste.png">
 					</div>
 
-					<p class="light verantwortlich">
+					<p class="impressum">
 						Inhaltlich Verantwortlich: Daniel Diehl, Lebendiger Lernort Arensnest e.V., Arensnest 3, 14827
-						Wiesenburg
-					</p>
-
-					<p class="light disclaimer">
+						Wiesenburg.
 
 						Diese Webseite verwendet keine Cookies und sammelt keine personenbezogenen Daten.
 
@@ -105,8 +142,9 @@
 
 						D3.js (BSD-3-Clause-Lizenz).
 
-						Einzelne Icons übernommen und modifiziert von Google Material Symbols (Apache 2.0. Lizenz).
+						Einzelne Icons übernommen und modifiziert von Google Material Symbols (Apache 2.0. Lizenz), Noto Emoji (SIL Open Font Lizenz 1.1).
 
+						<a href="/lizenzen/lizenzen.txt" target="_blank">Lizenzinformationen</a>
 					</p>
 
 				</div>
@@ -131,14 +169,22 @@
 import { state } from '@/state.js';
 import dataStore from '@/datastore.js';
 import Legend from '@/map/legend.vue';
+import FauxMarker from '@/map/legend_faux_marker.vue';
+
+import { dataModel } from '@/datamodel.js'
 
 export default {
 	name: 'Info',
-	components: { Legend},
+	components: { Legend, FauxMarker},
 	props: {
+	},
+	setup() {
+		return { state, dataModel
+		}
 	},
 	data() {
 		return {
+			alpha: 0.25
 		}
 	},
 	computed: {
@@ -146,6 +192,24 @@ export default {
 	methods: {
 		close() {
 			state.menuOpen.info = false;
+		},
+		
+		openMenu(key) {
+			if (state.menuOpen[key]){
+				state.menuOpen[key] = false;
+
+			} else {
+
+				state.menuOpen.orte = false;
+				state.menuOpen.bodenfeuchte = false;
+				state.menuOpen.karten = false;
+				state.menuOpen.glossar = false;
+				state.menuOpen.einstellungen = false;
+				if (state.isMobile) {
+					state.menuOpen.info = false;
+				}
+				state.menuOpen[key] = true;
+			}
 		},
 	},
 	mounted() {
@@ -159,98 +223,144 @@ export default {
 
 
 <style lang="stylus" scoped>
+	h1
+		font-size 48px
+		margin -12px 0 0
+		.tropfenA
+			display inline-block
+			position relative
+			color transparent
+			margin 0
+			margin-left -.0775em
+			margin-right -.05em
+			height .8em
+			top .3em
+			background url(/img/tropfen.png) center / contain no-repeat
+		.tropfenFarbschema
+			display inline-block
+			position relative
+			color transparent
+			margin 0
+			margin-left -.0775em
+			margin-right -.05em
+			height .8em
+			top .3em
+			.tropfenbild
+				position absolute
+				left 0
+				top 0
+				right 0
+				bottom 0
+				background white
+				mask-image: url(/img/tropfen_schwarz.png);
+				mask-size: contain;
+				mask-position center;
+				mask-repeat: no-repeat;
+				-webkit-mask-image: url(/img/tropfen_schwarz.png);
+				-webkit-mask-size: contain;
+				-webkit-mask-position: contain;
+				-webkit-mask-repeat: no-repeat;
+				&:after
+					background url(/img/tropfen_highlight.png) center / contain no-repeat
+					content ''
+					position absolute
+					left 0
+					top 0
+					right 0
+					bottom 0
+	.is-mobile h1
+		font-size 36px
+	h2
+		font-size 16px
+		margin 0 0 10px
+	h3
+		font-size 14px
+		margin 0 0 10px
+	a
+		font-weight bold
+	p
+		margin 8px 0
+	em.hi
+		font-style normal
+		font-weight 500
+	p + p
+		margin-top 12px
+	.settings-item
+		margin 16px 0 10px
 	.sidebar.info
 		z-index 10000
 		background #fff
 		line-height 1.4
+		height 100vh
 	.scrollcontent
 		background #fff
-		font-size 10pt
-		margin-top -8px
-		padding 0 24px 12px
-		height 100%
+		font-size 12px
+		padding 0 0 12px
+		height 100vh
 		max-width 100vw
 		.content
 			min-height 100%
 			display flex
 			flex-direction column
-			// .contentoben
-				// flex 1
-	.beschreibung 
-		color #333
-		line-height 1.5
-		font-size 10pt
-		
-	p
-		margin 1.4em 0
-	em
-		font-style normal
-		font-weight 600
-		color var(--logogruen)
-		opacity .8
-		font-size 10pt
-	.light
-		color rgba(0,0,0,.5)
-		font-size 11px
-		font-size 8pt
-		margin 0
-		a
-			text-decoration underline
-			color unset
-			font-weight normal
-			&:hover
-				color rgba(0,0,0,.8)
-	a
-		text-decoration none
-		font-weight 600
-		&:hover
-			text-decoration underline
-	.redlink
-		font-size 11pt
-		color var(--logorot)
-		opacity .9
-	a.logolink
-		opacity 1
-	.wassermeisterei
-		margin 1.5em 0 -1em
-		img
-			width 60%
-			max-width 100%
-			margin-left -.25em
-	
 	.logos
 		margin 24px 0
 		display flex
 		flex-direction row
+		align-items center
+		gap 5%
+		img
+			width 100%
 		> *
-			flex-basis 38%
-		.zukunftsschusterei img
-			height 75px
-		.klimadaten img
-			height 45px
-			margin-top 25px
+			flex-grow 0
+			flex-shrink 0
+		.wassermeisterei
+			flex-basis 40%
+		.zukunftsschusterei 
+			flex-basis 22%
+			img
+				margin-top -12px
+		.klimadaten 
+			flex-basis 27%
 	
-
+	.impressum
+		font-size 10px
+		a
+			font-weight normal
 			
 	.foerderleiste
 		margin 24px 0 36px
 		img
-			width 100%
+			width 55%
 			margin-top 26px
 
-	@media (max-width 500px)
-		.wassermeisterei img
-			width 100%
+	.infoschicht 
+		padding 12px 24px
+
+	.legenditem
+		display flex
+		flex-direction row
+		align-items center
+		&:last-of-type
+			margin-bottom 2px
+		&.clickable
+			cursor pointer
+		.legendimage
+			flex-basis 36px
+			flex-grow 0
+			flex-shrink 0
+			position relative
+			min-height 20px
+			margin-right 8px
+			display flex
+			align-items center
+			justify-content center
+		.legendtext
+			flex-grow 1
+		.icon
+			width 36px !important
+			height 36px !important
+		.icon.moreinfo
+			width 28px !important
+			height 28px !important
 </style>
 
-
-<style lang="stylus" scoped>
-	.is-mobile .info .logos
-		> *
-			flex-basis 50%
-		.zukunftsschusterei img
-			height 60px
-		.klimadaten img
-			height 36px
-			margin-top 20px
-</style>

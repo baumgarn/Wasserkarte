@@ -28,6 +28,7 @@
 					<ErrorMenu v-if="state.menuOpen.error"/>
 					<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
 					<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
+					<GlossarMenu v-if="state.menuOpen.glossar"/>
 					<SettingsMenu v-if="state.menuOpen.einstellungen"/>
 					<KartenMenu v-if="state.menuOpen.karten"/>
 				</div>
@@ -65,10 +66,11 @@
 import { ref, computed } from 'vue';
 import Sidebar from '@/views/sidebar.vue';
 import Info from '@/views/info.vue';
-import KartenMenu from '@/menu/menu_karten.vue';
 import MenuBar from '@/menu/menu_bar.vue';
 import Legend from '@/map/legend.vue';
 import MarkerMenu from '@/menu/menu_marker.vue';
+import GlossarMenu from '@/menu/menu_glossar.vue';
+import KartenMenu from '@/menu/menu_karten.vue';
 import ErrorMenu from '@/menu/menu_error.vue';
 import LayerLegends from '@/menu/layer_legends.vue';
 import SettingsMenu from '@/menu/menu_settings.vue';
@@ -92,6 +94,7 @@ export default {
 		LayerLegends,
 		Legend,
 		MarkerMenu,
+		GlossarMenu,
 		ErrorMenu,
 		SettingsMenu,
 		GeraeteMenu,

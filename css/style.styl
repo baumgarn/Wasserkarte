@@ -70,7 +70,9 @@ html, body
 	margin: 0;
 	height: 100%;
 	font-family: "Noto Sans", sans-serif;
+	font-family: "Ubuntu", sans-serif;
 	font-weight: 500;
+	font-weight: 400;
 	font-size: 11pt;
 	line-height 1.3
 	overscroll-behavior: none;
@@ -79,7 +81,9 @@ html, body
 a
 	color: #000000ee
 
-// h1, h2, h3, h4, h5 
+h1, h2, h3, h4, h5 
+	font-family: "Ubuntu", sans-serif;
+	// font-family: "Noto Sans", sans-serif;
 	// font-family sans-serif
 
 
@@ -385,7 +389,7 @@ input[type=radio]
 input[type=radio]
 	top 1px
 
-.settings
+.settings-item
 	input + label
 		padding-left 6px
 		cursor pointer
@@ -730,7 +734,7 @@ hr
 	margin 1.2em 0 2.2em
 	position relative
 	.scrollframe
-		background white
+		background transparent
 
 .chartheader
 	display flex
@@ -752,6 +756,11 @@ hr
 .chart-time
 	display block
 	position relative
+
+.heatmap .chart-time
+	border-top 1px solid transparent
+.schichten .chart-time
+	border-top 1px solid #eee
 
 .value
 	font-weight bold
@@ -787,6 +796,7 @@ hr
 	transform: translate(-50%, -50%);
 .map-marker.faux
 	transform none
+	position relative
 
 .marker-container.mouseover
 	z-index 1000
@@ -853,6 +863,7 @@ hr
 	// box-shadow 0 1px 2px 2px #00000011
 	.schichten
 		border 2px solid #44444488
+		border 2px solid #44444477
 		width 36px
 		height 36px
 		border-radius 50%
@@ -882,4 +893,58 @@ hr
 	pointer-events none
 
 
-//
+// ICONS
+
+
+.icon
+	position relative
+	left 0
+	top 0
+	width 100%
+	height 100%
+	background-size 90% 90%
+	background-position center center
+	background-repeat no-repeat
+
+.orte.icon
+	background-image url('/img/sensor.png')
+	background-size 77% 77%
+	opacity .9
+
+.bodenfeuchte.icon
+	background-image url('/img/tropfen.png')
+	background-size 45%
+
+.boeden.icon
+	background-image url('/img/soil.png')
+	background-size 80% 80%
+
+.error.icon
+	background-image url('/img/warningred.png')
+	background-size 80% 80%
+	opacity .7
+
+.karten.icon
+	background-image url('/img/karten.png')
+	opacity .9
+
+.glossar.icon
+	background-image url('/img/buch.png')
+	// background-size 85% 85%
+	// opacity .8
+
+.einstellungen.icon
+	background-image url('/img/settings.png')
+	background-size 85% 85%
+	opacity .8
+
+.info.icon
+	background-image url('/img/info.png')
+	opacity .8
+	background-size 70% 70%
+
+.icon.moreinfo
+	background-image url(/img/morev.png)
+	background-size 70% 70%
+	background-color #eeeeeeee
+	border-radius 50%

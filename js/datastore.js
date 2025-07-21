@@ -181,7 +181,7 @@ const dataStore = reactive({
 	sortFaultyDevices() {
 		state.faultyDevices = []
 		for (const device of state.devices) {
-			if (this.timeSinceLastTelemetry(device.id.id) >= 24 
+			if (this.timeSinceLastTelemetry(device.id.id) >= 48 
 				|| (!device.attributes?.longitude || !device.attributes?.latitude)
 				|| (!device.attributes?.Bodenart || !device.attributes?.Humusgehalt)) {
 				state.faultyDevices.push(device);

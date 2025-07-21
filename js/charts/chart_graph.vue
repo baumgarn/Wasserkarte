@@ -42,18 +42,19 @@
 
 					<svg :width="chartWidth" :height="rowHeight" class="dot-svg">
 						<template v-for="(sensor, i) in sensors">
-							<circle v-if="validHoverData(sensor.key)" :cx="(hoverPosition + .5)"
+							<circle v-if="hoverData?.xpos" :cx="(hoverData?.xpos + .5)"
 								:cy="getYPosition(hoverData[sensor.key].value)" r="3" class="hover-dot"
 								:style="{ fill: getDepthColor(getDepthValue(sensor.key))}" />
 						</template>
 					</svg>
 
 				</div>
-				<div class="hoverline" v-show="hoverPosition >= 0" :style="{ left: (hoverPosition ) + 'px' }"></div>
+				<div class="hoverline" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
+				<!-- <div class="hoverline" v-show="hoverPosition >= 0" :style="{ left: (hoverPosition ) + 'px' }"></div> -->
 
 				<div class="scrolloverlay" v-if="dataPresent">
-					<div class="date" v-if="hoverData && hoverData.ts">
-						{{ hoverData && hoverData.ts ? new Date(hoverData.ts).toLocaleString(undefined, { 
+					<div class="date" v-if="hoverData?.ts">
+						{{ hoverData?.ts ? new Date(hoverData.ts).toLocaleString(undefined, { 
 						year: 'numeric',
 						month: 'numeric',
 						day: 'numeric',
@@ -81,7 +82,7 @@
 
 
 
-			<ToolTip :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
+			<ToolTip v-if="hoverData && hoverData.ts" :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
 
 			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
 
@@ -92,7 +93,7 @@
 			:hover-position="hoverPosition"></ChartTime>
 		<!-- :insideGraph="true" -->
 
-		<!-- <div class="depths" >
+		<div class="depths" >
 			<div class="sensor"
 				v-for="(sensor, i) in sensors"
 				:key="'label-'+i"
@@ -100,7 +101,7 @@
 				<div class="graphcolor" :style="{ backgroundColor: getDepthColor(getDepthValue(sensor.key)) }"></div>
 				<div class="depth">{{ getDisplayDepth(sensor.key) }}</div>
 			</div>
-		</div> -->
+		</div>
 
 	</div>
 
@@ -127,7 +128,7 @@ export default {
 	data() {
 		return {
 			strokeWidth: 1.5,
-			backgroundOpacity: .5,
+			backgroundOpacity: .4,
 			rowMargin: 0,
 			linePathRefs: [],
 			heatmapImages: [],
@@ -258,11 +259,16 @@ export default {
 			return ticks;
 		},
 		rowHeight() {
-			return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
+			// return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
+			// return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
+			return 460
 		}, 
 		colorScheme() {
 			return state.colorScheme;
 		},
+		filterFaultyValues() {
+			return state.filterFaultyValues;
+		}
 	},
 	methods: {
 		
@@ -375,15 +381,21 @@ export default {
 			});
 		},
 		filterSensors() {
-
+			this.minValue = null;
+			this.maxValue = null;
+			if (state.filterFaultyValues) {
+				this.minValue = config.minMaxValues[this.title].min;
+				this.maxValue = config.minMaxValues[this.title].max;
+			}
+			
 			this.filteredSensors = this.sensors.map(sensor => {
 				if (!sensor.data?.length) return sensor;
 				
 				return {
 					...sensor,
 					data: sensor.data.filter(d => {
-						if (this.minValue !== undefined && d.value < this.minValue) return false;
-						if (this.maxValue !== undefined && d.value > this.maxValue) return false;
+						if (this.minValue !== null && d.value < this.minValue) return false;
+						if (this.maxValue !== null && d.value > this.maxValue) return false;
 						return true;
 					})
 				};
@@ -492,6 +504,10 @@ export default {
 				this.loading = false;
 			},
 			immediate: true
+		},
+		filterFaultyValues() {
+			this.filterSensors();
+			this.drawCharts();
 		}
 	},
 	mounted() {

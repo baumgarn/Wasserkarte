@@ -11,7 +11,7 @@
 
 					
 					<SelectGroup
-					:items="[	{ label: 'Schild', value: 'schild' },
+					:items="[	{ label: 'Schild Farbe', value: 'schild' },{ label: 'Schild SW', value: 'schildsw' }, 
 								{ label: 'QR Code', value: 'qrcode' },]"
 					 	v-model="qrcodeStyle" />
 						 
@@ -34,6 +34,7 @@
 								<div class="page" :style="{ width: pagewidth + 'mm', height: pageheight + 'mm' }">
 									<QrCodeContent v-if="qrcodeStyle=='qrcode'" :name="name" />
 									<QrCodeSchildContent v-else-if="qrcodeStyle=='schild'" :name="name" />
+									<QrCodeSchildContentGrau v-else-if="qrcodeStyle=='schildsw'" :name="name" />
 								</div>
 
 							</a>
@@ -61,12 +62,13 @@ import { state } from '@/state.js';
 import dataStore from '@/datastore.js';
 import SelectGroup from '@/ui/selectgroup.vue';
 import QrCodeSchildContent from '@/views/qrcode_schildcontent.vue';
+import QrCodeSchildContentGrau from '@/views/qrcode_schildcontentgrau.vue';
 import QrCodeContent from '@/views/qrcode_qrcodecontent.vue';
 import MenuDevicesMultiselect from '@/menu/menu_devices_multiselect.vue';
 
 
 export default {
-	components: { QrCodeContent, QrCodeSchildContent, MenuDevicesMultiselect, SelectGroup },
+	components: { QrCodeContent, QrCodeSchildContent, QrCodeSchildContentGrau, MenuDevicesMultiselect, SelectGroup },
 	data() {
 		return {
 			schildwidth: 148,
@@ -79,10 +81,10 @@ export default {
 	},
 	computed: {
 		pagewidth() {
-			return (this.qrcodeStyle == 'schild') ? this.schildwidth : this.qrcodewidth;
+			return (this.qrcodeStyle == 'qrcode') ?  this.qrcodewidth : this.schildwidth;
 		} ,
 		pageheight() {
-			return (this.qrcodeStyle == 'schild') ? this.schildheight : this.qrcodeheight;
+			return (this.qrcodeStyle == 'qrcode') ? this.qrcodeheight : this.schildheight;
 		} ,
 		devices() {
 			return state.devicesMultiselect
@@ -147,7 +149,7 @@ export default {
 				margin: 0,
 				filename: filename,
 				image: { type: 'png' },
-				html2canvas: { scale: this.qrcodeStyle == 'schild' ? 3 : 2 },
+				html2canvas: { scale: this.qrcodeStyle == 'qrcode' ? 3 : 2 },
 				jsPDF: { unit: 'mm', format: [this.pagewidth, this.pageheight], orientation: 'portrait' }
 			};
 

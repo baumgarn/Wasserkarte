@@ -66,8 +66,8 @@ export default {
 	data() {
 		return {
 			chartStyles: [
-				{ label: 'Schichten', value: 'schichten' },
-				{ label: 'Heatmap', value: 'heatmap' },
+				{ label: 'Horizonte', value: 'schichten' },
+				{ label: 'Profil', value: 'heatmap' },
 				{ label: 'Graphen', value: 'ueberlagert' },
 			],	
 			aggregationOptions: [
@@ -95,6 +95,7 @@ export default {
 				{ label: 'Letzte 180 Tage', value: 180 },
 				{ label: 'Letzte 90 Tage', value: 90 },
 				{ label: 'Letzte 30 Tage', value: 30 },
+				{ label: 'Letzte 7 Tage', value: 7 },
 			];
 		},
 		wideView() {

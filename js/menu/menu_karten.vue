@@ -87,7 +87,7 @@ export default {
 .attribution
 	margin 5px 5px -20px 5px
 	font-size 9.5pt
-	opacity .5
+	// opacity .5
 
 .map-section-header
 	cursor default
@@ -97,15 +97,10 @@ export default {
 		padding-top .6em
 		margin-top 2em
 		display block
-		color #587eccbb
-		color #1c5de1bb
-		// color #df8a69
-		// color #888
+		color #5da0ecee
 		font-size 80%
 		font-size 9.5pt
-		// border-top 2px solid #587ecc77
-		border-top 2px solid #1c5de144
-		// border-top 2px solid #df8a69aa
+		border-top 1px solid #5da0ec66
 
 
 
@@ -126,7 +121,6 @@ export default {
 	margin-top 0
 	max-width 100%
 	padding 0
-
 	font-weight: bold;
 }
 .layer-item label

@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="colorscheme">
+		class="colorscheme" :style="{ height: height + 'px' }">
 		<div class="colors">
 			<div
 				v-for="(colorItem, index) in colorScheme"
@@ -19,7 +19,15 @@ export default {
 		colorScheme: {
 			type: Array,
 			required: true
-		}
+		},	
+		width: {
+			type: Number,
+			required: true,
+		},
+		height: {
+			type: Number,
+			required: true,
+		},
 	}
 }
 </script>
@@ -29,7 +37,7 @@ export default {
 .colorscheme
 	cursor pointer
 	width 100%
-	height 100%
+	// height 100%
 	margin 0 0
 	position relative
 

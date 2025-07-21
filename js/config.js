@@ -8,7 +8,7 @@ export const config = {
 	minimapZoom: 16,
 	mapZoom: 11,
 
-	dataGapLength: 24 * 60 * 60 * 1000 * 2, // 2 Day in ms
+	dataGapLength: 24 * 60 * 60 * 1000 * 5, // 2 Day in ms
 
 	infoArrowDevice : 'wiesenburg-schlosspark',
 
@@ -23,12 +23,12 @@ export const config = {
 		'Bodentemperatur_80cm'
 	],
 
-	excludeFromMapFit: ['wassermeisterei002', 'caputh-schwielosee-1'],
+	excludeFromMapFit: ['wassermeisterei002', 'caputh-schwielosee-1', 'caputh-schwielosee-kiefer'],
 
-	minMaxValues: [
-		{includes: 'Bodenfeuchte', min: 0, max: 100},
-		{includes: 'Bodentemperatur', min: -50, max: 100},
-	],
+	minMaxValues: {
+		'Bodenfeuchte': {min: -10, max: 100},
+		'Bodentemperatur': {min: -50, max: 100},
+	},
 
 	wmsUrls : [
 		'https://inspire.brandenburg.de/services/gk_wms?request=GetCapabilities&service=WMS',

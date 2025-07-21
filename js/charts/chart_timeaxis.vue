@@ -154,11 +154,10 @@ export default {
 	position: relative;
 	overflow: hidden;
 	height: 16px
-	background #fff
+	background transparent
 	border-radius calc(var(--barheight) / 2)
 	border var(--borderstyle)
 	user-select none
-	// background rgba(0,0,0,0.25)
 }
 
 .scrollinner {

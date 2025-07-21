@@ -19,14 +19,11 @@
 				{{ item.tooltip }}
 			</div>
 
-			<div class="icon"></div>
+			<div class="icon" :class="item.key"></div>
 
 			<div v-if="item.key =='error'" class="count">
 				{{ state.faultyDevices.length }}
 			</div>
-			<!-- <div v-if="item.key =='orte'" class="count">
-				{{ state.devices.length }}
-			</div> -->
 		</div>
 
 		</template>
@@ -59,6 +56,7 @@ export default {
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Bodenfeuchte', tooltip: 'Bodenfeuchte Kartendarstellung', key: 'bodenfeuchte', group: '1' },
 				{ title: 'Karten', tooltip: 'Karten der Landesvermessung\nund Geobasisinformation Brandenburg (LGB)', key: 'karten', group: '1' },
+				{ title: 'Glossar', tooltip: 'Bodenkunde Glossar', key: 'glossar', group: '1' },
 				{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' },
 				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '1' },
 			];
@@ -157,6 +155,7 @@ export default {
 	height 44px
 	background-color var(--menuinactivebg)
 	background-color #eaeaea
+	// background-color #fff
 	border-bottom 1px solid #ccc
 	position relative
 	cursor pointer
@@ -192,55 +191,10 @@ export default {
 	font-weight bold
 	opacity .75
 
-.icon
-	position absolute
-	left 0
-	top 0
-	width 100%
-	height 100%
-	background-size 90% 90%
-	background-position center center
-	background-repeat no-repeat
-
 .icon.active:before
 	opacity .9
 
-.orte .icon
-	background-image url('/img/sensor.png')
-	background-size 77% 77%
-	opacity .9
 
-.bodenfeuchte .icon
-	background-image url('/img/drop_dunkel.png')
-
-.boeden .icon
-	background-image url('/img/soil.png')
-	background-size 80% 80%
-
-.error .icon
-	background-image url('/img/warningred.png')
-	background-size 80% 80%
-	opacity .7
-
-.karten .icon
-	background-image url('/img/karten.png')
-
-.colorscheme .icon
-	left 7px
-	right 7px
-	top 7px
-	bottom 7px
-	height auto
-	width auto
-.einstellungen .icon
-	background-image url('/img/settings.png')
-	background-size 85% 85%
-	opacity .8
-
-.info .icon
-	background-image url('/img/info.png')
-	opacity .8
-	background-size 70% 70%
 
 // mobile
 

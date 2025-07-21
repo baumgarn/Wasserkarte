@@ -11,7 +11,6 @@
 			<div v-for="device in deviceItems" :key="device.name" class="menu-item" 
 				:class="[{selected: selectedDevice === device.name,}]" @click="selectDevice(device)"
 				>
-				<!-- :style="{ backgroundColor: nfk_color(device)}" -->
 
 				<ColorDot :device />
 

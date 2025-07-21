@@ -4,31 +4,31 @@
 
 		<div  class="gradientframe">
 
-			<div class="split">
+			<!-- <div class="split"> -->
 				
-				<div class="startlabel">
+				<!-- <div class="startlabel">
 					<span class="value">0<span class="smaller">nFK</span>%</span>
 				</div>
 				
 				<div class="endlabel">
 					<span class="value">120<span class="smaller">nFK</span>%</span>
-				</div>
+				</div> -->
 
-			</div>
-
-			<ColorSchemeGradient class="gradient" :colorScheme="dataModel.color_schemes.nfk[state.colorScheme]" :width="300" :height="12"/>
+			<!-- </div> -->
 			
 			<div class="split">
 				
 				<div class="startlabel">
-					<span class="label">Kein Wasser verfügbar</span> 
+					<span class="label">Trocken</span> 
 				</div>
 				
 				<div class="endlabel">
-					<span class="label">Wasserübersättigung</span>
+					<span class="label">Nass</span>
 				</div>
 											
 			</div>
+			
+			<ColorSchemeGradient class="gradient" :colorScheme="dataModel.color_schemes.nfk[state.colorScheme]" :width="300" :height="16"/>
 
 			
 			
@@ -58,18 +58,18 @@
 
 	.legend
 		width 100%
-		background white
 		font-size 12px
 		position relative
 		display flex
 		flex-direction column
 		padding 0
-		margin 0 0 24px
+		margin 12px 0 14px
 		gap 0
 	.gradientframe
 		display flex
 		flex-direction column
 		width 100%
+		box-shadow 0 2px 0px #00000022
 		.split
 			display flex
 		.startlabel

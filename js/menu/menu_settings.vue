@@ -7,7 +7,6 @@
 
 		<div class="menuwindow-content">
 
-
 			<div class="settings-group">
 			
 				<div class="settingslabel">
@@ -15,20 +14,24 @@
 				</div>
 				
 				<ColorSchemeSelect />
+
 				<div class="split">
-					<div class="left">0 nFK %<br>Kein Wasser verfügbar</div>
-					<div class="right">120 nFK %<br>Wasserübersättigung</div>
+					<div class="left">Trocken</div>
+					<div class="right">Nass</div>
 				</div>
-				
-				<div class="notice">
-					Die Farbschemaauswahl ist ein experimentelles Feature und befindet sich aktuell in Entwicklung.
-				</div>
+
 			</div>
+
 			<div class="settings-group">
 
 				<div class="settings-item">
 					<input type="checkbox" id="locationwarnings" v-model="state.showErrors">
 					<label for="locationwarnings">Fehlermeldungen anzeigen</label>
+				</div>
+
+				<div class="settings-item">
+					<input type="checkbox" id="faultyvalues" v-model="state.filterFaultyValues">
+					<label for="faultyvalues">Fehlerhafte Sensordaten filtern</label>
 				</div>
 
 				<div class="settings-item">
@@ -38,8 +41,6 @@
 
 			</div>
 			
-
-
 		</div>
 
 	</div>
