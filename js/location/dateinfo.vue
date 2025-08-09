@@ -1,6 +1,6 @@
 <template>
 
-	<div class="dateinfo" v-if="timeSinceLastTelemetry > 24">
+	<div class="dateinfo" v-if="timeSinceLastTelemetry > 48">
 		<!-- <template v-if="earliestTimestamp && earliestTimestamp > 0"> -->
 
 		<!-- <div class="earliestdate">
@@ -17,7 +17,7 @@
 			<span class="time">{{ displayutil.formatDateTime(latestTimestamp) }}</span>
 		</div>  -->
 
-		<div class="latestdate warning" v-if="timeSinceLastTelemetry > 24">
+		<div class="latestdate warning" v-if="timeSinceLastTelemetry > 48">
 			Keine Telemetrie seit {{ displayutil.formatDateShort(latestTimestamp) }}&nbsp;({{daysSinceLastTelemetry}} {{daysSinceLastTelemetry == 1 ? 'Tag' : 'Tage'}})
 			
 		</div>

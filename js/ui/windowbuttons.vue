@@ -14,6 +14,7 @@
 <script>
 
 import { state } from '@/state.js';
+import dataStore from '@/dataStore.js';
 import PopoverMenu from '@/ui/popover_menu.vue';
 
 export default {
@@ -44,11 +45,15 @@ export default {
 			if (this.$route.name != 'qrcode') {
 				items.push({ label: 'QR Code', value: 'qrcode' },);
 			}
+			if (this.$route.name != 'qrcode' && this.$route.name != 'embed') {
+				items.push({ label: 'API', value: 'api' },);
+			}
 			// if (this.$route.name != 'standort') {
 			// 	items.push({ label: 'Einzelansicht', value: 'standort' });
 			// }
 			return items;
 		},
+	
 	},
 	methods: {
 		closefunc() {
@@ -83,6 +88,9 @@ export default {
 				state.devicesMultiselect = [];
 				state.devicesMultiselect.push(state.selectedDevice);
 				this.$router.push(`/qrcode/`);
+			} else if (item.value === 'api') {
+				let apiurl = dataStore.getApiUrl(this.device.id.id, 'all', state.dataAggregation);
+				window.open(apiurl, '_blank');
 			}
 		},
 	},

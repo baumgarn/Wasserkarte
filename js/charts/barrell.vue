@@ -34,13 +34,13 @@
 	},
 	computed: {
 		barrel_width() {
-			return (state.windowWidth < 500) ? 135 : 175;
+			return (state.windowWidth < 500) ? 140 : 175;
 		},
 		barrel_height() {
-			return (state.windowWidth < 500) ? 120 : 150;
+			return (state.windowWidth < 500) ? 125 : 150;
 		},
 		canvasWidth() {
-			return this.barrel_width + this.margin * 2;x
+			return this.barrel_width + this.margin * 2;
 		},
 		canvasHeight() {
 			const ellipseH = this.ellipseRatio * this.barrel_width;

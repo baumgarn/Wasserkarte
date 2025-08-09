@@ -93,6 +93,8 @@
 							<div class="schicht" v-if="telemetry[markerStyle]" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry[[markerStyle]]))">
 								<div class="value">{{ parseFloat(getLastValue(telemetry[[markerStyle]])).toFixed(0) }}<span class="unit">%</span></div>
 							</div>	  
+
+							<div class="disabled" v-else></div>
 						</div>
 						
 					</template>
@@ -215,12 +217,19 @@ export default {
 		setZindex() {
 			const overlayContainer = this.$refs.overlay?.$el?.closest('.ol-overlay-container');
 			if (overlayContainer) {
-				if (this.mouseover && (this.selectedSoil == "Alle" || !this.isSelectedSoil )) { 
+				if (this.mouseover) { 
 					overlayContainer.style.zIndex = '11';
 				} else if (this.isSelected) {
 					overlayContainer.style.zIndex = '10';
-				} else if (this.selectedSoil != "Alle" && this.isSelectedSoil) { 
-					overlayContainer.style.zIndex = '9';
+				} else if (this.markerStyle != 'Bodenfeuchte_Farbkreis'
+						&& this.markerStyle != 'Bodenfeuchte_vol' 
+						&& this.markerStyle != 'Bodenfeuchte_nfk' 
+						){
+					if (this.telemetry[this.markerStyle]) {
+						overlayContainer.style.zIndex = '10'
+					} else {
+						overlayContainer.style.zIndex = '0';
+					}
 				} else {
 					overlayContainer.style.zIndex = '0';
 				}
@@ -230,15 +239,16 @@ export default {
 	watch: {
 		selectedDevice(newValue) {
 			this.mouseoverDevice = null;
-			this.setZindex()
+			this.setZindex();
 		},
 		selectedSoil() {
-			this.setZindex()
+			this.setZindex();
 		},
 		markerStyle() {
 			if (this.markerStyle == 'Bodenfeuchte_vol' || this.markerStyle == 'Bodenfeuchte_nfk' ) {
 				this.calculateValues();
 			}
+			this.setZindex();
 		},
 		// device() {
 			// this.calculateValues();
@@ -252,7 +262,6 @@ export default {
 
 				const rect = el.getBoundingClientRect();
 				if (rect.height === 0) {
-					console.warn('Popup height still 0');
 					return;
 				}
 

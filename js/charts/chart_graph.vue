@@ -249,14 +249,18 @@ export default {
 			const [yMin, yMax] = this.globalExtentY;
 			const numberOfTicks = 5;
 
-			const tickValues = d3.ticks(Math.round(yMin), Math.round(yMax), numberOfTicks).filter(v => Number.isInteger(v));
+			// Use rounded inputs for "nice" tick spacing, but clamp output to actual extent
+			const rawTicks = d3.ticks(Math.round(yMin), Math.round(yMax), numberOfTicks);
 
-			const ticks = tickValues.map(value => {
-				const position = this.getYPosition(value);
-				return { value, position };
-			});
+			// Filter: must be integer, and within the exact data extent
+			const tickValues = rawTicks.filter(v => 
+				Number.isInteger(v) && v >= yMin && v <= yMax
+			);
 
-			return ticks;
+			return tickValues.map(value => ({
+				value,
+				position: this.getYPosition(value)
+			}));
 		},
 		rowHeight() {
 			// return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
@@ -325,7 +329,12 @@ export default {
 					const lineColor = this.getDepthColor(depth);
 
 					// Split into segments based on data gaps
-					const segments = this.splitByGaps(sensor.data, config.dataGapLength);
+					let segments;
+					if (config.segmentation) {
+						segments = this.splitByGaps(sensor.data, config.dataGapLength);
+					} else {
+						segments = [sensor.data];
+					}
 
 					// Clear and redraw all segments
 					segments.forEach(segment => {
@@ -643,6 +652,27 @@ export default {
 	pointer-events none
 
 
+
+
+</style>
+
+<style lang="stylus">
+
+@media (min-width: 601px) 
+	.sidebar .depths
+		position absolute
+		right -56px
+		bottom 8px
+		margin-bottom 0
+		.sensor
+			flex-direction column
+			.graphcolor
+				width 24px
+				margin-right 0
+			.depth
+				margin-right 0
+				margin-bottom 8px
+				font-size 9px
 
 
 </style>

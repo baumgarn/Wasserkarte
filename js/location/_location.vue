@@ -15,6 +15,7 @@
 	import MiniMap from '@/map/minimap.vue';
 	import dataStore from '@/datastore.js';
 	import { state } from '@/state.js';
+	import { dataModel } from '@/dataModel.js'
 	import { displayutil } from '@/displayutil.js'
 	import { config } from '@/config.js';
 	export default {
@@ -35,6 +36,9 @@
 			ToolTip,
 			MiniMap,
 			SelectGroup
+		},
+		setup() {
+			return {dataModel}
 		},
 
 		props: {
@@ -63,6 +67,11 @@
 			};
 		},
 		computed: {
+			nfk() {
+				const nfk = dataModel.nfk(this.device, this.hoverData);
+				if (isNaN(nfk)) return '–'
+				return parseFloat(nfk.toFixed(0));
+			},
 			chartStyle() {
 				return state.chartStyle;
 			},
@@ -158,8 +167,8 @@
 						const gap = hovertime - data[data.length - 1].ts;
 						hoverdata[key] = {
 							ts: hovertime,
-							value: gap > config.dataGapLength ? '-' : data[data.length - 1].value,
-							valid: gap <= config.dataGapLength
+							value: (gap > config.dataGapLength) ? '-' : data[data.length - 1].value,
+							valid: (gap <= config.dataGapLength)
 						};
 						continue;
 					}
@@ -185,7 +194,7 @@
 						}
 					}
 
-					const isValid = minDiff <= config.dataGapLength;
+					const isValid = (! config.segmentation || minDiff <= config.dataGapLength);
 					hoverdata[key] = {
 						ts: closest.ts,
 						value: isValid ? closest.value : '-',
@@ -295,7 +304,11 @@
 			},
 			hover(event) {
 				const rect = this.$refs.frameRef.getBoundingClientRect();
-				this.hoverPosition = event.clientX - rect.left;
+				if (event.type === "mousemove") {
+					this.hoverPosition = event.clientX - rect.left;
+				} else if (event.type === "touchmove") {
+					this.hoverPosition = event.touches[0].clientX; - rect.left;
+				}
 			},
 			hoverOut() {
 				this.hoverPosition = -1;
@@ -338,7 +351,9 @@
 
 <template>
 
-<div class="location" :class="[ { wideView, sidebarFullView }, 'context-' + context ]">
+	
+	<div class="location" :class="[ { wideView, sidebarFullView }, 'context-' + context ]">
+
 	
 	<div class="framered" ref="frameRef"></div>
 
@@ -380,7 +395,7 @@
 
 		<div class="scrollcontainer" @wheel="scrollWheel">
 			
-			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut">
+			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchmove="hover" @touchend="hoverOut">
 			
 			<div v-if="hasBodenfeuchteSensors">
 				<!-- <hr/> -->
@@ -531,6 +546,12 @@
 		</div>
 	</div>
 
+	<ChartRange 
+		:dataPresent
+		:graphScale
+		:graphPosition
+	/>
+
 	<div v-if="context=='single'" class="linktomap" @click="linktomap">
 		<div class="sensor">
 			<img src="/img/sensor.png" >
@@ -540,10 +561,11 @@
 		</div>
 	</div>
 
-	<div class="additional" v-if="context=='sidebar'">
+	
+	<!-- <div class="additional" v-if="context=='sidebar'">
 		<a :href="apiUrl" class="apiurl">API</a>
 		<SensorData :device="device" :showTitle="false"></SensorData>
-	</div>
+	</div> -->
 
 </div>
 
@@ -552,14 +574,13 @@
 <style lang="stylus" scoped>
 	.location
 		padding 12px 24px 0
-		// background #ff999944
+	@media (max-width: 600px)
+		.location
+			padding 12px 16px 0
 	h2
 		margin 0 0 .2em
 		font-size 18pt
 		color #000000cc
-	@media (max-width: 600px)
-		.location
-			margin 6px 12px 0
 	.description
 		font-size 10pt
 		opacity .9

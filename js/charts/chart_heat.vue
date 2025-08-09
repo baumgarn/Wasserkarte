@@ -371,7 +371,7 @@ export default {
 						const width = Math.max(1, Math.ceil(xEnd - xStart));
 
 						let color;
-						if (timeGap > config.dataGapLength) {
+						if (config.segmentation && timeGap > config.dataGapLength) {
 							color = GAP_COLOR;
 						} else if (this.title === 'Bodenfeuchte') {
 							color = dataModel.get_vol_color(this.device, currentPoint.value);
@@ -417,22 +417,32 @@ export default {
 							.x(d => xScale(new Date(d.ts)))
 							.y(d => yScale(d.value));
 
-						const splitSegments = [];
-						let segment = [];
 
-						for (let j = 0; j < sensor.data.length; j++) {
-							const point = sensor.data[j];
-							if (segment.length > 0) {
-								const prev = segment[segment.length - 1];
-								if (new Date(point.ts) - new Date(prev.ts) > config.dataGapLength) {
-									splitSegments.push(segment);
-									segment = [];
-								}
-							}
-							segment.push(point);
-						}
-						if (segment.length) {
-							splitSegments.push(segment);
+						
+						// const splitSegments = [];
+						// let segment = [];
+
+						// for (let j = 0; j < sensor.data.length; j++) {
+						// 	const point = sensor.data[j];
+						// 	if (segment.length > 0) {
+						// 		const prev = segment[segment.length - 1];
+						// 		if (new Date(point.ts) - new Date(prev.ts) > config.dataGapLength) {
+						// 			splitSegments.push(segment);
+						// 			segment = [];
+						// 		}
+						// 	}
+						// 	segment.push(point);
+						// }
+
+						// if (segment.length) {
+						// 	splitSegments.push(segment);
+						// }
+
+						let segments;
+						if (config.segmentation) {
+							segments = this.splitByGaps(sensor.data, config.dataGapLength);
+						} else {
+							segments = [sensor.data];
 						}
 
 						// Clear previous paths in case they exist
@@ -441,7 +451,7 @@ export default {
 							.remove();
 
 						// Draw each segment as its own line and area
-						splitSegments.forEach(seg => {
+						segments.forEach(seg => {
 							if (seg.length < 2) return; // skip short segments
 
 							d3.select(parentNode)
@@ -465,6 +475,29 @@ export default {
 					}
 				}
 			});
+		},
+		splitByGaps(data, maxGap) {
+			const segments = [];
+			let segment = [];
+
+			for (let i = 0; i < data.length; i++) {
+				if (i === 0) {
+					segment.push(data[i]);
+				} else {
+					const gap = data[i].ts - data[i - 1].ts;
+					if (gap > maxGap) {
+						segments.push(segment);
+						segment = [];
+					}
+					segment.push(data[i]);
+				}
+			}
+
+			if (segment.length > 0) {
+				segments.push(segment);
+			}
+
+			return segments;
 		},
 		drawChartsNextTick() {
 			console.log('drawChartsNextTick')

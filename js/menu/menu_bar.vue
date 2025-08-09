@@ -11,7 +11,7 @@
 		<div
 			v-if="(item.key != 'info' || !state.isMobile) && (item.key != 'error' || showErrorMenu)"
 			:key="item.key"
-			class="menubaritem"
+			class="menubaritem hastooltip"
 			:class="[item.key, { active: state.menuOpen[item.key] }, item.class]"
 			@click="handleClick(item, $event )">
 
@@ -58,7 +58,7 @@ export default {
 				{ title: 'Karten', tooltip: 'Karten der Landesvermessung\nund Geobasisinformation Brandenburg (LGB)', key: 'karten', group: '1' },
 				{ title: 'Glossar', tooltip: 'Bodenkunde Glossar', key: 'glossar', group: '1' },
 				{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' },
-				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '1' },
+				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '2' },
 			];
 		},
 		isAnyMenuItemActive() {

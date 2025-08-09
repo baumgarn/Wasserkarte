@@ -28,7 +28,7 @@
 					</div>
 				</div>
 
-				<div class="datarow wassergehalt">
+				<div class="datarow wassergehalt hastooltip">
 
 					<div class="icon"></div>
 				
@@ -45,10 +45,13 @@
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
 
+					<div class="tooltip left opaque">
+						Die gesamte Menge Wasser im Oberboden 1m&sup2; bis 60 cm.
+					</div>
 
 				</div>
 				
-				<div class="datarow pflanzenverfuegbar">
+				<div class="datarow pflanzenverfuegbar hastooltip">
 
 					<div class="icon"></div>
 					
@@ -67,9 +70,13 @@
 						<span class="unit"><span class="smaller">nFK</span> %</span>
 					</div>
 
+					<div class="tooltip left opaque">
+						Das tatsächlich für die Wurzeln der Pflanzen erreichbare Wasser. 
+					</div>
+
 				</div>
 				
-				<div class="datarow totwasser">
+				<div class="datarow totwasser hastooltip">
 
 					<div class="icon"></div>
 
@@ -88,9 +95,15 @@
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
 
+
+					<div class="tooltip left opaque">
+						Ein Teil des Wassers ist zu stark an den Boden gebunden und nicht für Pflanzen erreichbar.
+					</div>
+
+
 				</div>
 
-				<div class="datarow gesamtkapazitaet" >
+				<div class="datarow gesamtkapazitaet hastooltip" >
 
 					<div class="icon"></div>
 
@@ -107,6 +120,12 @@
 						<span class="value">{{ device.attributes.feldkapazität }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
+
+
+					<div class="tooltip left opaque">
+						So viel Wasser kann der Boden gegen die Schwerkraft speichern. Überschüssiges Wasser fließt ins Grundwasser ab.
+					</div>
+
 					
 				</div>
 
@@ -245,7 +264,7 @@
 <style lang="stylus" scoped>
 
 	.oberboden_uebersicht
-		margin 1em 0
+		margin 1em 0 0
 		max-width 600px
 		display flex
 		flex-direction column
@@ -253,7 +272,7 @@
 		display flex
 		flex-direction row
 		align-items center
-		margin .2em 0
+		margin .2em 0 0
 	.barrell
 		flex-grow 0
 		flex-shrink 0
@@ -286,6 +305,7 @@
 		white-space nowrap
 		height 35px
 		padding 0
+		cursor default
 		position relative
 		border-bottom var(--separatorline)
 		border-bottom 1px solid #eee

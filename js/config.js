@@ -8,7 +8,8 @@ export const config = {
 	minimapZoom: 16,
 	mapZoom: 11,
 
-	dataGapLength: 24 * 60 * 60 * 1000 * 5, // 2 Day in ms
+	dataGapLength: 24 * 60 * 60 * 1000 * 5, // 5 Day in ms
+	segmentation: false,
 
 	infoArrowDevice : 'wiesenburg-schlosspark',
 

@@ -59,7 +59,11 @@ export default {
 
 			// Get the parent container's bounding box
 			const parent = this.$el.parentElement;
+			if (!parent) {
+				return;
+			}
 			const parentRect = parent.getBoundingClientRect();
+			
 
 			const parentLeft = parentRect.left;
 			const parentTop = parentRect.top;

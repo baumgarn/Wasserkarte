@@ -42,7 +42,7 @@ export const dataModel = {
 		{ value: 50, name: 'Trocken'},
 		{ value: 80, name: 'Optimal'},
 		{ value: 100, name: 'Nass'},
-		{ value: 120, name: 'Sehr Nass'},
+		{ value: 120, name: 'Sehr nass'},
 	],
 
 	soil_table : {
