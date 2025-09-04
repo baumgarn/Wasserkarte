@@ -4,13 +4,13 @@
 		<div class="schichten-container" > 
 				<div v-if="hoverData && hoverData.ts" class="latestdate">
 					{{ displayutil.formatDateShort(hoverData.ts) }}
-					<span class="time">{{ displayutil.formatDateTime(hoverData.ts) }}</span>
+					<span v-if="dataAggregation != '1d'" class="time">{{ displayutil.formatDateTime(hoverData.ts) }}</span>
 				</div>
 			<div class="schichten">
 				
 				<div class="schicht" v-for="depth in depths" :key="depth" >
 
-					<template v-if="dataPresent">
+					<!-- <template v-if="dataPresent"> -->
 				
 						<div class="depth">
 							<div class="line" 
@@ -36,7 +36,7 @@
 							</div>
 						</template>
 
-					</template>
+					<!-- </template> -->
 
 				</div>
 			</div>
@@ -50,6 +50,7 @@
 <script>
 import { displayutil } from '../displayutil.js'
 import { config } from '../config.js'
+import { state } from '../state.js'
 
 export default {
 	name: 'SchichtenUebersicht',
@@ -81,18 +82,16 @@ export default {
 	},
 	computed: {
 		depths() {
-			// get depths from locationdata.telemetry and filter by allowedTelemetryKeys, before actual sensordata is available
+			// get depths from locationdata.latestTelemetry and filter by allowedTelemetryKeys, before actual sensordata is available
 			const telemetryKeys = Object.keys(this.device.telemetry || {});
 			return [...new Set(telemetryKeys
 				.filter(key => config.allowedTelemetryKeys.includes(key))
 				.map(key => this.getDepthValue(key))
 			)];
 		},
-		dataPresent() {
-			return this.sensors.some(sensor => sensor.data?.length && sensor.data.length > 1);
-		},
-		
-
+		dataAggregation () {
+			return state.dataAggregation;
+		}
 	},
 	methods: {
 		getData(key) {
@@ -237,7 +236,7 @@ export default {
 
 .latestdate
 	padding 3px 0
-	font-size 7pt
+	font-size 8pt
 	opacity .8
 	text-align center
 	text-align right

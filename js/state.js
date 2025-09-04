@@ -42,8 +42,8 @@ localStorageState('chartStyle', 'schichten');
 localStorageState('showHelp', true);
 localStorageState('showInfoOnStart', true);
 localStorageState('showErrors', false);
-localStorageState('filterFaultyValues', true);
 localStorageState('colorScheme', 'normal');
+// localStorageState('filterFaultyValues', true);
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 
@@ -70,3 +70,5 @@ export function computedState(key, getter, options = {}) {
 	}, { immediate: false, ...options });
 }
 
+
+// console.log(state)

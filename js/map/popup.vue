@@ -1,7 +1,7 @@
 <template>
 	<ol-overlay 
 		ref="overlay"
-		:key="device.id.id"
+		:key="device.id"
 		:position="position(device)"
 		>
 

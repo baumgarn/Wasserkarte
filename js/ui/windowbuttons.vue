@@ -89,7 +89,7 @@ export default {
 				state.devicesMultiselect.push(state.selectedDevice);
 				this.$router.push(`/qrcode/`);
 			} else if (item.value === 'api') {
-				let apiurl = dataStore.getApiUrl(this.device.id.id, 'all', state.dataAggregation);
+				let apiurl = dataStore.getApiUrl(this.device.id, 'all', state.dataAggregation);
 				window.open(apiurl, '_blank');
 			}
 		},

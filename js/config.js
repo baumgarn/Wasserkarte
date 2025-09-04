@@ -24,7 +24,7 @@ export const config = {
 		'Bodentemperatur_80cm'
 	],
 
-	excludeFromMapFit: ['wassermeisterei002', 'caputh-schwielosee-1', 'caputh-schwielosee-kiefer'],
+	excludeFromMapFit: ['wassermeisterei002', 'caputh-schwielosee-1', 'caputh-schwielosee-kiefer', 'caputh-nadelwald'],
 
 	minMaxValues: {
 		'Bodenfeuchte': {min: -10, max: 100},

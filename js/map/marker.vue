@@ -2,8 +2,8 @@
 
 			<ol-overlay 
 				ref="overlay"
-				v-if="haslatlong"
-				:key="device.id.id"
+				v-if="haslatlong && hasTelemetry"
+				:key="device.id"
 				:position="position(device)"
 				>
 				<div class="marker-outer" :class="{selectedSoil: (selectedSoil != 'Alle' && isSelectedSoil), notSelectedSoil: (selectedSoil != 'Alle' && !isSelectedSoil)}">
@@ -139,6 +139,9 @@ export default {
 	computed: {
 		telemetry() {
 			return this.device.telemetry || {};
+		},
+		hasTelemetry() {
+			return Object.keys(this.device.telemetry).length > 0;
 		},
 		bodenfeuchteSensors() {
 			return Object.entries(this.telemetry)

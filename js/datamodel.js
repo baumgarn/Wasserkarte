@@ -39,7 +39,7 @@ export const dataModel = {
 
 	nfk_labels : [
 		{ value: 10, name: 'Sehr trocken'},
-		{ value: 50, name: 'Trocken'},
+		{ value: 30, name: 'Trocken'},
 		{ value: 80, name: 'Optimal'},
 		{ value: 100, name: 'Nass'},
 		{ value: 120, name: 'Sehr nass'},

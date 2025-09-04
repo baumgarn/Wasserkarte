@@ -64,7 +64,7 @@ export default {
         faultyDevices() {
             let faultyDevices = [];
             for (const device of this.deviceItems) {
-                if (this.timeSinceLastTelemetry(device.id.id) >= 24) {
+                if (this.timeSinceLastTelemetry(device.id) >= 24) {
                     faultyDevices.push(device);
                 }
             }

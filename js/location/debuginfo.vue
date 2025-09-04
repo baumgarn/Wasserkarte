@@ -43,13 +43,29 @@ export default {
 </script>
 
 <template>
-	<div class="sensordata">
+	<div class="debuginfo">
 		<div class="expand-button" :class="{ isexpanded: isExpanded }" @click="isExpanded = !isExpanded">
 			<span class="arrow">▶</span>
-			Attribute und Telemetrie
+			Geräteattribute
 		</div>
 
-		<div v-show="isExpanded">
+		<div v-show="isExpanded" class="expanded">
+			<h3>Gerät</h3>
+			<table>
+				<tr>
+					<td class="label">name</td>
+					<td class="value">{{ device.name }}</td>
+				</tr>
+				<tr>
+					<td class="label">id</td>
+					<td class="value">{{ device.id }}</td>
+				</tr>
+				<tr>
+					<td class="label">label</td>
+					<td class="value">{{ device.label }}</td>
+				</tr>
+			</table>
+
 			<h3>Attribute</h3>
 			<table>
 				<tr v-for="(value, key) in attributes" :key="key">
@@ -65,18 +81,39 @@ export default {
 					<td class="value">{{ values[0].value }}</td>
 				</tr>
 			</table>
+
+			<h3>Telemetrie Schema</h3>
+			<table>
+			<tr>
+				<td class="label">schema</td>
+				<td class="value">
+				<span v-for="(field, index) in device.telemetrySchema.schema" :key="index">
+					{{ field }}<br>
+				</span>
+				</td>
+			</tr>
+			<tr>
+				<td class="label">data</td>
+				<td class="value">
+				<span v-for="(value, index) in device.telemetrySchema.data[0]" :key="index">
+					{{ value }}<br>
+				</span>
+				</td>
+			</tr>
+			</table>
+
 		</div>
 	</div>
 </template>
 
 <style lang="stylus" scoped>
-	.sensordata
+	.debuginfo
 		width 100%
 		max-width 100%
 		font-size 10pt
 		margin 1em 0 0
 		h3
-			font-size 10pt
+			font-size 9pt
 			margin 1em 0 .25em
 		table
 			font-size 9pt
@@ -97,6 +134,8 @@ export default {
 			.value
 				font-weight bold
 				font-size 110%
+		.expanded
+			margin-bottom 24px
 
 	.expand-button
 		width 100%
@@ -106,7 +145,8 @@ export default {
 		cursor pointer
 		display flex
 		align-items center
-		margin 1em 0 0
+		margin 3em 0 0
+		font-size 9pt
 	.arrow
 		display inline-block
 		width 1em
@@ -114,6 +154,7 @@ export default {
 		height 1em
 		font-size 90%
 		position relative
+		opacity .4
 		top 0
 	.isexpanded
 		.arrow

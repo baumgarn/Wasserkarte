@@ -1,5 +1,5 @@
 // dataStore.js
-import { reactive } from 'vue';
+import { toRaw, reactive } from 'vue';
 import { state } from './state.js';
 import { dataModel } from './datamodel.js';
 import { config } from './config.js';
@@ -14,12 +14,14 @@ const dataStore = reactive({
 	dataCache: {},
 
 	async fetchDevicesData() {
-
+		// first we are getting the cached device data
 		const cacheRequest = fetch(cacheddevicesurl)
 			.then(res => res.json())
 			.then(data => ({ source: 'cache', data }))
 			.catch(() => null);
 
+		// then we are making a request to the apí for the live data
+		// if the cached data is beyond a certain date old, the server makes a request to Thingsboard for live data
 		const liveRequest = fetch(backendurl)
 			.then(res => res.json())
 			.then(data => ({ source: 'live', data }))
@@ -35,27 +37,19 @@ const dataStore = reactive({
 		Promise.all([cacheRequest, liveRequest]).then(([cacheResult, liveResult]) => {
 			if (liveResult && liveResult.data?.devices) {
 				// Process Live Data
-				dataStore.processDevices(liveResult.data); 
+				dataStore.updateLiveTelemetry(liveResult.data); 
 			}
 		});
 	},
 
 	processDevices(result) {
 		state.devices = [];
+		console.log('processDevices');
 
 		for (const key in result.devices) {
 			const device = result.devices[key];
-			if (device.attributes && Array.isArray(device.attributes)) {
-				let attr = device.attributes.reduce((obj, attr) => {
-					obj[attr.key] = attr.value;
-					return obj;
-				}, {});
-				device.attributes = attr;
-
-			}
 			dataModel.wasserkapazität_setzen(device);
 			state.devices.push(device);
-
 		}
 
 		state.uniqueTelemetryKeys = dataStore.extractUniqueTelemetryKeys(result.devices);
@@ -70,25 +64,48 @@ const dataStore = reactive({
 
 	},
 
+	updateLiveTelemetry(result) {
+		console.log('updateLiveTelemetry');
+		
+		for (const key in result.devices) {
+			const liveDevice = result.devices[key];
+			const device = this.getDevice(liveDevice.id);
+			device.telemetry = liveDevice.telemetry
+		}
 
+		console.log('devices', state.devices)
+	},
 
 	async fetchTelemetryData(deviceId, timerange, aggregation) {
-		const key = `${deviceId}_${timerange}_${aggregation}`;
+		const cacheKey = `${deviceId}_${timerange}_${aggregation}`;
 
-		if (this.dataCache[key]) {
-			return this.dataCache[key];
+		if (this.dataCache[cacheKey]) {
+			return this.dataCache[cacheKey];
 		}
 
 		const url = `/api/?deviceId=${deviceId}&time=${timerange}&agg=${aggregation}`;
-
 		try {
+
 			const response = await fetch(url);
 			const json = await response.json();
-			this.dataCache[key] = json;
+
+			if (aggregation == '1d') { 
+				// with daily aggregates, we want to append the last live data point because aggregated data ends at the last day
+				// but only if last data is today
+				const device = this.getDevice(deviceId);
+				const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+				json.latestTimestamp = lastTelemetryData[0];
+				json.telemetry.data.push(lastTelemetryData)
+			}
+
+			this.dataCache[cacheKey] = json;
+
+
 			return json;
+
 		} catch (error) {
 			console.error("Failed to fetch data:", error);
-			return [];
+			return { data: {} };
 		}
 	},
 	
@@ -105,7 +122,6 @@ const dataStore = reactive({
 		}
 		
 		const device = this.getDevice(deviceId);
-
 
 		let latestTimestamp = 0;
 
@@ -181,7 +197,7 @@ const dataStore = reactive({
 	sortFaultyDevices() {
 		state.faultyDevices = []
 		for (const device of state.devices) {
-			if (this.timeSinceLastTelemetry(device.id.id) >= 48 
+			if (this.timeSinceLastTelemetry(device.id) >= 48 
 				|| (!device.attributes?.longitude || !device.attributes?.latitude)
 				|| (!device.attributes?.Bodenart || !device.attributes?.Humusgehalt)) {
 				state.faultyDevices.push(device);
@@ -191,7 +207,7 @@ const dataStore = reactive({
 	},
 
 	getDevice(deviceId) {
-		return state.devices.find(device => device.id.id === deviceId);
+		return state.devices.find(device => device.id === deviceId);
 	},
 	
 	getDeviceByName(deviceName) {

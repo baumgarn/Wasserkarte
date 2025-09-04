@@ -3,7 +3,7 @@
 	import HeaderInfo from '@/location/headerinfo.vue';
 	import OberbodenUebersicht from '@/location/oberboden.vue';
 	import DateInfo from '@/location/dateinfo.vue';
-	import SensorData from '@/location/sensordata.vue';
+	import DebugInfo from '@/location/debuginfo.vue';
 	import ChartTime from '@/charts/chart_timeaxis.vue';
 	import ChartHeat from '@/charts/chart_heat.vue';
 	import ChartGraph from '@/charts/chart_graph.vue';
@@ -30,7 +30,7 @@
 			ChartGraph,
 			ChartTime,
 			ChartSettings,
-			SensorData,
+			DebugInfo,
 			ChartRange,
 			SchichtenUebersicht,
 			ToolTip,
@@ -64,6 +64,7 @@
 				frameMargin: 0,
 				hoverPosition: -1,
 				frameWidth: 0,
+				dataPresent: false,
 			};
 		},
 		computed: {
@@ -87,7 +88,7 @@
 				}
 			},
 			apiUrl() {
-				return dataStore.getApiUrl(this.device.id.id, 'all', state.dataAggregation);
+				return dataStore.getApiUrl(this.device.id, 'all', state.dataAggregation);
 			},
 			bodentemperaturSensors() {
 				const sensorKeys = ["Bodentemperatur_10cm", "Bodentemperatur_30cm", "Bodentemperatur_60cm", "Bodentemperatur_80cm"];
@@ -115,7 +116,7 @@
 				);
 			},
 			lastTelemetry() {
-				return dataStore.lastTelemetry(this.device.id.id)
+				return dataStore.lastTelemetry(this.device.id)
 			},
 			numberOfDays() {
 				return Math.max(this.chartTimeRange,(this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24));
@@ -129,9 +130,9 @@
 			scrollLeft(){
 				return (this.chartWidth - this.frameWidth) * (this.graphPosition / (1 - this.graphScale)) || 0;
 			},
-			dataPresent() {
-				return Object.values(this.sensorData).some(data => Array.isArray(data) && data.length > 1);
-			},
+			// dataPresent() {
+			// 	return Object.values(this.sensorData).some(data => Array.isArray(data) && data.length > 1);
+			// },
 			globalExtentX() {
 				return [this.startTimestamp, this.latestTimestamp];
 			},
@@ -141,108 +142,146 @@
 			wideView() {
 				return (this.frameWidth > 900);
 			},
-			hoverData() {
-				if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) {
-					return null;
-				}
+		// 	hoverData() {
+		// 		if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) {
+		// 			return null;
+		// 		}
 
-				const xScale = d3.scaleTime()
-					.domain(this.globalExtentX)
-					.range([0, this.chartWidth]);
+		// 		const xScale = d3.scaleTime()
+		// 			.domain(this.globalExtentX)
+		// 			.range([0, this.chartWidth]);
 
-				const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
+		// 		const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
 
-				let hoverdata = {};
+		// 		let hoverdata = {};
 
-				for (let key in this.sensorData) {
-					const data = this.sensorData[key];
+		// 		for (let key in this.sensorData) {
+		// 			const data = this.sensorData[key];
 
-					if (!data || data.length === 0) {
-						hoverdata[key] = { value: '-', valid: false };
-						continue;
-					}
+		// 			if (!data || data.length === 0) {
+		// 				hoverdata[key] = { value: '-', valid: false };
+		// 				continue;
+		// 			}
 
-					// Case: After last point
-					if (hovertime > data[data.length - 1].ts) {
-						const gap = hovertime - data[data.length - 1].ts;
-						hoverdata[key] = {
-							ts: hovertime,
-							value: (gap > config.dataGapLength) ? '-' : data[data.length - 1].value,
-							valid: (gap <= config.dataGapLength)
-						};
-						continue;
-					}
+		// 			// Case: After last point
+		// 			if (hovertime > data[data.length - 1].ts) {
+		// 				const gap = hovertime - data[data.length - 1].ts;
+		// 				hoverdata[key] = {
+		// 					ts: hovertime,
+		// 					value: (gap > config.dataGapLength) ? '-' : data[data.length - 1].value,
+		// 					valid: (gap <= config.dataGapLength)
+		// 				};
+		// 				continue;
+		// 			}
 
-					// Case: Before first point
-					if (hovertime < data[0].ts) {
-						hoverdata[key] = { value: '-', valid: false };
-						continue;
-					}
+		// 			// Case: Before first point
+		// 			if (hovertime < data[0].ts) {
+		// 				hoverdata[key] = { value: '-', valid: false };
+		// 				continue;
+		// 			}
 
-					// Find the closest point
-					let closest = null;
-					let minDiff = Infinity;
+		// 			// Find the closest point
+		// 			let closest = null;
+		// 			let minDiff = Infinity;
 
-					for (let i = 0; i < data.length; i++) {
-						const point = data[i];
-						const diff = Math.abs(point.ts - hovertime);
+		// 			for (let i = 0; i < data.length; i++) {
+		// 				const point = data[i];
+		// 				const diff = Math.abs(point.ts - hovertime);
 
-						// If equal diff, prefer the *later* point
-						if (diff < minDiff || (diff === minDiff && point.ts > closest.ts)) {
-							closest = point;
-							minDiff = diff;
-						}
-					}
+		// 				// If equal diff, prefer the *later* point
+		// 				if (diff < minDiff || (diff === minDiff && point.ts > closest.ts)) {
+		// 					closest = point;
+		// 					minDiff = diff;
+		// 				}
+		// 			}
 
-					const isValid = (! config.segmentation || minDiff <= config.dataGapLength);
-					hoverdata[key] = {
-						ts: closest.ts,
-						value: isValid ? closest.value : '-',
-						valid: isValid
-					};
+		// 			const isValid = (! config.segmentation || minDiff <= config.dataGapLength);
+		// 			hoverdata[key] = {
+		// 				ts: closest.ts,
+		// 				value: isValid ? closest.value : '-',
+		// 				valid: isValid
+		// 			};
 
-					if (isValid && !hoverdata.ts) {
-						hoverdata.ts = closest.ts;
-						hoverdata.xpos = xScale(new Date(closest.ts)) - this.scrollLeft - 1;
-					}
-				}
+		// 			if (isValid && !hoverdata.ts) {
+		// 				hoverdata.ts = closest.ts;
+		// 				hoverdata.xpos = xScale(new Date(closest.ts)) - this.scrollLeft - 1;
+		// 			}
+		// 		}
 
-				return hoverdata;
+		// 		return hoverdata;
+		// 	},
+		// 	devices() {
+		// 		return state.devices;
+		// 	}
+		// },
+		hoverData() {
+			const tele = this.sensorData;
+			if (!tele?.schema?.length || !tele?.data?.length) return null;
+
+			const idxTs = tele.schema.indexOf('ts');
+			if (idxTs < 0) return null;
+
+			if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) return null;
+
+			const xScale = d3.scaleTime().domain(this.globalExtentX).range([0, this.chartWidth]);
+			const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
+
+			// collect ts column once
+			const tsArr = tele.data.map(row => row[idxTs]);
+
+			// binary search nearest timestamp
+			let lo = 0, hi = tsArr.length - 1;
+			while (lo < hi) {
+			const mid = (lo + hi) >> 1;
+			if (tsArr[mid] < hovertime) lo = mid + 1; else hi = mid;
 			}
+			// lo is first >= hovertime; choose closer of lo and lo-1
+			let idx = lo;
+			if (lo > 0 && Math.abs(tsArr[lo - 1] - hovertime) <= Math.abs(tsArr[lo] - hovertime)) idx = lo - 1;
+
+			const closestTs = tsArr[idx];
+			const gap = Math.abs(hovertime - closestTs);
+
+			const result = { ts: closestTs, xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1 };
+
+			// fill values for only the sensors currently used in the chart
+			const activeKeys = new Set(this.bodenfeuchteSensors.map(s => s.key).concat(this.bodentemperaturSensors.map(s => s.key)));
+
+			for (const k of tele.schema) {
+				if (k === 'ts' || !activeKeys.has(k)) continue;
+				const col = tele.schema.indexOf(k);
+				const val = tele.data[idx][col];
+				const valid = !config.segmentation || gap <= config.dataGapLength;
+				result[k] = { ts: closestTs, value: Number.isFinite(val) ? val : '-', valid: valid && Number.isFinite(val) };
+			}
+			return result;
+		}
 		},
+		
+
 		methods: {
 			async loadSensorData() {
 				this.isVisible = true;
 				this.$nextTick(() => {
 					this.updateFrameWidth();
-					
 				});
+				this.dataPresent = false;
 				await this.processSensorData();
 			},
 			async processSensorData() { 
 
-				this.sensorData = this.device.telemetry;
+				this.sensorData = {};
+				this.sensorData = this.device.telemetrySchema;
 				this.earliestTimestamp = 0;
 				this.latestTimestamp = 0;
 				
-				const rawData = await dataStore.fetchTelemetryData(this.device.id.id, 'all', state.dataAggregation);
-				
-				this.earliestDate = rawData.earliestDate;
-				this.latestDate = rawData.latestDate;
-				this.earliestTimestamp = rawData.earliestTimestamp;
-				this.latestTimestamp = rawData.latestTimestamp;
-				
-				this.sensorData = {};
-
-				for (const [key, values] of Object.entries(rawData.data)) {
-					if (config.allowedTelemetryKeys.includes(key)) {
-						this.sensorData[key] = values.map(item => ({
-							ts: item.ts,
-							value: parseFloat(item.value)
-						}));
-					}
-				}
-
+				const data = await dataStore.fetchTelemetryData(this.device.id, 'all', state.dataAggregation);
+				this.dataPresent = true;
+				this.earliestDate = data.earliestDate;
+				this.latestDate = data.latestDate;
+				this.earliestTimestamp = data.earliestTimestamp;
+				this.latestTimestamp = data.latestTimestamp;				
+				this.sensorData = data.telemetry;
 				if (this.chartTimeRange == 0 ) {
 					this.chartTimeRange = -1
 					this.graphScale = 1
@@ -254,10 +293,14 @@
 
 			},
 			filterSensors(sensorKeys) {
-				return Object.entries(this.sensorData)
-					.filter(([key]) => sensorKeys.includes(key))
-					.map(([key, data]) => ({ key, data }))
+				const tele = this.sensorData;
+				if (!tele?.schema?.length) return [];
+				const present = new Set(tele.schema);
+				const filtered = sensorKeys
+					.filter(k => k !== 'ts' && present.has(k))
+					.map(k => ({ key: k, col: tele.schema.indexOf(k) })) // just key + column index
 					.sort((a, b) => a.key.localeCompare(b.key));
+				return filtered;
 			},
 			formatNumber(floatString) {
 				return parseFloat(floatString).toFixed(1).replace('.', ',');
@@ -318,6 +361,9 @@
 			}
 		},
 		watch: {
+			devices() {
+				this.loadSensorData();
+			},
 			device() {
 				this.loadSensorData();
 			},
@@ -406,6 +452,7 @@
 						<ChartHeat 
 						title="Bodenfeuchte"
 						:sensors="bodenfeuchteSensors" 
+						:sensorData
 						:device
 						:chartWidth 
 						:frameWidth 
@@ -429,6 +476,7 @@
 					<ChartHeat 
 						title="Bodenfeuchte"
 						:sensors="bodenfeuchteSensors" 
+						:sensorData
 						:device
 						:chartWidth 
 						:frameWidth 
@@ -453,6 +501,7 @@
 						<ChartGraph 	
 							title="Bodenfeuchte"
 							:sensors="bodenfeuchteSensors" 
+							:sensorData
 							:device
 							:chartWidth 
 							:frameWidth 
@@ -546,11 +595,11 @@
 		</div>
 	</div>
 
-	<ChartRange 
+	<!-- <ChartRange 
 		:dataPresent
 		:graphScale
 		:graphPosition
-	/>
+	/> -->
 
 	<div v-if="context=='single'" class="linktomap" @click="linktomap">
 		<div class="sensor">
@@ -562,10 +611,10 @@
 	</div>
 
 	
-	<!-- <div class="additional" v-if="context=='sidebar'">
-		<a :href="apiUrl" class="apiurl">API</a>
-		<SensorData :device="device" :showTitle="false"></SensorData>
-	</div> -->
+	<div class="additional" v-if="context=='sidebar'">
+		<!-- <a :href="apiUrl" class="apiurl">API</a> -->
+		<DebugInfo :device="device" :showTitle="false"></DebugInfo>
+	</div>
 
 </div>
 

@@ -10,14 +10,19 @@
 
 			<div v-for="device in faultyDevices" :key="device.name" class="menu-item" :class="[{ 
 						selected: selectedDevice === device.name,
-						red: (!nowarning && (timeSinceLastTelemetry(device.id.id) >= 48 || noLocationAttributes(device) || noSoilAttributes(device)) ),
+						red: (!nowarning && (timeSinceLastTelemetry(device.id) >= 48 || noLocationAttributes(device) || noSoilAttributes(device)) ),
 					}]" @click="selectDevice(device)">
 
 				<div class="title">
 					{{ device.attributes?.Anzeigename || device.name }}
 				</div>
-				<div class="latestdate message" v-if="timeSinceLastTelemetry(device.id.id) >= 48">
-					Keine Telemetrie seit {{daysSinceLastTelemetry(device.id.id)}} {{daysSinceLastTelemetry(device.id.id) == 1 ? 'Tag' : 'Tagen'}}
+
+				<div class="latestdate message" v-if="daysSinceLastTelemetry(device.id) >= 10000">
+					Keine Telemetrie
+				</div>
+
+				<div class="latestdate message" v-else-if="timeSinceLastTelemetry(device.id) >= 48">
+					Keine Telemetrie seit {{daysSinceLastTelemetry(device.id)}} {{daysSinceLastTelemetry(device.id) == 1 ? 'Tag' : 'Tagen'}}
 				</div>
 					
 				<div v-if="noLocationAttributes(device)" class="nolocationattributes message">

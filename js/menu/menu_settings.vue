@@ -29,10 +29,10 @@
 					<label for="locationwarnings">Fehlermeldungen anzeigen</label>
 				</div>
 
-				<div class="settings-item">
+				<!-- <div class="settings-item">
 					<input type="checkbox" id="faultyvalues" v-model="state.filterFaultyValues">
 					<label for="faultyvalues">Fehlerhafte Sensordaten filtern</label>
-				</div>
+				</div> -->
 
 				<div class="settings-item">
 					<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">

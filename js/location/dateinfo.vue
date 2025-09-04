@@ -17,7 +17,10 @@
 			<span class="time">{{ displayutil.formatDateTime(latestTimestamp) }}</span>
 		</div>  -->
 
-		<div class="latestdate warning" v-if="timeSinceLastTelemetry > 48">
+		<div class="latestdate warning" v-if="daysSinceLastTelemetry > 1000">
+			Keine Telemetrie
+		</div>
+		<div class="latestdate warning" v-else-if="timeSinceLastTelemetry > 48">
 			Keine Telemetrie seit {{ displayutil.formatDateShort(latestTimestamp) }}&nbsp;({{daysSinceLastTelemetry}} {{daysSinceLastTelemetry == 1 ? 'Tag' : 'Tage'}})
 			
 		</div>
@@ -69,7 +72,7 @@ export default {
 	},
 	computed: {
 		daysSinceLastTelemetry() {
-			const hours = dataStore.timeSinceLastTelemetry(this.device.id.id);
+			const hours = dataStore.timeSinceLastTelemetry(this.device.id);
 			const days = Math.floor(hours / 24);
 			return days;
 		},
@@ -77,7 +80,7 @@ export default {
 			return Math.floor((Date.now() - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
 		},
 		timeSinceLastTelemetry() {
-			return dataStore.timeSinceLastTelemetry(this.device.id.id)
+			return dataStore.timeSinceLastTelemetry(this.device.id)
 		},
 	},
 	methods: {

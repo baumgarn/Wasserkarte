@@ -304,6 +304,15 @@ export const displayutil = {
 		const year = date.toLocaleString('de-DE', { year: 'numeric' });
 		return `${dayOfMonth}. ${month} ${year}`;
 	},
+	formatDateAggregated: function (timestamp) {
+		// we are subtracting one day here since we have our aggregated data timestamp at midnight the end of the day, but don't want to display as next day 
+		const date = new Date(timestamp);
+		date.setDate(date.getDate() - 1);
+		const dayOfMonth = date.getDate();
+		const month = date.toLocaleString('de-DE', { month: 'short' });
+		const year = date.toLocaleString('de-DE', { year: 'numeric' });
+		return `${dayOfMonth}. ${month} ${year}`;
+	},
 	formatDateTime: function (timestamp) {
 		const date = new Date(timestamp);
 		return date.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' });

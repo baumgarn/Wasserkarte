@@ -9,5 +9,4 @@
 	define('THINGSBOARD_URL', 'https://...');
 	define('USERNAME', 'username');
 	define('PASSWORD', 'password');
-	define('ALLOWED_SENSOR_KEYS', ['Bodenfeuchte_10cm', 'Bodenfeuchte_30cm', 'Bodenfeuchte_60cm', 'Bodenfeuchte_80cm','Bodentemperatur_10cm', 'Bodentemperatur_30cm', 'Bodentemperatur_60cm', 'Bodentemperatur_80cm']);
-?>
+	define('ALLOWED_SENSOR_KEYS', ['Bodenfeuchte_10cm', 'Bodenfeuchte_30cm', 'Bodenfeuchte_60cm', 'Bodenfeuchte_80cm']);

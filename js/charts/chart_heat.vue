@@ -4,22 +4,25 @@
 
 			<h3>{{ title }}</h3>
 
-			<div v-if="showDate && hoverData && hoverData.ts" class="latestdate">
+			<div v-if="showDate && hoverData && hoverData.ts && dataAggregation != '1d'" class="latestdate">
 				{{ displayutil.formatDateShort(hoverData.ts) }}
 				<span class="time">{{ displayutil.formatDateTime(hoverData.ts) }}</span>
 			</div>
 
-			<div v-else-if="hoverData" class="latestdate">
+			<div v-if="showDate && hoverData && hoverData.ts && hoverData.ts != getLastTimestamp() && dataAggregation == '1d'" class="latestdate">
+				{{ displayutil.formatDateAggregated(hoverData.ts) }}
+			</div>
+			
+			<div v-else-if="hoverData && !hoverData.ts" class="latestdate">
 				
 			</div>
 
 			<div v-else-if="showDate" class="latestdate">
-				{{ displayutil.formatDateShort(latestTimestamp) }}
-				<span class="time">{{ displayutil.formatDateTime(latestTimestamp) }}</span>
+				{{ displayutil.formatDateShort(getLastTimestamp()) }}
+				<span class="time">{{ displayutil.formatDateTime(getLastTimestamp()) }}</span>
 			</div>
 
 		</div>
-
 
 		<div class="scrollview chart-heat" :class="heatmap ? 'heatmap' : 'schichten'">
 				
@@ -57,15 +60,7 @@
 							:width="chartWidth"
 							:height="rowHeight"
 							class="sensor-chart-svg"
-						>
-							<path
-								v-if="sensor.data && sensor.data.length"
-								class="line-path"
-								fill="none"
-								stroke-width="2"
-								:ref="el => linePathRefs[i] = el"
-							/>
-						
+							:ref="el => linePathRefs[i] = el">
 						</svg>
 					
 					</div>
@@ -180,95 +175,47 @@ export default {
 		}
 	},
 	props: {
-		title: {
-			type: String,
-			default: ''
-		},
-		sensors: {
-			type: Array,
-			default: () => [],
-		},
-		device: {
-			required: true,
-			type: Object,
-		},
-		chartWidth: {
-			type: Number,
-			required: true
-		},
-		frameWidth: {
-			type: Number,
-			required: true
-		},
-		scrollLeft: {
-			type: Number,
-			required: true
-		},
-		hoverPosition: {
-			type: Number,
-			required: false
-		},
-		numberOfDays: {
-			type: Number,
-			required: true
-		},
-		startTimestamp: {
-			type: Number,
-			required: true
-		},
-		latestTimestamp: {
-			type: Number,
-			required: false,
-			default: 0
-		},
-		baseline: {
-			type: Number,
-			required: false
-		},
-		ceiling: {
-			type: Number,
-			required: false
-		},
-		offsetTop: {
-			type: Number,
-			required: false,
-			default: 5
-		},
-		offsetBottom: {
-			type: Number,
-			required: false,
-			default: 0
-		},
-		heatmap: {
-			type: Boolean,
-			required: false,
-			default: false
-		},
-		showDate: {
-			type: Boolean,
-			required: false,
-			default: true
-		},
-		hoverData: {
-			type: Object,
-			required: false
-		},
+		title: { type: String, default: '' },
+		sensors: { type: Array, default: () => [], },
+		sensorData: { type: Object, required: true },
+		device: { required: true, type: Object, },
+		chartWidth: { type: Number, required: true },
+		frameWidth: { type: Number, required: true },
+		scrollLeft: { type: Number, required: true },
+		hoverPosition: { type: Number, required: false },
+		numberOfDays: { type: Number, required: true },
+		startTimestamp: { type: Number, required: true },
+		latestTimestamp: { type: Number, required: false, default: 0 },
+		baseline: { type: Number, required: false },
+		ceiling: { type: Number, required: false },
+		offsetTop: { type: Number, required: false, default: 5 },
+		offsetBottom: { type: Number, required: false, default: 0 },
+		heatmap: { type: Boolean, required: false, default: false },
+		showDate: { type: Boolean, required: false, default: true },
+		dataPresent: { type: Boolean, required: false },
+		hoverData: { type: Object, required: false },
 	},
 	computed: {
 		globalExtentY() {
-			const allValues = this.filteredSensors.flatMap(s => s.data?.map(d => d.value) || [])
-			if (!allValues.length) return [0, 100]
+			const tele = this.sensorData;
+			if (!tele?.schema?.length || !tele?.data?.length) return [0, 100];
 
-			let yMin = Math.min(...allValues)
-			let yMax = Math.max(...allValues)
-			if (this.baseline !== undefined) {
-				yMin = this.baseline;
-			}
-			if (this.ceiling) {
-				yMax = this.ceiling;
-			}
+			const idxTs = tele.schema.indexOf('ts');
+			let min = +Infinity, max = -Infinity;
 
-			return [yMin, yMax]
+			for (const s of this.sensors) {
+			const col = s.col;
+			for (let r = 0; r < tele.data.length; r++) {
+				const y = tele.data[r][col];
+				if (!Number.isFinite(y)) continue;
+				if (y < min) min = y;
+				if (y > max) max = y;
+			}
+			}
+			if (min === +Infinity) [min, max] = [0, 100];
+			if (this.baseline !== undefined) min = this.baseline;
+			if (this.ceiling !== undefined) max = this.ceiling;
+			return [min, max];
 		},
 		dataTimeRange() {
 			const allDataPoints = this.sensors.flatMap(sensor => sensor.data || []);
@@ -288,18 +235,17 @@ export default {
 		totalHeight() {
 			return this.sensors.length * (this.rowHeight+this.rowMargin) + this.xAxisHeight
 		},
-		dataPresent() {
-			return this.sensors.some(sensor => sensor.data?.length && sensor.data.length > 1);
-		},
 		rowMargin() {
 			return this.heatmap ? 0 : 20;
 		},
 		rowHeight() {
 			return 115 - this.rowMargin
-			// return Math.max((this.frameWidth / 10), 100) - this.rowMargin;
 		}, 
 		hasSoilAttributes() {
 			return (this.device.attributes.totwasserbereich && this.device.attributes.feldkapazität)
+		},
+		dataAggregation() {
+			return state.dataAggregation;
 		},
 		colorScheme() {
 			return state.colorScheme;
@@ -308,199 +254,138 @@ export default {
 			return state.filterFaultyValues;
 		},
 
-
 	},
 	methods: {
 		drawCharts() {
-			if (!this.filteredSensors.length || this.chartWidth <= 0 || this.frameWidth <= 0) {
-				return;
-			}
+			const tele = this.sensorData;
+			if (!this.sensors.length || this.chartWidth <= 0 || !tele?.schema?.length || !tele?.data?.length) return;
 
-			let [yMin, yMax] = this.globalExtentY;
-			const yScale = d3.scaleLinear().domain([yMin, yMax]).range([this.rowHeight-this.offsetBottom, this.offsetTop]);
+			const idxTs = tele.schema.indexOf('ts');
+			const [yMin, yMax] = this.globalExtentY;
+			const yScale = d3.scaleLinear().domain([yMin, yMax]).range([this.rowHeight - this.offsetBottom, this.offsetTop]);
 			const [xStart, xEnd] = this.globalExtentX;
+			const xScale = d3.scaleTime().domain([xStart, xEnd]).range([0, this.chartWidth]);
 
-			const xScale = d3.scaleTime()
-				.domain([xStart, xEnd])
-				.range([0, this.chartWidth]);
+			this.sensors.forEach((sensor, i) => {
+			const parentNode = this.linePathRefs[i];
+			if (!parentNode) return;
 
-			this.filteredSensors.forEach((sensor, i) => {
-				if (!this.linePathRefs[i]) {
-					return;
+			d3.select(parentNode).selectAll('.top-line,.heat,.gap-aware-line,.gap-aware-area').remove();
+			this.heatmapImages[i] = null;
+
+			// Need at least 2 points overall to draw anything
+			if (tele.data.length < 2) return;
+
+			// Build heatmap strip with minimal passes
+			const MAX_CANVAS_WIDTH = 30000;
+			const CANVAS_HEIGHT = 1;
+			const canvas = document.createElement('canvas');
+			canvas.width = Math.min(this.chartWidth, MAX_CANVAS_WIDTH);
+			canvas.height = CANVAS_HEIGHT;
+			const ctx = canvas.getContext('2d');
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			const canvasScale = canvas.width / this.chartWidth;
+			const GAP_COLOR = '#fff';
+
+			for (let j = 0; j < tele.data.length - 1; j++) {
+				const r0 = tele.data[j];
+				const r1 = tele.data[j + 1];
+				const ts0 = r0[idxTs], ts1 = r1[idxTs];
+				const v0 = r0[sensor.col];
+
+				const timeGap = ts1 - ts0;
+				const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
+				const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
+				const width = Math.max(1, Math.ceil(x1 - x0));
+
+				let color;
+				if (config.segmentation && timeGap > config.dataGapLength) {
+				color = GAP_COLOR;
+				} else if (!Number.isFinite(v0)) {
+				color = GAP_COLOR;
+				} else if (this.title === 'Bodenfeuchte') {
+				color = dataModel.get_vol_color(this.device, v0);
+				} else if (this.title === 'Bodentemperatur') {
+				color = dataModel.get_temperature_color(this.device, v0);
+				} else {
+				color = '#000';
 				}
-				const parentNode = this.linePathRefs[i].parentNode;
-				if (!parentNode) {
-					return;
-				}
-				
+
+				ctx.fillStyle = color;
+				ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
+			}
+			this.heatmapImages[i] = canvas.toDataURL();
+
+			if (this.heatmap) {
 				d3.select(parentNode)
-					.selectAll('.top-line')
-					.remove();
+				.append('rect')
+				.attr('x', 0).attr('y', 0)
+				.attr('class', 'heat')
+				.attr('width', this.chartWidth)
+				.attr('height', this.rowHeight)
+				.style('fill', `url(#heatmapPattern${this.componentId}-${i})`);
+			} else {
+				const lineGen = d3.line()
+				.x(row => xScale(new Date(row[idxTs])))
+				.y(row => yScale(row[sensor.col]))
+				.defined(row => Number.isFinite(row[sensor.col]));
+
+				// Split by time gaps if enabled
+				const segments = this.splitByGapsRows(tele.data, idxTs, config.segmentation ? config.dataGapLength : Infinity);
+
+				d3.select(parentNode).selectAll('.gap-aware-line,.gap-aware-area').remove();
+
+				segments.forEach(seg => {
+				if (seg.length < 2) return;
+
+				// Area (using heatmap pattern as fill)
+				const areaGen = d3.area()
+					.x(row => xScale(new Date(row[idxTs])))
+					.y0(this.rowHeight)
+					.y1(row => yScale(row[sensor.col]))
+					.defined(row => Number.isFinite(row[sensor.col]));
+
 				d3.select(parentNode)
-					.selectAll('.heat')
-					.remove();
+					.append('path')
+					.datum(seg)
+					.attr('class', 'gap-aware-area')
+					.style('fill', `url(#heatmapPattern${this.componentId}-${i})`)
+					.style('opacity', 1)
+					.attr('d', areaGen);
 
-				this.heatmapImages[i] = null;
-
-				if (!sensor.data?.length || sensor.data.length <= 1) {
-					return;
-				}
-
-
-				// HEATMAP CANVAS
-				const MAX_CANVAS_WIDTH = 30000;
-				const CANVAS_HEIGHT = 1; // Minimum height for efficiency
-				
-				const canvas = document.createElement('canvas');
-				canvas.width = Math.min(this.chartWidth, MAX_CANVAS_WIDTH);
-				canvas.height = CANVAS_HEIGHT;
-				const ctx = canvas.getContext('2d');
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-				if (sensor.data?.length) {
-					const canvasScale = canvas.width / this.chartWidth;
-					const GAP_COLOR = '#fff'; // TEMP: use light gray to see gaps
-
-					for (let j = 0; j < sensor.data.length - 1; j++) {
-						const currentPoint = sensor.data[j];
-						const nextPoint = sensor.data[j + 1];
-
-						const timeGap = new Date(nextPoint.ts) - new Date(currentPoint.ts);
-						const xStart = Math.floor(xScale(new Date(currentPoint.ts)) * canvasScale);
-						const xEnd = Math.floor(xScale(new Date(nextPoint.ts)) * canvasScale);
-						const width = Math.max(1, Math.ceil(xEnd - xStart));
-
-						let color;
-						if (config.segmentation && timeGap > config.dataGapLength) {
-							color = GAP_COLOR;
-						} else if (this.title === 'Bodenfeuchte') {
-							color = dataModel.get_vol_color(this.device, currentPoint.value);
-						} else if (this.title === 'Bodentemperatur') {
-							color = dataModel.get_temperature_color(this.device, currentPoint.value);
-						} else {
-							color = '#000'; // Fallback
-						}
-
-						ctx.fillStyle = color;
-						ctx.fillRect(xStart, 0, width, CANVAS_HEIGHT);
-					}
-				}
-				
-				this.heatmapImages[i] = canvas.toDataURL();
-				
-			
-				// CHART
-				const areaPathEl = this.linePathRefs[i];
-				if (!areaPathEl) return;
-
-				if (sensor.data && sensor.data.length) {
-
-					if (this.heatmap) {
-						// Show full heatmap with rectangle
-						d3.select(parentNode)
-							.append('rect')
-							.attr('x', 0)
-							.attr('y', 0)
-							.attr('class', 'heat')
-							.attr('width', this.chartWidth)
-							.attr('height', this.rowHeight)
-							.style('fill', `url(#heatmapPattern${this.componentId}-${i})`);
-							
-					} else {
-
-						const areaGen = d3.area()
-							.x(d => xScale(new Date(d.ts)))
-							.y0(this.rowHeight)
-							.y1(d => yScale(d.value));
-
-						const lineGen = d3.line()
-							.x(d => xScale(new Date(d.ts)))
-							.y(d => yScale(d.value));
-
-
-						
-						// const splitSegments = [];
-						// let segment = [];
-
-						// for (let j = 0; j < sensor.data.length; j++) {
-						// 	const point = sensor.data[j];
-						// 	if (segment.length > 0) {
-						// 		const prev = segment[segment.length - 1];
-						// 		if (new Date(point.ts) - new Date(prev.ts) > config.dataGapLength) {
-						// 			splitSegments.push(segment);
-						// 			segment = [];
-						// 		}
-						// 	}
-						// 	segment.push(point);
-						// }
-
-						// if (segment.length) {
-						// 	splitSegments.push(segment);
-						// }
-
-						let segments;
-						if (config.segmentation) {
-							segments = this.splitByGaps(sensor.data, config.dataGapLength);
-						} else {
-							segments = [sensor.data];
-						}
-
-						// Clear previous paths in case they exist
-						d3.select(parentNode)
-							.selectAll('.gap-aware-line, .gap-aware-area')
-							.remove();
-
-						// Draw each segment as its own line and area
-						segments.forEach(seg => {
-							if (seg.length < 2) return; // skip short segments
-
-							d3.select(parentNode)
-								.append('path')
-								.datum(seg)
-								.attr('class', 'gap-aware-area')
-								.style('fill', `url(#heatmapPattern${this.componentId}-${i})`)
-								.style('opacity', 1)
-								.attr('d', areaGen);
-
-							d3.select(parentNode)
-								.append('path')
-								.datum(seg)
-								.attr('class', 'gap-aware-line')
-								.attr('fill', 'none')
-								.attr('stroke', '#000000')
-								.attr('stroke-width', 1)
-								.style('opacity', 0.2)
-								.attr('d', lineGen);
-						});
-					}
-				}
+				// Line
+				d3.select(parentNode)
+					.append('path')
+					.datum(seg)
+					.attr('class', 'gap-aware-line')
+					.attr('fill', 'none')
+					.attr('stroke', '#000000')
+					.attr('stroke-width', 1)
+					.style('opacity', 0.2)
+					.attr('d', lineGen);
+				});
+			}
 			});
 		},
-		splitByGaps(data, maxGap) {
-			const segments = [];
-			let segment = [];
 
-			for (let i = 0; i < data.length; i++) {
-				if (i === 0) {
-					segment.push(data[i]);
-				} else {
-					const gap = data[i].ts - data[i - 1].ts;
-					if (gap > maxGap) {
-						segments.push(segment);
-						segment = [];
-					}
-					segment.push(data[i]);
-				}
+		// Split once for all sensors; segments are arrays of ORIGINAL rows (no copies)
+		splitByGapsRows(rows, idxTs, maxGap) {
+			if (!rows?.length) return [];
+			const segs = [];
+			let seg = [rows[0]];
+			for (let i = 1; i < rows.length; i++) {
+			const prev = rows[i - 1][idxTs];
+			const cur  = rows[i][idxTs];
+			if (cur - prev > maxGap) {
+				segs.push(seg);
+				seg = [];
 			}
-
-			if (segment.length > 0) {
-				segments.push(segment);
+			seg.push(rows[i]);
 			}
-
-			return segments;
+			if (seg.length) segs.push(seg);
+			return segs;
 		},
 		drawChartsNextTick() {
-			console.log('drawChartsNextTick')
 			nextTick(() => {
 				this.drawCharts();
 			});
@@ -541,25 +426,28 @@ export default {
 				};
 			});
 		},
+		getLastSensorData(key) {
+			const s = this.sensors.find(s => s.key === key);
+			const tele = this.sensorData;
+			if (!s || !tele?.data?.length) return null;
+			const row = tele.data[tele.data.length - 1];
+			const tsIndex = tele.schema.indexOf('ts');
+			const ts  = row[tsIndex];
+			const val = row[s.col];
+			return Number.isFinite(val) ? { ts, value: val } : null;
+		},
+		getLastTimestamp() {
+			return this.sensorData.data[this.sensorData.data.length - 1][0];
+		},
 		getData(key) {
-			if (this.hoverData && this.hoverData[key]) {
-				if (this.hoverData[key].value != '-') {
-					return this.hoverData[key].value?.toFixed(1);
-				} else {
-					return this.hoverData[key].value;
-				}
-			} else {
-				return this.getLastSensorData(key)?.value?.toFixed(1) ?? '-'
-			}
+			const hv = this.hoverData?.[key];
+			if (hv && hv.value !== '-' && hv.value != null) return hv.value;
+			const last = this.getLastSensorData(key);
+			return last ? last.value : '-';
 		},
 		validData(key) {
-			return (this.getData(key) != '-')
-		},
-		validHoverData(key) {
-			return this.hoverData && this.hoverData[key] && this.hoverData[key].valid
-		},
-		getLastSensorData(key) {
-			return this.sensors.find(sensor => sensor.key === key)?.data[this.sensors.find(sensor => sensor.key === key)?.data.length - 1] || [];
+			const v = this.getData(key);
+			return typeof v === 'number' && Number.isFinite(v);
 		},
 		getSoilMoistureLevelName(key) {
 			return displayutil.getSoilMoistureLevelName(this.device.attributes.soilType, this.getData(key));
@@ -592,9 +480,8 @@ export default {
 
 	},
 	watch: {
-		sensors: {
-			handler(newSensors) {
-				
+		sensorData: {
+			handler() {
 				this.filterSensors();
 				this.updateLastData();
 				nextTick(() => {
@@ -638,17 +525,11 @@ export default {
 			},
 			immediate: true
 		},
-		filterFaultyValues() {
-			this.filterSensors();
-			this.drawCharts();
-		}
 	},
 	mounted() {
 		window.addEventListener('sidebar:toggleFullWindow', this.drawCharts);
 		window.addEventListener('resize', this.drawCharts);
 		window.addEventListener('chartstyleselected', this.drawCharts);
-		this.updateLastData();
-		this.filterSensors();
 		nextTick(() => {
 			this.drawCharts();
 		});		
