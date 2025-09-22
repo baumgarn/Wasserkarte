@@ -6,14 +6,16 @@
 
 		<div class="info">
 
-			<div class="soil" v-if="soilName && humusName" >
-		
-				<!-- <span v-if="soilName" class="soiltype" :style="'background:'+soilColor"> -->
+			<div class="soil" v-if="usageName || soilName || humusName" >
+				
+				<span v-if="usageName" class="usagename" >
+					{{ usageName }}
+				</span>
+				<span class="separator"> – </span>
 				<span v-if="soilName" class="soiltype" >
 					{{ soilName }}
 				</span>
 				<span class="separator"> – </span>
-				<!-- <span v-if="humusName" class="humustype" :style="'background:'+humusColor"> -->
 				<span v-if="humusName" class="humustype">
 					{{ humusName }}
 				</span>
@@ -37,6 +39,9 @@
 		name: 'HeaderInfo',
 		props: {device: Object},
 		computed: {
+			usageName() {
+				return dataModel.get_usage_name(this.device);
+			},
 			soilName() {
 				return dataModel.get_soil_name(this.device);
 			},

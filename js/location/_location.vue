@@ -2,7 +2,6 @@
 	import * as d3 from 'd3'
 	import HeaderInfo from '@/location/headerinfo.vue';
 	import OberbodenUebersicht from '@/location/oberboden.vue';
-	import DateInfo from '@/location/dateinfo.vue';
 	import DebugInfo from '@/location/debuginfo.vue';
 	import ChartTime from '@/charts/chart_timeaxis.vue';
 	import ChartHeat from '@/charts/chart_heat.vue';
@@ -25,7 +24,6 @@
 		components: {
 			HeaderInfo,
 			OberbodenUebersicht,
-			DateInfo,
 			ChartHeat,
 			ChartGraph,
 			ChartTime,
@@ -98,6 +96,14 @@
 				const sensorKeys = ["Bodenfeuchte_10cm", "Bodenfeuchte_30cm", "Bodenfeuchte_60cm", "Bodenfeuchte_80cm"];
 				return this.filterSensors(sensorKeys);
 			},
+			nfk_avg() {
+				const sensorKeys = ["nfk_avg"];
+				return this.filterSensors(sensorKeys);
+			},
+			vol_avg() {
+				const sensorKeys = ["vol_avg"];
+				return this.filterSensors(sensorKeys);
+			},
 			allSensors() {
 				const sensorKeys = ["Bodenfeuchte_10cm", "Bodenfeuchte_30cm", "Bodenfeuchte_60cm", "Bodenfeuchte_80cm", "Bodentemperatur_10cm", "Bodentemperatur_30cm", "Bodentemperatur_60cm", "Bodentemperatur_80cm"];
 				return this.filterSensors(sensorKeys);
@@ -130,9 +136,6 @@
 			scrollLeft(){
 				return (this.chartWidth - this.frameWidth) * (this.graphPosition / (1 - this.graphScale)) || 0;
 			},
-			// dataPresent() {
-			// 	return Object.values(this.sensorData).some(data => Array.isArray(data) && data.length > 1);
-			// },
 			globalExtentX() {
 				return [this.startTimestamp, this.latestTimestamp];
 			},
@@ -142,120 +145,57 @@
 			wideView() {
 				return (this.frameWidth > 900);
 			},
-		// 	hoverData() {
-		// 		if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) {
-		// 			return null;
-		// 		}
+			hoverData() {
+				const tele = this.sensorData;
+				if (!tele?.schema?.length || !tele?.data?.length) return null;
 
-		// 		const xScale = d3.scaleTime()
-		// 			.domain(this.globalExtentX)
-		// 			.range([0, this.chartWidth]);
+				const idxTs = tele.schema.indexOf('ts');
+				if (idxTs < 0) return null;
 
-		// 		const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
+				if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) return null;
 
-		// 		let hoverdata = {};
+				const xScale = d3.scaleTime().domain(this.globalExtentX).range([0, this.chartWidth]);
+				const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
 
-		// 		for (let key in this.sensorData) {
-		// 			const data = this.sensorData[key];
+				// collect ts column once (coerce to milliseconds if needed)
+				const tsArr = tele.data.map(row => {
+					const v = row[idxTs];
+					return typeof v === 'number' ? v : new Date(v).getTime();
+				});
 
-		// 			if (!data || data.length === 0) {
-		// 				hoverdata[key] = { value: '-', valid: false };
-		// 				continue;
-		// 			}
+				// binary search nearest timestamp
+				let lo = 0, hi = tsArr.length - 1;
+				while (lo < hi) {
+					const mid = (lo + hi) >> 1;
+					if (tsArr[mid] < hovertime) lo = mid + 1; else hi = mid;
+				}
+				// lo is first >= hovertime; choose closer of lo and lo-1
+				let idx = lo;
+				if (lo > 0 && Math.abs(tsArr[lo - 1] - hovertime) <= Math.abs(tsArr[lo] - hovertime)) idx = lo - 1;
 
-		// 			// Case: After last point
-		// 			if (hovertime > data[data.length - 1].ts) {
-		// 				const gap = hovertime - data[data.length - 1].ts;
-		// 				hoverdata[key] = {
-		// 					ts: hovertime,
-		// 					value: (gap > config.dataGapLength) ? '-' : data[data.length - 1].value,
-		// 					valid: (gap <= config.dataGapLength)
-		// 				};
-		// 				continue;
-		// 			}
+				const closestTs = tsArr[idx];
+				const gap = Math.abs(hovertime - closestTs);
+				const isValidTime = !config.segmentation || gap <= config.dataGapLength;
 
-		// 			// Case: Before first point
-		// 			if (hovertime < data[0].ts) {
-		// 				hoverdata[key] = { value: '-', valid: false };
-		// 				continue;
-		// 			}
+				const result = {
+					ts: closestTs,
+					xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1
+				};
 
-		// 			// Find the closest point
-		// 			let closest = null;
-		// 			let minDiff = Infinity;
+				const colIndex = Object.fromEntries(tele.schema.map((k, i) => [k, i]));
 
-		// 			for (let i = 0; i < data.length; i++) {
-		// 				const point = data[i];
-		// 				const diff = Math.abs(point.ts - hovertime);
+				for (const k of tele.schema) {
+					if (k === 'ts') continue;
+					const col = colIndex[k];
+					const raw = tele.data[idx][col];
+					const num = Number(raw);
+					result[k] = Number.isFinite(num) ? num : raw ?? null;
+				}
 
-		// 				// If equal diff, prefer the *later* point
-		// 				if (diff < minDiff || (diff === minDiff && point.ts > closest.ts)) {
-		// 					closest = point;
-		// 					minDiff = diff;
-		// 				}
-		// 			}
+				// console.log(result);
+				return result;
 
-		// 			const isValid = (! config.segmentation || minDiff <= config.dataGapLength);
-		// 			hoverdata[key] = {
-		// 				ts: closest.ts,
-		// 				value: isValid ? closest.value : '-',
-		// 				valid: isValid
-		// 			};
-
-		// 			if (isValid && !hoverdata.ts) {
-		// 				hoverdata.ts = closest.ts;
-		// 				hoverdata.xpos = xScale(new Date(closest.ts)) - this.scrollLeft - 1;
-		// 			}
-		// 		}
-
-		// 		return hoverdata;
-		// 	},
-		// 	devices() {
-		// 		return state.devices;
-		// 	}
-		// },
-		hoverData() {
-			const tele = this.sensorData;
-			if (!tele?.schema?.length || !tele?.data?.length) return null;
-
-			const idxTs = tele.schema.indexOf('ts');
-			if (idxTs < 0) return null;
-
-			if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) return null;
-
-			const xScale = d3.scaleTime().domain(this.globalExtentX).range([0, this.chartWidth]);
-			const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
-
-			// collect ts column once
-			const tsArr = tele.data.map(row => row[idxTs]);
-
-			// binary search nearest timestamp
-			let lo = 0, hi = tsArr.length - 1;
-			while (lo < hi) {
-			const mid = (lo + hi) >> 1;
-			if (tsArr[mid] < hovertime) lo = mid + 1; else hi = mid;
 			}
-			// lo is first >= hovertime; choose closer of lo and lo-1
-			let idx = lo;
-			if (lo > 0 && Math.abs(tsArr[lo - 1] - hovertime) <= Math.abs(tsArr[lo] - hovertime)) idx = lo - 1;
-
-			const closestTs = tsArr[idx];
-			const gap = Math.abs(hovertime - closestTs);
-
-			const result = { ts: closestTs, xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1 };
-
-			// fill values for only the sensors currently used in the chart
-			const activeKeys = new Set(this.bodenfeuchteSensors.map(s => s.key).concat(this.bodentemperaturSensors.map(s => s.key)));
-
-			for (const k of tele.schema) {
-				if (k === 'ts' || !activeKeys.has(k)) continue;
-				const col = tele.schema.indexOf(k);
-				const val = tele.data[idx][col];
-				const valid = !config.segmentation || gap <= config.dataGapLength;
-				result[k] = { ts: closestTs, value: Number.isFinite(val) ? val : '-', valid: valid && Number.isFinite(val) };
-			}
-			return result;
-		}
 		},
 		
 
@@ -410,9 +350,7 @@
 				<h2>
 					<span class="title">{{ device.attributes?.Anzeigename || device.name }}</span>
 				</h2>
-				
-				<DateInfo :device :hoverData :earliestTimestamp :latestTimestamp/>
-				
+								
 				<OberbodenUebersicht :device :hoverData />
 				
 			</div>
@@ -430,9 +368,7 @@
 			<h2>
 				<span class="title">{{ device.attributes?.Anzeigename || device.name }}</span>
 			</h2>
-			
-			<DateInfo :device :hoverData :earliestTimestamp :latestTimestamp/>
-			
+						
 			<OberbodenUebersicht :device :hoverData />
 			
 		</div>
@@ -512,86 +448,10 @@
 							:hoverPosition
 							:hoverData
 							/>
-							<!-- :ceiling="35"
-							:baseline="0" -->
-
+							
 					</div>
 				</div>
 			</div>
-
-			<!-- <div v-if="hasBodentemperaturSensors">
-
-
-				<div v-if="chartStyle === 'schichten'">
-
-					<div class="graph">
-						<ChartHeat 
-							title="Bodentemperatur"
-							:sensors="bodentemperaturSensors" 
-							:device
-							:chartWidth 
-							:frameWidth 
-							:scrollLeft 
-							:startTimestamp
-							:latestTimestamp
-							:numberOfDays
-							:dataPresent
-							:hoverPosition
-							:hoverData
-							:coloring="'temperatur'"
-							:showDate="false"
-						/>
-					</div>
-
-				</div>
-
-				<div v-else-if="chartStyle === 'heatmap'">
-					
-					<div class="graph">
-
-					<ChartHeat 
-						title="Bodentemperatur"
-						:sensors="bodentemperaturSensors" 
-						:device
-						:chartWidth 
-						:frameWidth 
-						:scrollLeft 
-						:startTimestamp
-						:latestTimestamp
-						:numberOfDays
-						:dataPresent
-						:hoverPosition
-						:hoverData
-						:heatmap="true"
-						:coloring="'temperatur'"
-						:showDate="false"
-						/>
-
-					</div>
-				</div>
-
-				<div v-else-if="chartStyle === 'ueberlagert'">
-					
-					<div class="graph">
-
-						<ChartGraph 
-							title="Bodentemperatur"
-							:sensors="bodentemperaturSensors" 
-							:device
-							:chartWidth 
-							:frameWidth 
-							:scrollLeft 
-							:startTimestamp
-							:numberOfDays
-							:dataPresent
-							:hoverPosition
-							:hoverData
-							:coloring="'temperatur'"
-							/>
-
-					</div>
-				</div>
-			</div> -->
 		</div>
 	</div>
 
@@ -612,7 +472,6 @@
 
 	
 	<div class="additional" v-if="context=='sidebar'">
-		<!-- <a :href="apiUrl" class="apiurl">API</a> -->
 		<DebugInfo :device="device" :showTitle="false"></DebugInfo>
 	</div>
 

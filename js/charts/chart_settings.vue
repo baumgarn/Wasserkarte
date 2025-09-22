@@ -69,6 +69,8 @@ export default {
 				{ label: 'Horizonte', value: 'schichten' },
 				{ label: 'Profil', value: 'heatmap' },
 				{ label: 'Graphen', value: 'ueberlagert' },
+				// { label: 'Vol', value: 'vol_avg' },
+				// { label: 'nFK', value: 'nfk_avg' },
 			],	
 			aggregationOptions: [
 				{ label: 'Tagesdurchschnitt', value: '1d' },

@@ -1,6 +1,6 @@
 <template>
 	<canvas ref="barrelCanvas"></canvas>
-	</template>
+</template>
 	
 	<script>
 	import { state } from '@/state.js'
@@ -47,21 +47,22 @@
 			return this.barrel_height + ellipseH + this.margin * 2;
 		},
 		wassergehalt_oberboden() {
-			const wassergehalt = dataModel.wassergehalt_oberboden(this.device, this.hoverData);
+			const wassergehalt = this.hoverOrLastData.vol_avg * 6;
 			if (!wassergehalt) return '–';
+			if (wassergehalt < 0 ) return 0;
 			if (wassergehalt < 10 ) return parseFloat(wassergehalt.toFixed(1));
 			return wassergehalt.toFixed(0)	 
 		},
 		gesamtkapazität_oberboden() {
-			return dataModel.gesamtkapazität_oberboden(this.device);
+			return Math.round(this.device.attributes.avg_FK * 6)
 		},
 		vol() {
-			const vol = dataModel.vol(this.device, this.hoverData);
+			const vol = this.hoverOrLastData.vol_avg;
 			if (isNaN(vol)) return '–'
-			return parseFloat(vol.toFixed(1));
+			return parseFloat(vol.toFixed(0));
 		},
 		nfk() {
-			const nfk = dataModel.nfk(this.device, this.hoverData);
+			const nfk = this.hoverOrLastData.nfk_avg;
 			if (isNaN(nfk)) return '–'
 			return parseFloat(nfk.toFixed(0));
 		},
@@ -82,6 +83,9 @@
 		}, 
 		windowWidth() {
 			return state.windowWidth;
+		},
+		hoverOrLastData() {
+			return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
 		}
 	},
 	watch: {

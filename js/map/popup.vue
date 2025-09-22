@@ -28,7 +28,23 @@
 							<div class="left">Tiefe</div>
 							<div class="right">Bodenfeuchte</div>
 						</div>
-						<div class="datarow" v-if="telemetry.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_10cm))">
+						<div class="datarow" v-if="lastData.Bodenfeuchte_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)">
+							<div class="depth">10 cm</div>
+							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_10cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+						</div>
+						<div class="datarow" v-if="lastData.Bodenfeuchte_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)">
+							<div class="depth">30 cm</div>
+							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_30cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+						</div>
+						<div class="datarow" v-if="lastData.Bodenfeuchte_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)">
+							<div class="depth">60 cm</div>
+							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_60cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+						</div>
+						<div class="datarow" v-if="lastData.Bodenfeuchte_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)">
+							<div class="depth">80 cm</div>
+							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_80cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+						</div>
+						<!-- <div class="datarow" v-if="telemetry.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_10cm))">
 							<div class="depth">10 cm</div>
 							<div class="value">{{ formatNumber(getLastValue(telemetry.Bodenfeuchte_10cm)) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
 						</div>
@@ -43,7 +59,7 @@
 						<div class="datarow" v-if="telemetry.Bodenfeuchte_80cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_80cm))">
 							<div class="depth">80 cm</div>
 							<div class="value">{{ formatNumber(getLastValue(telemetry.Bodenfeuchte_80cm)) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
+						</div> -->
 					</div>
 					
 					<!-- <div v-if="state.showHelp" class="helpnotes">
@@ -118,7 +134,7 @@ export default {
 			}
 		},
 		nfk() {
-			const nfk = dataModel.nfk(this.device);
+			const nfk = this.lastData.nfk_avg;
 			if (isNaN(nfk)) return '–'
 			return parseFloat(nfk.toFixed(0));
 		},
@@ -132,6 +148,13 @@ export default {
 		},
 		nfk_color() {
 			return dataModel.get_nfk_color(this.nfk);
+		},
+		lastData() {
+			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
+				return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+			} else {
+				return null;
+			}
 		},
 	},
 	watch: {

@@ -82,25 +82,28 @@ export default {
 				</tr>
 			</table>
 
-			<h3>Telemetrie Schema</h3>
-			<table>
-			<tr>
-				<td class="label">schema</td>
-				<td class="value">
-				<span v-for="(field, index) in device.telemetrySchema.schema" :key="index">
-					{{ field }}<br>
-				</span>
-				</td>
-			</tr>
-			<tr>
-				<td class="label">data</td>
-				<td class="value">
-				<span v-for="(value, index) in device.telemetrySchema.data[0]" :key="index">
-					{{ value }}<br>
-				</span>
-				</td>
-			</tr>
-			</table>
+			<template v-if="device.telemetrySchema && device.telemetrySchema.schema">
+
+				<h3>Telemetrie Schema</h3>
+				<table>
+					<tr>
+						<td class="label">schema</td>
+						<td class="value">
+							<span v-for="(field, index) in device.telemetrySchema.schema" :key="index">
+								{{ field }}<br>
+							</span>
+						</td>
+					</tr>
+					<tr>
+						<td class="label">data</td>
+						<td class="value">
+							<span v-for="(value, index) in device.telemetrySchema.data[0]" :key="index">
+								{{ value }}<br>
+							</span>
+						</td>
+					</tr>
+				</table>
+			</template>
 
 		</div>
 	</div>

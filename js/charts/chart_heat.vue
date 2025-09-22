@@ -4,12 +4,12 @@
 
 			<h3>{{ title }}</h3>
 
-			<div v-if="showDate && hoverData && hoverData.ts && dataAggregation != '1d'" class="latestdate">
+			<div v-if="hoverData && hoverData.ts && dataAggregation != '1d'" class="latestdate">
 				{{ displayutil.formatDateShort(hoverData.ts) }}
 				<span class="time">{{ displayutil.formatDateTime(hoverData.ts) }}</span>
 			</div>
 
-			<div v-if="showDate && hoverData && hoverData.ts && hoverData.ts != getLastTimestamp() && dataAggregation == '1d'" class="latestdate">
+			<div v-else-if="hoverData && hoverData.ts && hoverData.ts != getLastTimestamp() && dataAggregation == '1d'" class="latestdate">
 				{{ displayutil.formatDateAggregated(hoverData.ts) }}
 			</div>
 			
@@ -17,11 +17,17 @@
 				
 			</div>
 
-			<div v-else-if="showDate" class="latestdate">
+			<div v-else-if="daysSinceLastTelemetry > 2" class="latestdate warning">
+				Keine Telemetrie seit
+				{{ displayutil.formatDateShort(getLastTimestamp()) }}
+				({{ daysSinceLastTelemetry }} Tage)
+			</div>
+
+			<div v-else class="latestdate">
 				{{ displayutil.formatDateShort(getLastTimestamp()) }}
 				<span class="time">{{ displayutil.formatDateTime(getLastTimestamp()) }}</span>
 			</div>
-
+			
 		</div>
 
 		<div class="scrollview chart-heat" :class="heatmap ? 'heatmap' : 'schichten'">
@@ -80,7 +86,7 @@
 						<div v-if="!heatmap && hoverData?.xpos"
 							:style="{
 								left: (hoverData?.xpos + 0.5) + 'px',
-								top: getYPosition(hoverData[sensor.key].value) + 'px'
+								top: getYPosition(hoverData[sensor.key]) + 'px'
 							}"
 							class="hover-dot"></div>
 
@@ -88,6 +94,15 @@
 						<div class="labelinner">
 
 							<div class="depth">{{ getDisplayDepth(sensor.key) }}</div>
+
+							<div class="soilinfo">
+								<span class="soil">
+									{{ getSoilType(sensor.key) }}
+								</span>
+								<span class="humus">
+									{{ getHumusType(sensor.key) }}
+								</span>
+							</div>
 
 							<template v-if="title=='Bodenfeuchte'">
 								
@@ -101,7 +116,7 @@
 										<span class="unit"><span class="unittype">nFK</span>%</span>
 									</div>
 									<div class="bodenfeuchteVol">
-										<span class="value">{{formatNumber(getData(sensor.key))}}</span>
+										<span class="value">{{getVolValue(sensor.key)}}</span>
 										<span class="unit"><span class="unittype">Vol</span>%</span>
 									</div>
 	
@@ -180,6 +195,7 @@ export default {
 		sensorData: { type: Object, required: true },
 		device: { required: true, type: Object, },
 		chartWidth: { type: Number, required: true },
+		chartHeight: { type: Number, required: false },
 		frameWidth: { type: Number, required: true },
 		scrollLeft: { type: Number, required: true },
 		hoverPosition: { type: Number, required: false },
@@ -191,22 +207,20 @@ export default {
 		offsetTop: { type: Number, required: false, default: 5 },
 		offsetBottom: { type: Number, required: false, default: 0 },
 		heatmap: { type: Boolean, required: false, default: false },
-		showDate: { type: Boolean, required: false, default: true },
 		dataPresent: { type: Boolean, required: false },
 		hoverData: { type: Object, required: false },
 	},
 	computed: {
 		globalExtentY() {
-			const tele = this.sensorData;
-			if (!tele?.schema?.length || !tele?.data?.length) return [0, 100];
+			if (!this.sensorData?.schema?.length || !this.sensorData?.data?.length) return [0, 100];
 
-			const idxTs = tele.schema.indexOf('ts');
+			const idxTs = this.sensorData.schema.indexOf('ts');
 			let min = +Infinity, max = -Infinity;
 
 			for (const s of this.sensors) {
 			const col = s.col;
-			for (let r = 0; r < tele.data.length; r++) {
-				const y = tele.data[r][col];
+			for (let r = 0; r < this.sensorData.data.length; r++) {
+				const y = this.sensorData.data[r][col];
 				if (!Number.isFinite(y)) continue;
 				if (y < min) min = y;
 				if (y > max) max = y;
@@ -217,15 +231,6 @@ export default {
 			if (this.ceiling !== undefined) max = this.ceiling;
 			return [min, max];
 		},
-		dataTimeRange() {
-			const allDataPoints = this.sensors.flatMap(sensor => sensor.data || []);
-			if (!allDataPoints.length) return null;
-			
-			return {
-				earliest: Math.min(...allDataPoints.map(d => new Date(d.ts).getTime())),
-				latest: Math.max(...allDataPoints.map(d => new Date(d.ts).getTime()))
-			};
-		},
 		globalExtentX() {
 			const startDate = new Date(this.startTimestamp);
 			const endDate = new Date(this.startTimestamp + (this.numberOfDays * 24 * 60 * 60 * 1000));
@@ -233,12 +238,18 @@ export default {
 			return [startDate, endDate];
 		},
 		totalHeight() {
+			if (this.chartHeight) {
+				return this.chartHeight + this.xAxisHeight
+			} 
 			return this.sensors.length * (this.rowHeight+this.rowMargin) + this.xAxisHeight
 		},
 		rowMargin() {
 			return this.heatmap ? 0 : 20;
 		},
 		rowHeight() {
+			if (this.chartHeight) {
+				return this.chartHeight;
+			}
 			return 115 - this.rowMargin
 		}, 
 		hasSoilAttributes() {
@@ -253,119 +264,183 @@ export default {
 		filterFaultyValues() {
 			return state.filterFaultyValues;
 		},
+		hoverOrLastData() {
+			return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+		},
+		daysSinceLastTelemetry() {
+			const latestTimestamp = this.getLastTimestamp();
+			if (latestTimestamp) {
+				const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
+				const days = Math.floor(hours / 24);
+				return days;
+			}
+		},
 
 	},
 	methods: {
 		drawCharts() {
-			const tele = this.sensorData;
-			if (!this.sensors.length || this.chartWidth <= 0 || !tele?.schema?.length || !tele?.data?.length) return;
+			if (!this.sensors.length || this.chartWidth <= 0 || !this.sensorData?.schema?.length || !this.sensorData?.data?.length) return;
 
-			const idxTs = tele.schema.indexOf('ts');
+			const idxTs = this.sensorData.schema.indexOf('ts');
 			const [yMin, yMax] = this.globalExtentY;
 			const yScale = d3.scaleLinear().domain([yMin, yMax]).range([this.rowHeight - this.offsetBottom, this.offsetTop]);
 			const [xStart, xEnd] = this.globalExtentX;
 			const xScale = d3.scaleTime().domain([xStart, xEnd]).range([0, this.chartWidth]);
 
 			this.sensors.forEach((sensor, i) => {
-			const parentNode = this.linePathRefs[i];
-			if (!parentNode) return;
 
-			d3.select(parentNode).selectAll('.top-line,.heat,.gap-aware-line,.gap-aware-area').remove();
-			this.heatmapImages[i] = null;
+				const parentNode = this.linePathRefs[i];
+				if (!parentNode) return;
 
-			// Need at least 2 points overall to draw anything
-			if (tele.data.length < 2) return;
+				d3.select(parentNode).selectAll('.top-line,.heat,.gap-aware-line,.gap-aware-area').remove();
+				this.heatmapImages[i] = null;
 
-			// Build heatmap strip with minimal passes
-			const MAX_CANVAS_WIDTH = 30000;
-			const CANVAS_HEIGHT = 1;
-			const canvas = document.createElement('canvas');
-			canvas.width = Math.min(this.chartWidth, MAX_CANVAS_WIDTH);
-			canvas.height = CANVAS_HEIGHT;
-			const ctx = canvas.getContext('2d');
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			const canvasScale = canvas.width / this.chartWidth;
-			const GAP_COLOR = '#fff';
+				// Need at least 2 points overall to draw anything
+				if (this.sensorData.data.length < 2) return;
 
-			for (let j = 0; j < tele.data.length - 1; j++) {
-				const r0 = tele.data[j];
-				const r1 = tele.data[j + 1];
-				const ts0 = r0[idxTs], ts1 = r1[idxTs];
-				const v0 = r0[sensor.col];
+				// Build heatmap strip with minimal passes
+				const MAX_CANVAS_WIDTH = 30000;
+				const CANVAS_HEIGHT = 1;
+				const canvas = document.createElement('canvas');
+				canvas.width = Math.min(this.chartWidth, MAX_CANVAS_WIDTH);
+				canvas.height = CANVAS_HEIGHT;
+				const ctx = canvas.getContext('2d');
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				const canvasScale = canvas.width / this.chartWidth;
+				const GAP_COLOR = '#fff';
 
-				const timeGap = ts1 - ts0;
-				const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
-				const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
-				const width = Math.max(1, Math.ceil(x1 - x0));
+				if (this.title === 'Bodenfeuchte') {
 
-				let color;
-				if (config.segmentation && timeGap > config.dataGapLength) {
-				color = GAP_COLOR;
-				} else if (!Number.isFinite(v0)) {
-				color = GAP_COLOR;
-				} else if (this.title === 'Bodenfeuchte') {
-				color = dataModel.get_vol_color(this.device, v0);
-				} else if (this.title === 'Bodentemperatur') {
-				color = dataModel.get_temperature_color(this.device, v0);
+					const depth = this.getDepth(sensor.key);
+					const nfk_key = 'nfk_'+depth+'cm';
+					const nfk_index = this.getKeyIndex(nfk_key);
+
+					for (let j = 0; j < this.sensorData.data.length - 1; j++) {
+						const r0 = this.sensorData.data[j];
+						const r1 = this.sensorData.data[j + 1];
+						const ts0 = r0[idxTs], ts1 = r1[idxTs];
+						const v0 = r0[nfk_index];
+
+						const timeGap = ts1 - ts0;
+						const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
+						const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
+						const width = Math.max(1, Math.ceil(x1 - x0));
+
+						let color = dataModel.get_nfk_color(v0)
+
+						ctx.fillStyle = color;
+						ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
+
+					}
+				} else if (this.title === 'Ø Nutzbare Feldkapazität' || this.title === 'Ø Bodenfeuchte Vol %') {
+
+					const depth = this.getDepth(sensor.key);
+					const nfk_key = 'nfk_avg';
+					const nfk_index = this.getKeyIndex(nfk_key);
+
+					for (let j = 0; j < this.sensorData.data.length - 1; j++) {
+						const r0 = this.sensorData.data[j];
+						const r1 = this.sensorData.data[j + 1];
+						const ts0 = r0[idxTs], ts1 = r1[idxTs];
+						const v0 = r0[nfk_index];
+
+						const timeGap = ts1 - ts0;
+						const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
+						const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
+						const width = Math.max(1, Math.ceil(x1 - x0));
+
+						let color = dataModel.get_nfk_color(v0)
+
+						ctx.fillStyle = color;
+						ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
+
+					}
+
 				} else {
-				color = '#000';
+
+					// for (let j = 0; j < this.sensorData.data.length - 1; j++) {
+					// 	const r0 = this.sensorData.data[j];
+					// 	const r1 = this.sensorData.data[j + 1];
+					// 	const ts0 = r0[idxTs], ts1 = r1[idxTs];
+					// 	const v0 = r0[sensor.col];
+
+					// 	const timeGap = ts1 - ts0;
+					// 	const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
+					// 	const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
+					// 	const width = Math.max(1, Math.ceil(x1 - x0));
+
+					// 	let color;
+					// 	if (config.segmentation && timeGap > config.dataGapLength) {
+					// 		color = GAP_COLOR;
+					// 	} else if (!Number.isFinite(v0)) {
+					// 		color = GAP_COLOR;
+					// 	} else if (this.title === 'Bodenfeuchte') {
+					// 		color = dataModel.get_vol_color(this.device, v0);
+					// 	} else if (this.title === 'Bodentemperatur') {
+					// 		color = dataModel.get_temperature_color(this.device, v0);
+					// 	} else {
+					// 		color = '#000';
+					// 	}
+
+					// 	ctx.fillStyle = color;
+					// 	ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
+					// }
 				}
 
-				ctx.fillStyle = color;
-				ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
-			}
-			this.heatmapImages[i] = canvas.toDataURL();
 
-			if (this.heatmap) {
-				d3.select(parentNode)
-				.append('rect')
-				.attr('x', 0).attr('y', 0)
-				.attr('class', 'heat')
-				.attr('width', this.chartWidth)
-				.attr('height', this.rowHeight)
-				.style('fill', `url(#heatmapPattern${this.componentId}-${i})`);
-			} else {
-				const lineGen = d3.line()
-				.x(row => xScale(new Date(row[idxTs])))
-				.y(row => yScale(row[sensor.col]))
-				.defined(row => Number.isFinite(row[sensor.col]));
+				this.heatmapImages[i] = canvas.toDataURL();
 
-				// Split by time gaps if enabled
-				const segments = this.splitByGapsRows(tele.data, idxTs, config.segmentation ? config.dataGapLength : Infinity);
-
-				d3.select(parentNode).selectAll('.gap-aware-line,.gap-aware-area').remove();
-
-				segments.forEach(seg => {
-				if (seg.length < 2) return;
-
-				// Area (using heatmap pattern as fill)
-				const areaGen = d3.area()
+				if (this.heatmap) {
+					d3.select(parentNode)
+					.append('rect')
+					.attr('x', 0).attr('y', 0)
+					.attr('class', 'heat')
+					.attr('width', this.chartWidth)
+					.attr('height', this.rowHeight)
+					.style('fill', `url(#heatmapPattern${this.componentId}-${i})`);
+				} else {
+					const lineGen = d3.line()
 					.x(row => xScale(new Date(row[idxTs])))
-					.y0(this.rowHeight)
-					.y1(row => yScale(row[sensor.col]))
+					.y(row => yScale(row[sensor.col]))
 					.defined(row => Number.isFinite(row[sensor.col]));
 
-				d3.select(parentNode)
-					.append('path')
-					.datum(seg)
-					.attr('class', 'gap-aware-area')
-					.style('fill', `url(#heatmapPattern${this.componentId}-${i})`)
-					.style('opacity', 1)
-					.attr('d', areaGen);
+					// Split by time gaps if enabled
+					const segments = this.splitByGapsRows(this.sensorData.data, idxTs, config.segmentation ? config.dataGapLength : Infinity);
 
-				// Line
-				d3.select(parentNode)
-					.append('path')
-					.datum(seg)
-					.attr('class', 'gap-aware-line')
-					.attr('fill', 'none')
-					.attr('stroke', '#000000')
-					.attr('stroke-width', 1)
-					.style('opacity', 0.2)
-					.attr('d', lineGen);
-				});
-			}
-			});
+					d3.select(parentNode).selectAll('.gap-aware-line,.gap-aware-area').remove();
+
+					segments.forEach(seg => {
+						if (seg.length < 2) return;
+
+						// Area (using heatmap pattern as fill)
+						const areaGen = d3.area()
+							.x(row => xScale(new Date(row[idxTs])))
+							.y0(this.rowHeight)
+							.y1(row => yScale(row[sensor.col]))
+							.defined(row => Number.isFinite(row[sensor.col]));
+
+						d3.select(parentNode)
+							.append('path')
+							.datum(seg)
+							.attr('class', 'gap-aware-area')
+							.style('fill', `url(#heatmapPattern${this.componentId}-${i})`)
+							.style('opacity', 1)
+							.attr('d', areaGen);
+
+						// Line
+						d3.select(parentNode)
+							.append('path')
+							.datum(seg)
+							.attr('class', 'gap-aware-line')
+							.attr('fill', 'none')
+							.attr('stroke', '#000000')
+							.attr('stroke-width', 1)
+							.style('opacity', 0.2)
+							.attr('d', lineGen);
+						});
+					}
+				}
+			);
 		},
 
 		// Split once for all sensors; segments are arrays of ORIGINAL rows (no copies)
@@ -449,17 +524,50 @@ export default {
 			const v = this.getData(key);
 			return typeof v === 'number' && Number.isFinite(v);
 		},
+		getDepth(key) {
+			return parseInt(key.replace(/\D/g, ""), 10);
+		},
+		getKeyIndex(key) {
+			return this.sensorData.schema.indexOf(key);
+		},
 		getSoilMoistureLevelName(key) {
 			return displayutil.getSoilMoistureLevelName(this.device.attributes.soilType, this.getData(key));
 		},
 		getSoilMoistureLevelNFK(key) {
 			return displayutil.getSoilMoistureLevelNFK(this.device.attributes.soilType, this.getData(key));
 		},
+		getVolValue(key) {
+			let vol = this.hoverOrLastData[key];
+			return this.formatNumber(vol);
+		},
 		getNFKValue(key) {
-			return dataModel.vol_to_nfk(this.device, this.getData(key)).toFixed(0);
+			let nfk = this.hoverOrLastData['nfk_'+this.getDepth(key)+'cm']
+			return nfk.toFixed(0);
 		},
 		getNFKName(key) {
-			return dataModel.get_vol_nfk_label(this.device, this.getData(key));
+			return dataModel.get_nfk_label(this.getNFKValue(key));
+		},
+		getSoilType(key) {
+			if (key) {
+				const depth = this.getDepth(key);
+				const soildepthkey = 'Bodenart_'+depth+'cm';
+				if (this.device.attributes[soildepthkey]) {
+					return dataModel.soil_table[this.device.attributes[soildepthkey]]?.name;
+				} else if (this.device.attributes.Bodenart) {
+					return dataModel.soil_table[this.device.attributes.Bodenart]?.name;
+				}
+			}
+		},
+		getHumusType(key) {
+			if (key) {
+				const depth = this.getDepth(key);
+				const humusdepthkey = 'Humusgehalt_'+depth+'cm';
+				if (this.device.attributes[humusdepthkey]) {
+					return dataModel.humus_table[this.device.attributes[humusdepthkey]]?.name;
+				} else if (this.device.attributes.Humusgehalt) {
+					return dataModel.humus_table[this.device.attributes.Humusgehalt]?.name;
+				}
+			}
 		},
 		getYPosition(value) {
 			const [yMin, yMax] = this.globalExtentY;
@@ -553,8 +661,6 @@ export default {
 .scrollframe
 	position: relative;
 	overflow: hidden;
-	// background var(--uibrighter)
-	// background #fff
 	border 1px solid transparent
 	box-sizing content-box
 
@@ -565,8 +671,6 @@ export default {
 .scrollinner
 	height: 100%;
 	position: relative;
-	// background linear-gradient(to bottom, transparent, #fff)
-
 
 .scrolloverlay
 	position: absolute;
@@ -574,7 +678,6 @@ export default {
 	left: 0;
 	width: 100%;
 	height: 100%;
-
 
 .sensorlabel
 	width 100%
@@ -591,6 +694,7 @@ export default {
 .schichten .labelinner
 	border-top 1px solid #00000022
 	background linear-gradient(to bottom, #00000008 0%, #00000000 25%, transparent 50%)
+	
 .labelinner
 	position absolute		
 	left 0
@@ -601,15 +705,22 @@ export default {
 	flex-direction row
 	justify-content space-between
 	align-items baseline
-	padding 0 4px
+	padding 0 2px
 	height 20px
 	margin-bottom 0
 	> *
 		vertical-align baseline
 	.depth
 		font-size 8pt
-		margin-right 1em
+		opacity .7
 		position relative
+	.soilinfo
+		font-size 8pt
+		opacity .7
+		.soil
+		.humus
+			margin-left 16px
+			display inline-block
 	.value
 		font-weight bold
 		font-size 10.5pt
@@ -663,7 +774,9 @@ export default {
 			flex-basis 68px
 			.unit
 				opacity .7
-
+@media (max-width 500px)
+	.labelinner .soilinfo .humus
+		display none
 .hover-value
 	display inline-block
 	margin-left 8px

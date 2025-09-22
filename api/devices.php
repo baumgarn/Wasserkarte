@@ -63,18 +63,22 @@ function fetchDevicesFromThingsBoard($token)
 			$device['label'] = $deviceData['label'];
 			$device['id'] = $deviceId;
 			$device['attributes'] = [];
-			$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
-			$device['telemetrySchema'] = $allTelemetry[$deviceId]['schema'] ?? [];
-			
 			foreach ($allAttributes[$deviceId] as $attribute) {
 				if (!in_array( $attribute['key'], EXCLUDED_ATTRIBUTES)) {
 					$device['attributes'][$attribute['key']] = $attribute['value'];
 				}		
 			}
+			ksort($device['attributes']);
+			$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
+			$device['telemetrySchema'] = expandSensorDataWithCalculations($allTelemetry[$deviceId]['schema'] ?? [], $device) ;
+
+			$device = setAvgTWFK($device);
 
 			if (isset($device['attributes']['map']) && ($device['attributes']['map'] == 'true' || $device['attributes']['map'] == true)) {
-					$allDevices[] = $device;
+
+				$allDevices[] = $device;
 			}
+
 
 		}
 
@@ -209,7 +213,6 @@ function normalizeLatestTelemetryToSchema(array $tbResponse): array
 	foreach ($present as $k) {
 		$row[] = isset($tele[$k][0]['value']) ? formatValue($tele[$k][0]['value']) : null;
 	}
-
 	return ['schema' => $schema, 'data' => [$row]];
 }
 
@@ -235,6 +238,7 @@ function fetchLastTelemetryForCachedDevices($token, $cache)
 		$deviceId = $device['id'];
 		$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
 		$device['telemetrySchema'] = $allTelemetry[$deviceId]['schema'] ?? [];
+		$device['telemetrySchema'] = expandSensorDataWithCalculations($device['telemetrySchema'], $device);
 	}
 
 	$endTime = microtime(true);

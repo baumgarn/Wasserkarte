@@ -44,8 +44,8 @@ const dataStore = reactive({
 
 	processDevices(result) {
 		state.devices = [];
-		console.log('processDevices');
 
+	
 		for (const key in result.devices) {
 			const device = result.devices[key];
 			dataModel.wasserkapazität_setzen(device);
@@ -84,29 +84,65 @@ const dataStore = reactive({
 		}
 
 		const url = `/api/?deviceId=${deviceId}&time=${timerange}&agg=${aggregation}`;
-		try {
+		let attempts = 0;
+		let json;
 
-			const response = await fetch(url);
-			const json = await response.json();
+		while (attempts < 3) {
+			try {
+				const response = await fetch(url);
+				if (!response.ok) throw new Error(`HTTP ${response.status}`);
+				json = await response.json();
 
-			if (aggregation == '1d') { 
-				// with daily aggregates, we want to append the last live data point because aggregated data ends at the last day
-				// but only if last data is today
-				const device = this.getDevice(deviceId);
-				const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
-				json.latestTimestamp = lastTelemetryData[0];
-				json.telemetry.data.push(lastTelemetryData)
+				if (state.filterFaultyValues) {
+					json.telemetry = this.filterTelemetry(json.telemetry, -10, 100);
+				}
+
+				if (aggregation === "1d") {
+					const device = this.getDevice(deviceId);
+					const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+					json.latestTimestamp = lastTelemetryData[0];
+					json.telemetry.data.push(lastTelemetryData);
+				}
+
+				this.dataCache[cacheKey] = json;
+				return json;
+
+			} catch (error) {
+				attempts++;
+				console.warn(`Fetch attempt ${attempts} failed:`, error);
+
+				if (attempts >= 3) {
+					console.error("Failed to fetch data after 3 attempts:", error);
+					return { data: {} };
+				}
+
+				await new Promise(r => setTimeout(r, 2000 * attempts));
 			}
-
-			this.dataCache[cacheKey] = json;
-
-
-			return json;
-
-		} catch (error) {
-			console.error("Failed to fetch data:", error);
-			return { data: {} };
 		}
+	},
+
+	filterTelemetry(telemetry, min = -10, max = 100) {
+		if (!telemetry || !Array.isArray(telemetry.schema) || !Array.isArray(telemetry.data)) {
+			return telemetry;
+		}
+
+		// find the indices of the moisture columns in the schema
+		const moistureIdx = ["Bodenfeuchte_10cm","Bodenfeuchte_30cm","Bodenfeuchte_60cm","Bodenfeuchte_80cm"]
+			.map((k) => telemetry.schema.indexOf(k))
+			.filter((i) => i >= 0);
+
+		if (moistureIdx.length === 0) return telemetry;
+
+		const filteredData = telemetry.data.filter((row) => {
+			return moistureIdx.every((i) => {
+				const v = row[i];
+				// Keep row only if all moisture values are within bounds
+				return typeof v !== "number" || (v >= min && v <= max);
+			});
+		});
+
+		return { ...telemetry, data: filteredData };
+
 	},
 	
 	getApiUrl(deviceId, timerange, aggregation) {

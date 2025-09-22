@@ -29,7 +29,7 @@ export const state = reactive({
 	chartTimeRange: -1,
 	dataAggregation: '1d',
 	iframeWidth: '800',
-	iframeHeight: '600',
+	iframeHeight: '950',
 	qrcodeStyle: 'schild',
 	windowWidth: 0,
 	windowHeight: 0,
@@ -43,7 +43,7 @@ localStorageState('showHelp', true);
 localStorageState('showInfoOnStart', true);
 localStorageState('showErrors', false);
 localStorageState('colorScheme', 'normal');
-// localStorageState('filterFaultyValues', true);
+localStorageState('filterFaultyValues', true);
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 

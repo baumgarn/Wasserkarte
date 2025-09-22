@@ -31,14 +31,10 @@
 							
 							<div class="schichten">
 
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_10cm))">
-								</div>
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_30cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_30cm))">
-								</div>
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_60cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_60cm))">
-								</div>
-								<div class="schicht" v-if="telemetry.Bodenfeuchte_80cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_80cm))">
-								</div>
+							<div class="schicht" v-if="lastData.nfk_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)"></div>
+							<div class="schicht" v-if="lastData.nfk_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)"></div>
+							<div class="schicht" v-if="lastData.nfk_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)"></div>
+							<div class="schicht" v-if="lastData.nfk_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)"></div>
 
 							</div>
 
@@ -55,8 +51,9 @@
 							@mouseleave="onMouseLeave"
 							@click="click"
 							@wheel="wheelForward"
+							v-if="lastData"
 							>
-							<div class="schicht" :style="'background:'+nfk_color">
+							<div v-if="vol && !Number.isNaN(vol)"  class="schicht" :style="'background:'+nfk_color">
 								<div class="value">{{ vol.toFixed(0) }}<span class="unit">%</span></div>
 							</div>	  
 						</div>
@@ -72,8 +69,9 @@
 							@mouseleave="onMouseLeave"
 							@click="click"
 							@wheel="wheelForward"
+							v-if="lastData"
 							>
-							<div v-if="!Number.isNaN(nfk)" class="schicht" :style="'background:'+nfk_color">
+							<div v-if="nfk && !Number.isNaN(nfk)" class="schicht" :style="'background:'+nfk_color">
 								<div class="value">{{ nfk.toFixed(0) }}<span class="unit">%</span></div>
 							</div>	  
 						</div>
@@ -89,9 +87,19 @@
 							@mouseleave="onMouseLeave"
 							@click="click"
 							@wheel="wheelForward"
+							v-if="lastData"
 							>
-							<div class="schicht" v-if="telemetry[markerStyle]" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry[[markerStyle]]))">
-								<div class="value">{{ parseFloat(getLastValue(telemetry[[markerStyle]])).toFixed(0) }}<span class="unit">%</span></div>
+							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_10cm' && this.lastData.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_10cm)">
+								<div class="value">{{ this.lastData.Bodenfeuchte_10cm.toFixed(0) }}<span class="unit">%</span></div>
+							</div>	  
+							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_30cm' && this.lastData.Bodenfeuchte_30cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_30cm)">
+								<div class="value">{{ this.lastData.Bodenfeuchte_30cm.toFixed(0) }}<span class="unit">%</span></div>
+							</div>	  
+							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_60cm' && this.lastData.Bodenfeuchte_60cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_60cm)">
+								<div class="value">{{ this.lastData.Bodenfeuchte_60cm.toFixed(0) }}<span class="unit">%</span></div>
+							</div>	  
+							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_80cm' && this.lastData.Bodenfeuchte_80cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_80cm)">
+								<div class="value">{{ this.lastData.Bodenfeuchte_80cm.toFixed(0) }}<span class="unit">%</span></div>
 							</div>	  
 
 							<div class="disabled" v-else></div>
@@ -172,6 +180,13 @@ export default {
 		isSelectedSoil() {
 			return (state.selectedSoil == this.device.attributes?.soilType)
 		},
+		lastData() {
+			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
+				return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+			} else {
+				return null;
+			}
+		},
 	},
 	methods: {
 		position(device) {
@@ -186,9 +201,11 @@ export default {
 			this.setZindex()
 		},
 		calculateValues() {
-			this.vol = dataModel.vol(this.device);
-			this.nfk = dataModel.vol_to_nfk(this.device, this.vol);
-			this.nfk_color = dataModel.get_nfk_color(this.nfk);
+			if (this.lastData) {
+				this.vol = this.lastData?.vol_avg;
+				this.nfk = this.lastData?.nfk_avg;
+				this.nfk_color = dataModel.get_nfk_color(this.nfk);
+			}
 		},
 		onMouseLeave(event) {
 			this.mouseover = false;
@@ -253,9 +270,9 @@ export default {
 			}
 			this.setZindex();
 		},
-		// device() {
-			// this.calculateValues();
-		// },
+		device() {
+			this.calculateValues();
+		},
 	},
 	mounted() {
 		this.$nextTick(() => {

@@ -32,8 +32,8 @@ function expandSchema($schema) {
 	if (in_array('Bodenfeuchte_10cm', $schema)) {
 		$schema[] = 'nfk_10cm';
 	}
-	if (in_array('Bodenfeuchte_60cm', $schema)) {
-		$schema[] = 'nfk_60cm';
+	if (in_array('Bodenfeuchte_30cm', $schema)) {
+		$schema[] = 'nfk_30cm';
 	}
 	if (in_array('Bodenfeuchte_60cm', $schema)) {
 		$schema[] = 'nfk_60cm';
@@ -55,7 +55,11 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 	global $soil_table;
 
 	$atts = $deviceInfo['attributes'];
-	$schema = $data['schema'];
+
+	$schema = $data['schema'] ?? null;
+	if ($schema == null) {
+		return $data;
+	}
 	$fieldIndex = buildFieldIndex($data['schema']);
 
 	$Bodenfeuchte_10cm_index = $fieldIndex['Bodenfeuchte_10cm'] ?? null;
@@ -69,10 +73,8 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 	$nfk_avg_index = $fieldIndex['nfk_avg'] ?? null;
 	$vol_avg_index = $fieldIndex['vol_avg'] ?? null;
 
-
-
 	// nfk_10 check
-	if (in_array('Bodenfeuchte_10cm', $schema) && (in_array('Bodenart_10cm', $atts) || in_array('Bodenart', $atts))) {
+	if (in_array('Bodenfeuchte_10cm', $schema) && (array_key_exists('Bodenart_10cm', $atts) || array_key_exists('Bodenart', $atts))) {
 		$soil10 = $atts['Bodenart_10cm'] ?? $atts['Bodenart'];
 		$humus10 = $atts['Humusgehalt_10cm'] ?? $atts['Humusgehalt'];
 		if ($humus10 == 'h0' || $humus10 == 'h1') {$humus10 = 'h0-1';}
@@ -80,7 +82,7 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		$TW10 = $soil_table[$soil10]['TW'][$humus10];
 	}
 	// nfk_30 check
-	if (in_array('Bodenfeuchte_30cm', $schema) && (in_array('Bodenart_30cm', $atts) || in_array('Bodenart', $atts))) {
+	if (in_array('Bodenfeuchte_30cm', $schema) && (array_key_exists('Bodenart_30cm', $atts) || array_key_exists('Bodenart', $atts))) {
 		$soil30 = $atts['Bodenart_30cm'] ?? $atts['Bodenart'];
 		$humus30 = $atts['Humusgehalt_30cm'] ?? $atts['Humusgehalt'];
 		if ($humus30 == 'h0' || $humus30 == 'h1') {$humus30 = 'h0-1';}
@@ -88,7 +90,7 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		$TW30 = $soil_table[$soil30]['TW'][$humus30];
 	}
 	// nfk_60 check
-	if (in_array('Bodenfeuchte_60cm', $schema) && (in_array('Bodenart_60cm', $atts) || in_array('Bodenart', $atts))) {
+	if (in_array('Bodenfeuchte_60cm', $schema) && (array_key_exists('Bodenart_60cm', $atts) || array_key_exists('Bodenart', $atts))) {
 		$soil60 = $atts['Bodenart_60cm'] ?? $atts['Bodenart'];
 		$humus60 = $atts['Humusgehalt_60cm'] ?? $atts['Humusgehalt'];
 		if ($humus60 == 'h0' || $humus60 == 'h1') {$humus60 = 'h0-1';}
@@ -96,7 +98,7 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		$TW60 = $soil_table[$soil60]['TW'][$humus60];
 	}
 	// nfk_80 check
-	if (in_array('Bodenfeuchte_80cm', $schema) && (in_array('Bodenart_80cm', $atts) || in_array('Bodenart', $atts))) {
+	if (in_array('Bodenfeuchte_80cm', $schema) && (array_key_exists('Bodenart_80cm', $atts) || array_key_exists('Bodenart', $atts))) {
 		$soil80 = $atts['Bodenart_80cm'] ?? $atts['Bodenart'];
 		$humus80 = $atts['Humusgehalt_80cm'] ?? $atts['Humusgehalt'];
 		if ($humus80 == 'h0' || $humus80 == 'h1') {$humus80 = 'h0-1';}
@@ -105,50 +107,127 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 	}
 
 	foreach ($data['data'] as &$row) {
+		// reset per-row temps to avoid stale carryover
+		$vol10 = $vol30 = $vol60 = $vol80 = null;
+		$nfk10 = $nfk30 = $nfk60 = $nfk80 = null;
 
-		if (isset($FK10) && isset($TW10)) { // nfk_10 apply
+		if (isset($FK10, $TW10) && $Bodenfeuchte_10cm_index !== null && $nfk_10cm_index !== null) { // nfk_10 apply
+			$den = ($FK10 - $TW10);
 			$vol10 = $row[$Bodenfeuchte_10cm_index] ?? null;
-			$nfk10 = round(max(0, (($vol10 - $TW10) / ($FK10 - $TW10)) * 100), 2);
-			$row[$nfk_10cm_index] = $nfk10;
+			if ($den != 0 && $vol10 !== null && is_numeric($vol10)) {
+				$nfk10 = round(max(0, (($vol10 - $TW10) / $den) * 100), 0);
+				if (is_finite($nfk10)) { $row[$nfk_10cm_index] = $nfk10; }
+			}
 		}
 
-		if (isset($FK30) && isset($TW30)) { // nfk_30 apply
+		if (isset($FK30, $TW30) && $Bodenfeuchte_30cm_index !== null && $nfk_30cm_index !== null) { // nfk_30 apply
+			$den = ($FK30 - $TW30);
 			$vol30 = $row[$Bodenfeuchte_30cm_index] ?? null;
-			$nfk30 = round(max(0, (($vol30 - $TW30) / ($FK30 - $TW30)) * 100), 2);
-			$row[$nfk_30cm_index] = $nfk30;
+			if ($den != 0 && $vol30 !== null && is_numeric($vol30)) {
+				$nfk30 = round(max(0, (($vol30 - $TW30) / $den) * 100), 0);
+				if (is_finite($nfk30)) { $row[$nfk_30cm_index] = $nfk30; }
+			}
 		}
 
-		if (isset($FK60) && isset($TW60)) { // nfk_60 apply
+		if (isset($FK60, $TW60) && $Bodenfeuchte_60cm_index !== null && $nfk_60cm_index !== null) { // nfk_60 apply
+			$den = ($FK60 - $TW60);
 			$vol60 = $row[$Bodenfeuchte_60cm_index] ?? null;
-			$nfk60 = round(max(0, (($vol60 - $TW60) / ($FK60 - $TW60)) * 100), 2);
-			$row[$nfk_60cm_index] = $nfk60;
+			if ($den != 0 && $vol60 !== null && is_numeric($vol60)) {
+				$nfk60 = round(max(0, (($vol60 - $TW60) / $den) * 100), 0);
+				if (is_finite($nfk60)) { $row[$nfk_60cm_index] = $nfk60; }
+			}
 		}
 
-		if (isset($FK80) && isset($TW80)) { // nfk_80 apply
+		if (isset($FK80, $TW80) && $Bodenfeuchte_80cm_index !== null && $nfk_80cm_index !== null) { // nfk_80 apply
+			$den = ($FK80 - $TW80);
 			$vol80 = $row[$Bodenfeuchte_80cm_index] ?? null;
-			$nfk80 = round(max(0, (($vol80 - $TW80) / ($FK80 - $TW80)) * 100), 2);
-			$row[$nfk_80cm_index] = $nfk80;
+			if ($den != 0 && $vol80 !== null && is_numeric($vol80)) {
+				$nfk80 = round(max(0, (($vol80 - $TW80) / $den) * 100), 0);
+				if (is_finite($nfk80)) { $row[$nfk_80cm_index] = $nfk80; }
+			}
 		}
 		
 		// average nfk
-		$nfk_avg = avg_value($nfk10 ?? null, $nfk30 ?? null, $nfk60 ?? null, $nfk80 ?? null );
-		if ($nfk_avg) {
-			$row[$nfk_avg_index] = $nfk_avg;
+		$nfk_avg = avg_value($nfk10, $nfk30, $nfk60, $nfk80);
+		if ($nfk_avg_index !== null && $nfk_avg !== null && is_finite($nfk_avg)) {
+			$row[$nfk_avg_index] = round($nfk_avg,0);
 		}
 		
 		// average vol
-		$vol_avg = avg_value($vol10 ?? null, $vol30 ?? null, $vol60 ?? null, $vol80 ?? null );
-		if ($vol_avg) {
+		$vol_avg = avg_value($vol10, $vol30, $vol60, $vol80);
+		if ($vol_avg_index !== null && $vol_avg !== null && is_finite($vol_avg)) {
 			$row[$vol_avg_index] = $vol_avg;
 		}
-		
 	}
 
+	$colCount = count($data['schema']);
+	foreach ($data['data'] as &$row) {
+		// ensure every column index exists
+		for ($i = 0; $i < $colCount; $i++) {
+			if (!array_key_exists($i, $row)) {
+				$row[$i] = null;
+			}
+		}
+		ksort($row, SORT_NUMERIC); // order by numeric index
+		$row = array_values($row); // reindex to 0..n-1
+	}
 	unset($row);
-
+	
 	return $data;
 }
 
+function setAvgTWFK($deviceInfo) {
+	
+	global $soil_table;
+
+	$atts = $deviceInfo['attributes'];
+
+	$schema = $deviceInfo['telemetrySchema']['schema'] ?? [];
+	
+	$FK10 = $TW10 = $FK30 = $TW30 = $FK60 = $TW60 = $FK80 = $TW80 = null;
+
+	// nfk_10 check
+	if (in_array('Bodenfeuchte_10cm', $schema) && (array_key_exists('Bodenart_10cm', $atts) || array_key_exists('Bodenart', $atts))) {
+		$soil10 = $atts['Bodenart_10cm'] ?? $atts['Bodenart'];
+		$humus10 = $atts['Humusgehalt_10cm'] ?? $atts['Humusgehalt'];
+		if ($humus10 == 'h0' || $humus10 == 'h1') {$humus10 = 'h0-1';}
+		$FK10 = $soil_table[$soil10]['FK'][$humus10];
+		$TW10 = $soil_table[$soil10]['TW'][$humus10];
+	}
+	// nfk_30 check
+	if (in_array('Bodenfeuchte_30cm', $schema) && (array_key_exists('Bodenart_30cm', $atts) || array_key_exists('Bodenart', $atts))) {
+		$soil30 = $atts['Bodenart_30cm'] ?? $atts['Bodenart'];
+		$humus30 = $atts['Humusgehalt_30cm'] ?? $atts['Humusgehalt'];
+		if ($humus30 == 'h0' || $humus30 == 'h1') {$humus30 = 'h0-1';}
+		$FK30 = $soil_table[$soil30]['FK'][$humus30];
+		$TW30 = $soil_table[$soil30]['TW'][$humus30];
+	}
+	// nfk_60 check
+	if (in_array('Bodenfeuchte_60cm', $schema) && (array_key_exists('Bodenart_60cm', $atts) || array_key_exists('Bodenart', $atts))) {
+		$soil60 = $atts['Bodenart_60cm'] ?? $atts['Bodenart'];
+		$humus60 = $atts['Humusgehalt_60cm'] ?? $atts['Humusgehalt'];
+		if ($humus60 == 'h0' || $humus60 == 'h1') {$humus60 = 'h0-1';}
+		$FK60 = $soil_table[$soil60]['FK'][$humus60];
+		$TW60 = $soil_table[$soil60]['TW'][$humus60];
+	}
+	// nfk_80 check
+	if (in_array('Bodenfeuchte_80cm', $schema) && (array_key_exists('Bodenart_80cm', $atts) || array_key_exists('Bodenart', $atts))) {
+		$soil80 = $atts['Bodenart_80cm'] ?? $atts['Bodenart'];
+		$humus80 = $atts['Humusgehalt_80cm'] ?? $atts['Humusgehalt'];
+		if ($humus80 == 'h0' || $humus80 == 'h1') {$humus80 = 'h0-1';}
+		$FK80 = $soil_table[$soil80]['FK'][$humus80];
+		$TW80 = $soil_table[$soil80]['TW'][$humus80];
+	}
+
+	$avg_FK = round(avg_value($FK10,$FK30,$FK60,$FK80), 2);
+	$avg_TW = round(avg_value($TW10,$TW30,$TW60,$TW80), 2);
+
+
+	$deviceInfo['attributes']['avg_FK'] = $avg_FK;
+	$deviceInfo['attributes']['avg_TW'] = $avg_TW;
+
+	return $deviceInfo;
+}
 
 function avg_value($v10,$v30,$v60,$v80)
 {

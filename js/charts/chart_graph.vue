@@ -2,6 +2,12 @@
 	<div class="chartouterframe">
 		<div class="chartheader">
 			<h3>{{ title }}</h3>
+
+			<div v-if="daysSinceLastTelemetry > 2" class="latestdate warning">
+				Keine Telemetrie seit
+				{{ displayutil.formatDateShort(getLastTimestamp()) }}
+				({{ daysSinceLastTelemetry }} Tage)
+			</div>
 		</div>
 
 		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
@@ -30,10 +36,7 @@
 							:height="rowHeight"
 							class="sensor-chart-svg"
 							:ref="el => linePathRefs[i] = el"></svg>
-
 					</div>
-
-
 
 				</div>
 				<div class="dotcontainer" :style="{ height: rowHeight + 'px', width: frameWidth + 'px'}">
@@ -41,14 +44,13 @@
 					<svg :width="chartWidth" :height="rowHeight" class="dot-svg">
 						<template v-for="(sensor, i) in sensors">
 							<circle v-if="hoverData?.xpos" :cx="(hoverData?.xpos + .5)"
-								:cy="getYPosition(hoverData[sensor.key].value)" r="3" class="hover-dot"
+								:cy="getYPosition(hoverData[sensor.key])" r="3" class="hover-dot"
 								:style="{ fill: getDepthColor(getDepthValue(sensor.key))}" />
 						</template>
 					</svg>
 
 				</div>
 				<div class="hoverline" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
-				<!-- <div class="hoverline" v-show="hoverPosition >= 0" :style="{ left: (hoverPosition ) + 'px' }"></div> -->
 
 				<div class="scrolloverlay" v-if="dataPresent">
 					<div class="date" v-if="hoverData?.ts">
@@ -61,8 +63,6 @@
 						hour12: false
 					}).replace(',', '') : '' }}
 					</div>
-
-
 
 				</div>
 
@@ -78,18 +78,14 @@
 				</div>
 			</div>
 
-
-
 			<ToolTip v-if="hoverData && hoverData.ts" :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
 
 			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
-
 
 		</div>
 		<ChartTime :chart-width="chartWidth" :frame-width="frameWidth" :scroll-left="scrollLeft"
 			:start-timestamp="startTimestamp" :number-of-days="numberOfDays" :data-present="dataPresent"
 			:hover-position="hoverPosition"></ChartTime>
-		<!-- :insideGraph="true" -->
 
 		<div class="depths" >
 			<div class="sensor"
@@ -131,6 +127,7 @@ export default {
 			linePathRefs: [],
 			heatmapImages: [],
 			lastData: [],
+			displayutil,
 			filteredSensors: [],
 			mouseOverChart: false,
 			loading: true,
@@ -212,105 +209,24 @@ export default {
 			}));
 		},
 		rowHeight() {
-			// return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
-			// return Math.max((this.frameWidth / 2.5), 400) - this.rowMargin;
 			return 460
 		}, 
 		colorScheme() {
 			return state.colorScheme;
 		},
-		// filterFaultyValues() {
-		// 	return state.filterFaultyValues;
-		// }
+		daysSinceLastTelemetry() {
+			const latestTimestamp = this.getLastTimestamp();
+			if (latestTimestamp) {
+				const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
+				const days = Math.floor(hours / 24);
+				return days;
+			}
+		},
+
 	},
 	methods: {
 		
-		// drawCharts() {
-
-		// 	this.drawHeatmap();
-			
-		// 	if (!this.filteredSensors.length || this.chartWidth <= 0 || this.frameWidth <= 0) {
-		// 		return;
-		// 	}
-
-		// 	let [yMin, yMax] = this.globalExtentY;
-		// 	const yScale = d3.scaleLinear().domain([yMin, yMax]).range([this.rowHeight-this.offsetBottom, this.offsetTop]);
-		// 	const [xStart, xEnd] = this.globalExtentX;
-
-		// 	const xScale = d3.scaleTime()
-		// 		.domain([xStart, xEnd])
-		// 		.range([0, this.chartWidth]);
-
-		// 	this.filteredSensors.forEach((sensor, i) => {
-		// 		if (!this.linePathRefs[i]) {
-		// 			return;
-		// 		}
-		// 		const parentNode = this.linePathRefs[i].parentNode;
-		// 		if (!parentNode) {
-		// 			return;
-		// 		}
-
-		// 		d3.select(parentNode)
-		// 			.selectAll('.top-line')
-		// 			.remove();	
-		// 		this.heatmapImages[i] = null;
-
-		// 		if (!sensor.data?.length || sensor.data.length <= 1) {
-		// 			return;
-		// 		}
-				
-		// 		const areaPathEl = this.linePathRefs[i];
-		// 		if (!areaPathEl) return;
-
-		// 		if (sensor.data && sensor.data.length) {
-
-		// 			const areaGen = d3.area()
-		// 				.x(d => xScale(new Date(d.ts)))
-		// 				.y0(this.rowHeight)
-		// 				.y1(d => yScale(d.value));
-
-		// 			const lineGen = d3.line()
-		// 				.x(d => xScale(new Date(d.ts)))
-		// 				.y(d => yScale(d.value));
-
-		// 			// Get the depth color before drawing
-		// 			const depth = this.getDepthValue(sensor.key);
-		// 			const lineColor = this.getDepthColor(depth);
-
-		// 			// Split into segments based on data gaps
-		// 			let segments;
-		// 			if (config.segmentation) {
-		// 				segments = this.splitByGaps(sensor.data, config.dataGapLength);
-		// 			} else {
-		// 				segments = [sensor.data];
-		// 			}
-
-		// 			// Clear and redraw all segments
-		// 			segments.forEach(segment => {
-		// 				if (segment.length < 2) return; // need at least 2 points
-
-		// 				// Area path (optional: you can skip if you don't want area fill)
-		// 				d3.select(parentNode)
-		// 					.append('path')
-		// 					.attr('d', areaGen(segment))
-		// 					.attr('class', 'area')
-		// 					.style('fill', 'none'); // or use heatmap fill if you have one
-
-		// 				// Line path
-		// 				d3.select(parentNode)
-		// 					.append('path')
-		// 					.attr('d', lineGen(segment))
-		// 					.attr('fill', 'none')
-		// 					.attr('stroke', lineColor)
-		// 					.attr('stroke-width', this.strokeWidth)
-		// 					.attr('class', 'top-line')
-		// 					.style('opacity', 1);
-		// 			});
-							
-				
-		// 		}
-		// 	});
-		// },
+	
 		drawCharts() {
 			this.drawHeatmap();
 
@@ -364,7 +280,7 @@ export default {
 				sel.append('path')
 					.datum(seg)
 					.attr('class', 'area')
-					.attr('fill', 'none')               // keep just the line; or add a gradient/pattern if desired
+					.attr('fill', 'none')
 					.attr('d', areaGen);
 
 				sel.append('path')
@@ -393,39 +309,9 @@ export default {
 		getDisplayDepth(key) {
 			return displayutil.depth(key)
 		},
-		getDisplayTitle(key) {
-			return displayutil.title(key)
+		getLastTimestamp() {
+			return this.sensorData.data[this.sensorData.data.length - 1][0];
 		},
-		getDisplayUnit(key) {
-			return displayutil.unit(key)
-		},
-		// updateLastData() {
-		// 	this.lastData = this.sensors.map(sensor => {
-		// 		if (!sensor.data?.length) return null;
-		// 		return sensor.data[sensor.data.length - 1];
-		// 	});
-		// },
-		// filterSensors() {
-		// 	this.minValue = null;
-		// 	this.maxValue = null;
-		// 	if (state.filterFaultyValues) {
-		// 		this.minValue = config.minMaxValues[this.title].min;
-		// 		this.maxValue = config.minMaxValues[this.title].max;
-		// 	}
-			
-		// 	this.filteredSensors = this.sensors.map(sensor => {
-		// 		if (!sensor.data?.length) return sensor;
-				
-		// 		return {
-		// 			...sensor,
-		// 			data: sensor.data.filter(d => {
-		// 				if (this.minValue !== null && d.value < this.minValue) return false;
-		// 				if (this.maxValue !== null && d.value > this.maxValue) return false;
-		// 				return true;
-		// 			})
-		// 		};
-		// 	});
-		// },
 		getYPosition(value) {
 			const [yMin, yMax] = this.globalExtentY;
 			return d3.scaleLinear()
@@ -476,35 +362,10 @@ export default {
 			if (seg.length) segs.push(seg);
 			return segs;
 		},
-		// splitByGaps(data, maxGap) {
-		// 	const segments = [];
-		// 	let segment = [];
-
-		// 	for (let i = 0; i < data.length; i++) {
-		// 		if (i === 0) {
-		// 			segment.push(data[i]);
-		// 		} else {
-		// 			const gap = data[i].ts - data[i - 1].ts;
-		// 			if (gap > maxGap) {
-		// 				segments.push(segment);
-		// 				segment = [];
-		// 			}
-		// 			segment.push(data[i]);
-		// 		}
-		// 	}
-
-		// 	if (segment.length > 0) {
-		// 		segments.push(segment);
-		// 	}
-
-		// 	return segments;
-		// }
 	},
 	watch: {
 		sensorData: {
 			handler() {
-				// this.filterSensors();
-				// this.updateLastData();
 				nextTick(() => {
 					this.drawCharts();
 				});

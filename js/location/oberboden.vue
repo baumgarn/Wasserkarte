@@ -143,28 +143,45 @@
 			
 		<div class="soilinfo">
 
-			<span class="soil" v-if="soilName && humusName" >
+			<span class="soil" v-if="usageName || soilName || humusName" >
 
-				<span v-if="soilName" class="soiltype" >
-					{{ soilName }}
-				</span>
-				<span class="separator"></span>
-				<span v-if="humusName" class="humustype">
-					{{ humusName }}
-				</span>
+				<template v-if="usageName">
+
+					<span  class="usagename typeitem" >
+						{{ usageName }}
+					</span>
+
+				</template>
+
 				<template v-if="device.attributes.Bewässerung">
-					<span class="separator"></span>
-
-					<span class="bewaesserung">
+					
+					<span class="bewaesserung typeitem">
 						regelmäßig bewässert
 					</span>
+										
 				</template>
-				<span class="separator"></span>
+				
+				<template v-if="soilName">
+						
+					<span class="soiltype typeitem" >
+						{{ soilName }}
+					</span>
+										
+				</template>
+				
+				<template v-if="humusName">
+					
+					<span class="humustype typeitem">
+						{{ humusName }}
+					</span>
+
+				</template>
+
 			</span>
 
-			<span v-if="device.attributes.Beschreibung" class="beschreibung">
+			<div v-if="device.attributes.Beschreibung" class="beschreibung">
 				{{ device.attributes.Beschreibung }}
-			</span>
+			</div>
 
 		</div>
 				
@@ -189,31 +206,32 @@
 		},
 		computed: {
 			wassergehalt_oberboden() {
-				const wassergehalt = dataModel.wassergehalt_oberboden(this.device, this.hoverData);
+				const wassergehalt = this.hoverOrLastData.vol_avg * 6;
 				if (!wassergehalt) return '–';
+				if (wassergehalt < 0 ) return 0;
 				if (wassergehalt < 10 ) return parseFloat(wassergehalt.toFixed(1));
 				return wassergehalt.toFixed(0)	 
 			},
 			gesamtkapazität_oberboden() {
-				return dataModel.gesamtkapazität_oberboden(this.device);
+				return Math.round(this.device.attributes.avg_FK * 6)
 			},
 			FK() {
-				return this.device.attributes.feldkapazität
+				return Math.round(this.device.attributes.avg_FK)
 			},
 			TW() {
-				return this.device.attributes.totwasserbereich
+				return Math.round(this.device.attributes.avg_TW)
 			},
 			TW_liter(){
-				if (isNaN(this.nfk)) return (this.gesamtkapazität_oberboden / this.FK * this.TW);
-				return Math.min((this.gesamtkapazität_oberboden / this.FK * this.TW), this.wassergehalt_oberboden);
+				if (isNaN(this.nfk)) return Math.round((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW));
+				return Math.round(Math.min((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW), this.wassergehalt_oberboden));
 			},
 			vol() {
-				const vol = dataModel.vol(this.device, this.hoverData);
+				const vol = this.hoverOrLastData.vol_avg;
 				if (isNaN(vol)) return '–'
 				return parseFloat(vol.toFixed(0));
 			},
 			nfk() {
-				const nfk = dataModel.nfk(this.device, this.hoverData);
+				const nfk = this.hoverOrLastData.nfk_avg;
 				if (isNaN(nfk)) return '–'
 				return parseFloat(nfk.toFixed(0));
 			},
@@ -229,7 +247,10 @@
 				return dataModel.get_nfk_color(this.nfk);
 			},
 			hasSoilAttributes() {
-				return (this.device.attributes.totwasserbereich && this.device.attributes.feldkapazität)
+				return (this.device.attributes.avg_FK && this.device.attributes.avg_TW)
+			},
+			usageName() {
+				return dataModel.get_usage_name(this.device);
 			},
 			soilName() {
 				return dataModel.get_soil_name(this.device);
@@ -243,6 +264,9 @@
 			humusColor() {
 				return dataModel.get_humus_color(this.device);
 			},
+			hoverOrLastData() {
+				return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+			}
 		},
 		methods: {
 			formatNumber(value) {
@@ -277,6 +301,7 @@
 		flex-grow 0
 		flex-shrink 0
 		margin-right 1.65em
+		position relative
 	.datacol	
 		flex-grow 1
 	.nfklabel
@@ -391,12 +416,11 @@
 			display inline-block
 		.soil
 			font-weight bold
-		.separator
+		.typeitem + .typeitem:before
+			content '–'
 			opacity .3
 			display inline-block
 			margin 0 .3em
-			&:before
-				content '–'
 		.soiltype
 		.humustype
 			display inline-block

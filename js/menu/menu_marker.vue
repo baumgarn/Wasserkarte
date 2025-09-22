@@ -29,10 +29,10 @@ export default {
 				{ label: 'Farbkreis Schichten', value: 'Bodenfeuchte_Farbkreis' },
 				{ label: 'Ø Nutzbare Feldkapazität %', value: 'Bodenfeuchte_nfk' },
 				{ label: 'Ø Volumen %', value: 'Bodenfeuchte_vol' },
-				{ label: '10cm Volumen %', value: 'Bodenfeuchte_10cm' },
-				{ label: '30cm Volumen %', value: 'Bodenfeuchte_30cm' },
-				{ label: '60cm Volumen %', value: 'Bodenfeuchte_60cm' },
-				{ label: '80cm Volumen %', value: 'Bodenfeuchte_80cm' }
+				// { label: '10cm Volumen %', value: 'Bodenfeuchte_10cm' },
+				// { label: '30cm Volumen %', value: 'Bodenfeuchte_30cm' },
+				// { label: '60cm Volumen %', value: 'Bodenfeuchte_60cm' },
+				// { label: '80cm Volumen %', value: 'Bodenfeuchte_80cm' }
 			]
 		},
 		markerStyle: {

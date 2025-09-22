@@ -12,6 +12,9 @@ function getTimeseriesForDevice($token, $deviceId, $timerange = 'all', $aggregat
 	}
 
 	// original data schema from original devices request is already populated with our calculated field names nfk_10cm etc...
+	if (!isset($deviceInfo['telemetrySchema']['schema'])) {
+		return;
+	}
 	$schema = $deviceInfo['telemetrySchema']['schema'];
 
 	$sensorKeys = implode(',', array_slice($schema, 1));
@@ -132,6 +135,8 @@ function getTimeseriesForDevice($token, $deviceId, $timerange = 'all', $aggregat
 		'telemetry' => $telemetryData
 	];
 
+
+	
 	$json = json_encode($data, JSON_PRETTY_PRINT);
 
 	saveTelemetryCache($deviceId, $timerange, $aggregation, $json);

@@ -74,10 +74,31 @@ export const dataModel = {
 
 	humus_table : {
 		"h0-1": { name: "nahezu humusfrei", color: "#f5f3e7" },
+		"h0": { name: "nahezu humusfrei", color: "#f5f3e7" },
+		"h1": { name: "sehr schwach humos", color: "#f5f3e7" },
 		"h2": { name: "schwach humos", color: "#d2b48c" },
 		"h3": { name: "mittel humos", color: "#a47551" },
 		"h4": { name: "stark humos", color: "#654321" },
 		"org": { name: "organisch", color: "#3b2f2f" } 
+	},
+
+	usage_table : {
+		"G" : {name: 'Grünland'},
+		"RA" : {name: 'Wiese'},
+		"A" : {name: 'Acker'},
+		"AG" : {name: 'Gemüsegarten'},
+		"B" : {name: 'freistehender Baum'},
+		"VB" : {name: 'Baum am Straßenrand'},
+		"GB" : {name: 'Gebüsch'},
+		"SST" : {name: 'Streuobstwiese'},
+		"FP" : {name: 'Pflanzung'},
+		"LW" : {name: 'Laubwald'},
+		"NW" : {name: 'Nadelwald'},
+		"MW" : {name: 'Mischwald'},
+	},
+
+	get_usage_name (device) {
+		return this.usage_table[device.attributes.Nutzungsart]?.name
 	},
 
 	get_soil_name (device) {
@@ -93,6 +114,7 @@ export const dataModel = {
 	get_humus_color (device) {
 		return this.humus_table[device.attributes.Humusgehalt]?.color;
 	},
+
 
 
 
@@ -289,6 +311,12 @@ export const dataModel = {
 
 	},
 
+	rowToProps(row, schema) {
+		return schema.reduce((acc, key, i) => {
+			acc[key] = row[i];
+			return acc;
+		}, {});
+	},
 
 
 }	

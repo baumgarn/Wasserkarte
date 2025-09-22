@@ -104,7 +104,7 @@ export default {
 	display: block;
 	background-color: white;
 	border-radius: 3px;
-	min-width 110px
+	min-width 105px
 	padding: 2px 6px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 	pointer-events: none;

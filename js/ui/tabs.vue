@@ -54,7 +54,7 @@ export default {
 		display: flex
 		margin: 0
 		.item
-			padding: 0 18px 0
+			padding: 0 10px 0
 			border-bottom none
 			flex-basis 0
 			flex-grow 1

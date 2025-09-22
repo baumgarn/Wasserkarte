@@ -8,9 +8,8 @@
 				</div>
 			<div class="schichten">
 				
-				<div class="schicht" v-for="depth in depths" :key="depth" >
+				<div class="schicht" v-for="depth in depths" :key="depth">
 
-					<!-- <template v-if="dataPresent"> -->
 				
 						<div class="depth">
 							<div class="line" 
@@ -20,23 +19,14 @@
 							</div>
 						</div>
 
-						<template v-if="hasSensorForDepth('Bodentemperatur',depth)">
-						<div class="bodentemperatur">
-								<span class="value">{{ formatNumber(getData('Bodentemperatur_'+depth+'cm')) }}</span>
-								<span class="unit" v-if="validHoverData('Bodentemperatur_'+depth+'cm')">{{ getDisplayUnit('Bodentemperatur_'+depth+'cm') }}</span>
-							</div>
-						</template>
-
-						<template v-if="hasSensorForDepth('Bodenfeuchte',depth)" >
+						
 						<div class="bodenfeuchte" >
 
-								<span class="value">{{ formatNumber(getData('Bodenfeuchte_'+depth+'cm')) }}</span>
-								<span class="unit" v-if="validHoverData('Bodenfeuchte_'+depth+'cm')">%</span>
+							<span class="value">{{ getVolValue('Bodenfeuchte_'+depth+'cm') }}</span>
+							<span class="unit">%</span>
 
-							</div>
-						</template>
+						</div>
 
-					<!-- </template> -->
 
 				</div>
 			</div>
@@ -82,73 +72,29 @@ export default {
 	},
 	computed: {
 		depths() {
-			// get depths from locationdata.latestTelemetry and filter by allowedTelemetryKeys, before actual sensordata is available
-			const telemetryKeys = Object.keys(this.device.telemetry || {});
-			return [...new Set(telemetryKeys
-				.filter(key => config.allowedTelemetryKeys.includes(key))
-				.map(key => this.getDepthValue(key))
-			)];
+			let ds = [];
+			if (this.hoverData['Bodenfeuchte_10cm']) {ds.push(10);}
+			if (this.hoverData['Bodenfeuchte_30cm']) {ds.push(30);}
+			if (this.hoverData['Bodenfeuchte_60cm']) {ds.push(60);}
+			if (this.hoverData['Bodenfeuchte_80cm']) {ds.push(80);}
+			return ds;
 		},
 		dataAggregation () {
 			return state.dataAggregation;
-		}
+		},
+		
 	},
 	methods: {
-		getData(key) {
-			if (this.hoverData && this.hoverData[key]) {
-				if (this.validHoverData(key)) {
-					return this.hoverData[key].value?.toFixed(1);
-				} else {
-					return '-';
-				}
-			} else {
-				return this.getLastSensorData(key).value?.toFixed(1);
-			}
-		},
-		validHoverData(key) {
-			return this.hoverData && this.hoverData[key] && this.hoverData[key].valid
-		},
-		getSensorData(key) {
-			return this.sensors.find(sensor => sensor.key === key)?.data || [];
-		},
-		getLastSensorData(key) {
-			return this.sensors.find(sensor => sensor.key === key)?.data[this.sensors.find(sensor => sensor.key === key)?.data.length - 1] || [];
-		},
-		hasSensorForDepth(type, depth) {
-			return this.sensors.some(sensor => sensor.key.startsWith(type) && this.getDepthValue(sensor.key) === depth)
-		},
-		getDepthValue(key) {
-			return displayutil.depthValue(key)
-		},
-		getDisplayDepth(key) {
-			return displayutil.depth(key)
-		},
-		getDisplayTitle(key) {
-			return displayutil.title(key)
-		},
-		getDisplayUnit(key) {
-			return displayutil.unit(key)
-		},
-		getBackgroundColorStyle(key) {
-			if (this.dataPresent) {
-				let value = this.getData(key);
-				if (value) {
-					return displayutil.getBackgroundColorStyle(this.device.attributes.soilType, value);
-				}
-			}
-		},
 		getDepthLineStyle(depth) {
 			var s =	 "background:" + displayutil.getDepthColor(depth);
 			return s;
 		},
-		getSoilMoistureLevelName(key) {
-			return displayutil.getSoilMoistureLevelName(this.device.attributes.soilType, this.getData(key));
+		formatNumber(num) {
+			return parseFloat(num).toFixed(1).replace('.', ',');
 		},
-		getSoilMoistureLevelNFK(key) {
-			return displayutil.getSoilMoistureLevelNFK(this.device.attributes.soilType, this.getData(key));
-		},
-		formatNumber(floatString) {
-			return parseFloat(floatString).toFixed(1).replace('.', ',');
+		getVolValue(key) {
+			let vol = this.hoverData[key];
+			return this.formatNumber(vol);
 		},
 	
 	},
@@ -168,15 +114,10 @@ export default {
 
 .schichten-container
 	position relative
-	// filter var(--dropshadowfilter)
 
 .schichten
 	position: relative;
 	overflow: hidden;
-	// border-radius var(--chartborderradius)
-	// background var(--uibrighter)
-	// border var(--chartborderstyle)
-
 
 .schichten-header
 .schicht
