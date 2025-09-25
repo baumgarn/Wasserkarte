@@ -64,7 +64,11 @@ function atomicWrite(string $finalPath, string $data): void
 
 function saveCache(array $data): void
 {
-    atomicWrite(CACHE_FILE_DEVICES, json_encode($data, JSON_PRETTY_PRINT));
+	$json = json_encode($data, JSON_PRETTY_PRINT);
+    atomicWrite(CACHE_FILE_DEVICES, $json);
+	$gzData = gzencode($json, 9);
+    $gzPath = CACHE_FILE_DEVICES . '.gz';
+    atomicWrite($gzPath, $gzData);
 }
 
 // GET TELEMETRY CACHE

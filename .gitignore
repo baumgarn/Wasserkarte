@@ -14,10 +14,6 @@ dist/
 .DS_Store
 .vscode/
 
-# Temporary/Drive files
-.tmp.drivedownload
-.tmp.driveupload
-
 # Cursor IDE
 .cursor
 .cursorignore

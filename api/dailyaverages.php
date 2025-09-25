@@ -1,19 +1,43 @@
 <?php
 
+// Endpoint to update all daily aggregated telemetry for all devices.
+// Should run through a cronjob after midnight. Add to crontab -e:
+// 5 0 * * * /usr/bin/php /var/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php > /dev/null 2>&1
+
+require_once 'config.php';
+
+// only run cache wasn't updated since midnight or if cache doesn't exist 
+if (is_file(CACHE_FILE_ALLTELEMETRY)) {
+    $mtime = filemtime(CACHE_FILE_ALLTELEMETRY);
+    if ($mtime !== false) {
+        $midnight = strtotime('today midnight'); // timestamp for today's 00:00
+
+        if ($mtime >= $midnight) {
+            // Already updated once today
+            if (PHP_SAPI !== 'cli') {
+                http_response_code(200);
+                echo "Skipped: cache already updated after midnight\n";
+            } else {
+                fwrite(STDOUT, "Skipped: cache already updated after midnight\n");
+            }
+            exit(0);
+        }
+    }
+}
+
+//
+
 if (version_compare(phpversion(), '7.1', '>=')) {
 	ini_set('precision', 17);
 	ini_set('serialize_precision', -1);
 }
 
-require_once 'config.php';
 require_once 'telemetry.php';
 require_once 'devices.php';
 require_once 'datamodel.php';
 require_once 'cache.php';
 require_once 'auth.php';
 
-// updates all daily aggregated telemetry for all devices
-// should run through a cronjob after midnight
 
 function dailyAverages() {
 
@@ -112,14 +136,19 @@ function dailyAverages() {
 	atomicWrite(CACHE_FILE_ALLTELEMETRY, $json);
 	
     $gzData = gzencode($json, 9);
-    if ($gzData === false) {
-        throw new RuntimeException('gzencode failed');
-    }
+	if ($gzData === false) {
+    	throw new RuntimeException('gzencode failed');
+	}
     $gzPath = CACHE_FILE_ALLTELEMETRY . '.gz';
     atomicWrite($gzPath, $gzData);
 
-	header('Content-Type: application/json');
-	echo $json;
+	if (PHP_SAPI === 'cli') {
+		$now = date('c'); // ISO8601 timestamp
+		fwrite(STDOUT, "[$now] Daily averages updated\n");
+	} else {
+		header('Content-Type: application/json');
+		echo $json;
+	}
 
 }
 
