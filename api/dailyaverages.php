@@ -1,7 +1,7 @@
 <?php
 
 // Endpoint to update all daily aggregated telemetry for all devices.
-// Should run through a cronjob after midnight. Add to crontab -e:
+// Should run through a cronjob right after midnight. Add to crontab -e:
 // 5 0 * * * /usr/bin/php /var/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php > /dev/null 2>&1
 
 require_once 'config.php';
