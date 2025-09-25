@@ -1,7 +1,7 @@
 <?php
 
-	define('CACHE_FILE', 'cache/geraete.json');
 	define('CACHE_FILE_DEVICES', 'cache/devices.json');
+	define('CACHE_FILE_ALLTELEMETRY', 'cache/alltelemetry.json');
 	define('CACHE_DEVICES_DURATION', 60*60*6); // 12 Hours
 	define('CACHE_TELEMETRY_ALL_DURATION', 60*60*1); // 1 Hour
 	define('CACHE_TELEMETRY_SINGLE_DURATION', 60*60*1); // 1 Hour

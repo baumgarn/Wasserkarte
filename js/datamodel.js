@@ -38,11 +38,11 @@ export const dataModel = {
 	},
 
 	nfk_labels : [
-		{ value: 10, name: 'Sehr trocken'},
-		{ value: 30, name: 'Trocken'},
-		{ value: 80, name: 'Optimal'},
-		{ value: 100, name: 'Nass'},
-		{ value: 120, name: 'Sehr nass'},
+		{ value: 10, name: 'Sehr trocken'}, //  0 - 10
+		{ value: 30, name: 'Trocken'},		// 10 - 30
+		{ value: 80, name: 'Optimal'},		// 30 - 80
+		{ value: 100, name: 'Nass'},		// 80 - 100
+		{ value: 120, name: 'Sehr nass'},	// 100 +
 	],
 
 	soil_table : {
@@ -84,7 +84,7 @@ export const dataModel = {
 
 	usage_table : {
 		"G" : {name: 'Grünland'},
-		"RA" : {name: 'Wiese'},
+		"RA" : {name: 'Rasen'},
 		"A" : {name: 'Acker'},
 		"AG" : {name: 'Gemüsegarten'},
 		"B" : {name: 'freistehender Baum'},

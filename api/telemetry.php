@@ -1,14 +1,21 @@
 <?php
 
-function getTimeseriesForDevice($token, $deviceId, $timerange = 'all', $aggregation = '1d') {
+// function to get timeseries for devices
+// aggregated data always expands on already cached data to reduce load on thingsboard
+// data is converted to a scheme - data array format
+// nfk for all sensor depths and average nfk and vol values are calculated
+
+function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerange = 'all', $aggregation = '1d') {
 
 	$startTime = microtime(true);
 	$now = time() * 1000;
 
-	$deviceInfo = getCachedDeviceInfo($deviceId);
-	if (!$deviceInfo) {
-		echo json_encode(['error' => 'Device info missing']);
-		return;
+	if (! isset($deviceInfo)) {
+		$deviceInfo = getCachedDeviceInfo($deviceId);
+		if (!$deviceInfo) {
+			echo json_encode(['error' => 'Device info missing']);
+			return;
+		}
 	}
 
 	// original data schema from original devices request is already populated with our calculated field names nfk_10cm etc...
@@ -55,13 +62,14 @@ function getTimeseriesForDevice($token, $deviceId, $timerange = 'all', $aggregat
 		// check if already a full day has passed
 		$shouldFetch = true;
 		if ($telemetryData && !empty($telemetryData['data'])) {
-			if (floorToLocalMidnightMs(end($telemetryData['data'])[0]) >= floorToLocalMidnightMs($now) - 86400000) {
+			// if (floorToLocalMidnightMs(end($telemetryData['data'])[0]) >= floorToLocalMidnightMs($now) - 86400000) {
+			if (floorToLocalMidnightMs($now) <= floorToLocalMidnightMs(end($telemetryData['data'])[0])) {
 				$shouldFetch = false;
 			}
 		}
 
 		if ($shouldFetch) {
-			$chunkSize = 1000 * 60 * 60 * 24 * 365 * 2; // 2 years in ms
+			$chunkSize = 1000 * 60 * 60 * 24 * 365 * 1; // 1 year in ms
 
 			for ($chunkStart = $startTs; $chunkStart < $endTs; $chunkStart += $chunkSize) {
 				$chunkEnd = min($chunkStart + $chunkSize - 1, $endTs);
@@ -131,18 +139,15 @@ function getTimeseriesForDevice($token, $deviceId, $timerange = 'all', $aggregat
 		'earliestDate' => date('Y-m-d H:i:s', (int) ($earliest / 1000)),
 		'latestDate' => date('Y-m-d H:i:s', (int) ($latest / 1000)),
 		'days' => $days,
-		// 'attributes' => $deviceInfo['attributes'],
 		'telemetry' => $telemetryData
 	];
 
+	return $data;
 
-	
-	$json = json_encode($data, JSON_PRETTY_PRINT);
-
-	saveTelemetryCache($deviceId, $timerange, $aggregation, $json);
-
-	header('Content-Type: application/json');
-	echo $json;
+	// $json = json_encode($data, JSON_PRETTY_PRINT);
+	// saveTelemetryCache($deviceId, $timerange, $aggregation, $json);
+	// header('Content-Type: application/json');
+	// echo $json;
 }
 
 

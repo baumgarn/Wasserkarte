@@ -161,6 +161,14 @@
 										
 				</template>
 				
+				<template v-if="device.attributes.Grundwasser">
+					
+					<span class="bewaesserung typeitem">
+						grundwassernah
+					</span>
+										
+				</template>
+				
 				<template v-if="soilName">
 						
 					<span class="soiltype typeitem" >

@@ -1,6 +1,5 @@
 <?php
 
-
 // GET CACHE
 
 function getCache()
@@ -16,12 +15,57 @@ function getCache()
 	return null;
 }
 
-function saveCache($data)
+// ATOMIC WRITE
+
+function atomicWrite(string $finalPath, string $data): void
 {
-	file_put_contents(CACHE_FILE_DEVICES, json_encode($data));
+    $dir = dirname($finalPath);
+    if (!is_dir($dir)) {
+        if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new RuntimeException("Failed to create directory: $dir");
+        }
+    }
+
+    // Create temp file in same directory to keep rename() atomic
+    $tmp = tempnam($dir, 'tmp_');
+    if ($tmp === false) {
+        throw new RuntimeException("Failed to create temp file in $dir");
+    }
+
+    $fp = fopen($tmp, 'wb');
+    if ($fp === false) {
+        @unlink($tmp);
+        throw new RuntimeException("Failed to open temp file $tmp");
+    }
+
+    $len     = strlen($data);
+    $written = fwrite($fp, $data);
+    if ($written === false || $written !== $len) {
+        fclose($fp);
+        @unlink($tmp);
+        throw new RuntimeException("Failed to write all bytes to $tmp");
+    }
+
+    fflush($fp);
+    if (function_exists('fsync')) { @fsync($fp); }
+    fclose($fp);
+
+    // Set permissions so file is always user-writable and world-readable
+    @chmod($tmp, 0644);
+
+    // Atomic swap
+    if (!@rename($tmp, $finalPath)) {
+        @unlink($tmp);
+        throw new RuntimeException("Failed to rename $tmp to $finalPath");
+    }
 }
 
+// SAVE CACHE
 
+function saveCache(array $data): void
+{
+    atomicWrite(CACHE_FILE_DEVICES, json_encode($data, JSON_PRETTY_PRINT));
+}
 
 // GET TELEMETRY CACHE
 
@@ -55,17 +99,16 @@ function getTelemetryCacheToExpand($deviceId, $timerange, $aggregation)
 
 // SAVE TELEMETRY CACHE
 
-function saveTelemetryCache($deviceId, $timerange, $aggregation, $jsonData)
+function saveTelemetryCache(string $deviceId, string $timerange, string $aggregation, string $jsonData): void
 {
-	$cacheFile = "cache/telemetry_{$deviceId}_{$timerange}_{$aggregation}.json";
-	file_put_contents($cacheFile, $jsonData);
+    $cacheFile = __DIR__ . "/cache/telemetry_{$deviceId}_{$timerange}_{$aggregation}.json";
+    atomicWrite($cacheFile, $jsonData);
 }
 
 // GET CACHED DEVICE DATA
 
 function getCachedDeviceInfo($deviceId)
 {
-
 	$cacheData = getCache();
 	if ($cacheData && isset($cacheData['devices'])) {
 		foreach ($cacheData['devices'] as $device) {
