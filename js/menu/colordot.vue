@@ -28,13 +28,19 @@ export default {
 	},
 	computed: {
 		nfk() {
-			const nfk = dataModel.nfk(this.device);
+			// const nfk = dataModel.nfk(this.device);
+			const nfk = this.lastData.nfk_avg;
 			if (isNaN(nfk)) return '–'
 			return parseFloat(nfk.toFixed(0));
 		},
 		nfk_color() {
 			return dataModel.get_nfk_color(this.nfk);
 		},
+		lastData() {
+			if (!this.device.telemetrySchema || !this.device.telemetrySchema.data || !this.device.telemetrySchema.data[0]) return {};
+			return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+		}
+
 	},
 	watch: {
 	},

@@ -115,7 +115,8 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 			$den = ($FK10 - $TW10);
 			$vol10 = $row[$Bodenfeuchte_10cm_index] ?? null;
 			if ($den != 0 && $vol10 !== null && is_numeric($vol10)) {
-				$nfk10 = round(max(0, (($vol10 - $TW10) / $den) * 100), 0);
+				$nfk10 = round((($vol10 - $TW10) / $den) * 100, 2);
+				// $nfk10 = round(max(0, (($vol10 - $TW10) / $den) * 100), 2);
 				if (is_finite($nfk10)) { $row[$nfk_10cm_index] = $nfk10; }
 			}
 		}
@@ -124,7 +125,8 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 			$den = ($FK30 - $TW30);
 			$vol30 = $row[$Bodenfeuchte_30cm_index] ?? null;
 			if ($den != 0 && $vol30 !== null && is_numeric($vol30)) {
-				$nfk30 = round(max(0, (($vol30 - $TW30) / $den) * 100), 0);
+				$nfk30 = round((($vol30 - $TW30) / $den) * 100, 2);
+				// $nfk30 = round(max(0, (($vol30 - $TW30) / $den) * 100), 2);
 				if (is_finite($nfk30)) { $row[$nfk_30cm_index] = $nfk30; }
 			}
 		}
@@ -133,7 +135,8 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 			$den = ($FK60 - $TW60);
 			$vol60 = $row[$Bodenfeuchte_60cm_index] ?? null;
 			if ($den != 0 && $vol60 !== null && is_numeric($vol60)) {
-				$nfk60 = round(max(0, (($vol60 - $TW60) / $den) * 100), 0);
+				$nfk60 = round((($vol60 - $TW60) / $den) * 100, 2);
+				// $nfk60 = round(max(0, (($vol60 - $TW60) / $den) * 100), 2);
 				if (is_finite($nfk60)) { $row[$nfk_60cm_index] = $nfk60; }
 			}
 		}
@@ -142,7 +145,8 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 			$den = ($FK80 - $TW80);
 			$vol80 = $row[$Bodenfeuchte_80cm_index] ?? null;
 			if ($den != 0 && $vol80 !== null && is_numeric($vol80)) {
-				$nfk80 = round(max(0, (($vol80 - $TW80) / $den) * 100), 0);
+				$nfk80 = round((($vol80 - $TW80) / $den) * 100, 2);
+				// $nfk80 = round(max(0, (($vol80 - $TW80) / $den) * 100), 2);
 				if (is_finite($nfk80)) { $row[$nfk_80cm_index] = $nfk80; }
 			}
 		}
@@ -150,13 +154,13 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		// average nfk
 		$nfk_avg = avg_value($nfk10, $nfk30, $nfk60, $nfk80);
 		if ($nfk_avg_index !== null && $nfk_avg !== null && is_finite($nfk_avg)) {
-			$row[$nfk_avg_index] = round($nfk_avg,0);
+			$row[$nfk_avg_index] = round($nfk_avg,2);
 		}
 		
 		// average vol
 		$vol_avg = avg_value($vol10, $vol30, $vol60, $vol80);
 		if ($vol_avg_index !== null && $vol_avg !== null && is_finite($vol_avg)) {
-			$row[$vol_avg_index] = $vol_avg;
+			$row[$vol_avg_index] = round($vol_avg,2);
 		}
 	}
 
@@ -176,6 +180,8 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 	return $data;
 }
 
+
+// set average Totwasser & Feldkapazität
 function setAvgTWFK($deviceInfo) {
 	
 	global $soil_table;

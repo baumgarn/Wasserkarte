@@ -542,7 +542,7 @@ export default {
 		},
 		getNFKValue(key) {
 			let nfk = this.hoverOrLastData['nfk_'+this.getDepth(key)+'cm']
-			return nfk.toFixed(0);
+			return Math.max(nfk,0).toFixed(0);
 		},
 		getNFKName(key) {
 			return dataModel.get_nfk_label(this.getNFKValue(key));

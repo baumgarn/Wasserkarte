@@ -91,7 +91,7 @@
 
 					<div class="num light">
 						<span class="before"><</span>
-						<span class="value">{{ TW }}</span>
+						<span class="value">{{ Math.round(TW) }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
 
@@ -117,7 +117,7 @@
 					</div>
 				
 					<div class="num light">
-						<span class="value">{{ device.attributes.feldkapazität }}</span>
+						<span class="value">{{ FK }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
 
@@ -227,11 +227,13 @@
 				return Math.round(this.device.attributes.avg_FK)
 			},
 			TW() {
-				return Math.round(this.device.attributes.avg_TW)
+				return this.device.attributes.avg_TW;
 			},
 			TW_liter(){
-				if (isNaN(this.nfk)) return Math.round((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW));
-				return Math.round(Math.min((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW), this.wassergehalt_oberboden));
+				var l = Math.round(Math.min((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW), this.wassergehalt_oberboden));
+				if (isNaN(l)) return '–'
+				// if (isNaN(this.nfk)) return Math.round((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW));
+				return l
 			},
 			vol() {
 				const vol = this.hoverOrLastData.vol_avg;
@@ -239,13 +241,13 @@
 				return parseFloat(vol.toFixed(0));
 			},
 			nfk() {
-				const nfk = this.hoverOrLastData.nfk_avg;
+				const nfk = Math.max(0,this.hoverOrLastData.nfk_avg);
 				if (isNaN(nfk)) return '–'
 				return parseFloat(nfk.toFixed(0));
 			},
 			nfk_liter() {
-				if (isNaN(this.nfk)) return '–'
 				let l =  Math.max(0, this.wassergehalt_oberboden - this.TW_liter);
+				if (isNaN(l)) return '–'
 				return parseFloat(l.toFixed(0));
 			},
 			nfk_label() {

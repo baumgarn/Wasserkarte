@@ -3,44 +3,62 @@ import { toRaw, reactive } from 'vue';
 import { state } from './state.js';
 import { dataModel } from './datamodel.js';
 import { config } from './config.js';
+import pako from 'pako';
+
 // import { vm } from './app_.js';
 
 const backendurl = '/api'
-const cacheddevicesurl = '/api/cache/devices.json'
+const cacheddevicesurl = '/api/cache/devices.json.gz'
 
 
 const dataStore = reactive({
 
 	dataCache: {},
 
+
 	async fetchDevicesData() {
-		// first we are getting the cached device data
-		const cacheRequest = fetch(cacheddevicesurl)
-			.then(res => res.json())
-			.then(data => ({ source: 'cache', data }))
-			.catch(() => null);
+		try {
+			const res = await fetch(cacheddevicesurl + '?' + dataStore.getTimestamp());
+			const buf = await res.arrayBuffer();
+			const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
+			const data = JSON.parse(text);
 
-		// then we are making a request to the apí for the live data
-		// if the cached data is beyond a certain date old, the server makes a request to Thingsboard for live data
-		const liveRequest = fetch(backendurl)
-			.then(res => res.json())
-			.then(data => ({ source: 'live', data }))
-			.catch(() => null);
-
-		Promise.race([cacheRequest, liveRequest]).then(firstResult => {
-			if (firstResult && firstResult.data?.devices) {
-				// Process Cached Data
-				dataStore.processDevices(firstResult.data);
+			if (data?.devices) {
+				dataStore.processDevices(data);
 			}
-		});
-		
-		Promise.all([cacheRequest, liveRequest]).then(([cacheResult, liveResult]) => {
-			if (liveResult && liveResult.data?.devices) {
-				// Process Live Data
-				dataStore.updateLiveTelemetry(liveResult.data); 
-			}
-		});
+		} catch (err) {
+			console.error("Failed to fetch cached devices:", err);
+		}
 	},
+
+	// async fetchDevicesData() {
+	// 	// first we are getting the cached device data
+	// 	const cacheRequest = fetch(cacheddevicesurl)
+	// 		.then(res => res.json())
+	// 		.then(data => ({ source: 'cache', data }))
+	// 		.catch(() => null);
+
+	// 	// then we are making a request to the apí for the live data
+	// 	// if the cached data is beyond a certain date old, the server makes a request to Thingsboard for live data
+	// 	const liveRequest = fetch(backendurl)
+	// 		.then(res => res.json())
+	// 		.then(data => ({ source: 'live', data }))
+	// 		.catch(() => null);
+
+	// 	Promise.race([cacheRequest, liveRequest]).then(firstResult => {
+	// 		if (firstResult && firstResult.data?.devices) {
+	// 			// Process Cached Data
+	// 			dataStore.processDevices(firstResult.data);
+	// 		}
+	// 	});
+		
+	// 	Promise.all([cacheRequest, liveRequest]).then(([cacheResult, liveResult]) => {
+	// 		if (liveResult && liveResult.data?.devices) {
+	// 			// Process Live Data
+	// 			dataStore.updateLiveTelemetry(liveResult.data); 
+	// 		}
+	// 	});
+	// },
 
 	processDevices(result) {
 		state.devices = [];
@@ -64,17 +82,17 @@ const dataStore = reactive({
 
 	},
 
-	updateLiveTelemetry(result) {
-		console.log('updateLiveTelemetry');
+	// updateLiveTelemetry(result) {
+	// 	console.log('updateLiveTelemetry');
 		
-		for (const key in result.devices) {
-			const liveDevice = result.devices[key];
-			const device = this.getDevice(liveDevice.id);
-			device.telemetry = liveDevice.telemetry
-		}
+	// 	for (const key in result.devices) {
+	// 		const liveDevice = result.devices[key];
+	// 		const device = this.getDevice(liveDevice.id);
+	// 		device.telemetry = liveDevice.telemetry
+	// 	}
 
-		console.log('devices', state.devices)
-	},
+	// 	console.log('devices', state.devices)
+	// },
 
 	async fetchTelemetryData(deviceId, timerange, aggregation) {
 		const cacheKey = `${deviceId}_${timerange}_${aggregation}`;
@@ -249,7 +267,19 @@ const dataStore = reactive({
 	getDeviceByName(deviceName) {
 		if (!deviceName) return null;
 		return state.devices.find(device => device.name === deviceName);
+	},
+
+	getTimestamp() {
+		const now = new Date();
+
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+		const hour = String(now.getHours()).padStart(2, '0');
+
+		return `${year}${month}${day}${hour}`;
 	}
+
 });
 
 

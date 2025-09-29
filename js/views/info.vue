@@ -136,7 +136,7 @@
 
 						Verwendete Open-Source-Software:
 
-						Vue.js, Vue Router, Vue3-OpenLayers, html2pdf.js, qrcode.vue (MIT-Lizenz).
+						Vue.js, Vue Router, Vue3-OpenLayers, html2pdf.js, qrcode.vue, pako (MIT-Lizenz).
 
 						OpenLayers (BSD-2-Clause-Lizenz).
 

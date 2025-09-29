@@ -1,8 +1,9 @@
 <?php
 
-// Endpoint to update all daily aggregated telemetry for all devices.
+// Updates all daily aggregated telemetry for all devices.
 // Should run through a cronjob right after midnight. Add to crontab -e:
-// 5 0 * * * /usr/bin/php /var/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php > /dev/null 2>&1
+// 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php >> $HOME/wasserkarte.log 2>&1
+
 
 require_once 'config.php';
 
@@ -14,12 +15,7 @@ if (is_file(CACHE_FILE_ALLTELEMETRY)) {
 
         if ($mtime >= $midnight) {
             // Already updated once today
-            if (PHP_SAPI !== 'cli') {
-                http_response_code(200);
-                echo "Skipped: cache already updated after midnight\n";
-            } else {
-                fwrite(STDOUT, "Skipped: cache already updated after midnight\n");
-            }
+			echo date('Y-m-d H:i:s', (int) (microtime(true))) . " – Skipped: cache already updated after midnight\n";
             exit(0);
         }
     }
@@ -117,17 +113,16 @@ function dailyAverages() {
 	}
 
 	$endTime = microtime(true);
+	$queryTime =  $endTime - $startTime;
 
 	$response = [
-		'queryTime' => $endTime - $startTime,
+		'queryTime' => $queryTime,
 		'earliestTimestamp' => $earliest,
 		'latestTimestamp' => $latest,
 		'previousLatestTimestamp' => $previousLatest,
 		'earliestDate' => date('Y-m-d H:i:s', (int) ($earliest / 1000)),
 		'latestDate' => date('Y-m-d H:i:s', (int) ($latest / 1000)),
 		'days' => $days,
-		// 'cached_nfk_averages' => $cached_nfk_averages,
-		// 'new_nfk_averages' => $new_nfk_averages,
 		'nfk_daily_averages' => $nfk_daily_averages,
 		'devices' => $alltimeseries,
 	];
@@ -142,13 +137,8 @@ function dailyAverages() {
     $gzPath = CACHE_FILE_ALLTELEMETRY . '.gz';
     atomicWrite($gzPath, $gzData);
 
-	if (PHP_SAPI === 'cli') {
-		$now = date('c'); // ISO8601 timestamp
-		fwrite(STDOUT, "[$now] Daily averages updated\n");
-	} else {
-		header('Content-Type: application/json');
-		echo $json;
-	}
+	$queryTime = microtime(true) - $startTime;
+	echo date('Y-m-d H:i:s', (int) (microtime(true))) . " – Daily averages updated (" . number_format($queryTime,2) . "s)\n";
 
 }
 

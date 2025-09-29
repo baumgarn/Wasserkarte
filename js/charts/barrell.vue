@@ -67,16 +67,17 @@
 			return parseFloat(nfk.toFixed(0));
 		},
 		hasSoilAttributes() {
-			return (this.device.attributes.totwasserbereich && this.device.attributes.feldkapazität)
+			return (this.device.attributes.avg_FK && this.device.attributes.avg_TW)
 		},
 		percentage() {
 			const p = this.wassergehalt_oberboden / this.gesamtkapazität_oberboden
 			return Math.min( Math.max(p, 0), 1)  ;
 		},
 		totwasser_percentage() {
-			const p = this.device.attributes.totwasserbereich / this.device.attributes.feldkapazität
+			let p;
+			p = this.device.attributes.avg_TW / this.device.attributes.avg_FK
 			return p;
-			// return Math.min( Math.max(p, 0), 1)  ;
+			// return Math.min( Math.max(p, 0), 1);
 		},
 		colorScheme() {
 			return state.colorScheme;
