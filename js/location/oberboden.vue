@@ -230,10 +230,10 @@
 				return this.device.attributes.avg_TW;
 			},
 			TW_liter(){
-				var l = Math.round(Math.min((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW), this.wassergehalt_oberboden));
+				var l = Math.min((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW), this.wassergehalt_oberboden);
 				if (isNaN(l)) return '–'
-				// if (isNaN(this.nfk)) return Math.round((this.gesamtkapazität_oberboden / this.device.attributes.avg_FK * this.device.attributes.avg_TW));
-				return l
+				if (l < 10 ) return parseFloat(l.toFixed(1));
+				return l.toFixed(0)
 			},
 			vol() {
 				const vol = this.hoverOrLastData.vol_avg;

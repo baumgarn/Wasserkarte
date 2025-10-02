@@ -73,24 +73,27 @@ function dailyAverages() {
 			}
 			
 			// collect nfk_avg values from previous last day on, to calculate daily average of all devices
-			$nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
-			if ($nfk_avg_index) {
-				$rows = $data['telemetry']['data'];
-				for ($i = count($rows) - 1; $i >= 0; $i--) {
-					$row = $rows[$i];
-					$ts = $row[0];
-
-					
-					if ($ts > $previousLatest) { // until previous last day
-						if (isRowValid($row, $data['telemetry']['schema'])) {
-							$nfk_avg = $rows[$i][$nfk_avg_index];
-							if (! isset($new_nfk_averages[$ts])) {
-								$new_nfk_averages[$ts] = [];
+			// exclude locations with groundwater attribute
+			if (!isset($device['attributes']['Grundwasser'])) {
+				$nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
+				if ($nfk_avg_index) {
+					$rows = $data['telemetry']['data'];
+					for ($i = count($rows) - 1; $i >= 0; $i--) {
+						$row = $rows[$i];
+						$ts = $row[0];
+						
+						
+						if ($ts > $previousLatest) { // until previous last day
+							if (isRowValid($row, $data['telemetry']['schema'])) {
+								$nfk_avg = $rows[$i][$nfk_avg_index];
+								if (! isset($new_nfk_averages[$ts])) {
+									$new_nfk_averages[$ts] = [];
+								}
+								$new_nfk_averages[$ts][] = $nfk_avg;
 							}
-							$new_nfk_averages[$ts][] = $nfk_avg;
+						} else {
+							break;
 						}
-					} else {
-						break;
 					}
 				}
 			}

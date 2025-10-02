@@ -7,10 +7,7 @@ function getCache()
 	if (file_exists(CACHE_FILE_DEVICES)) {
 		$fileData = file_get_contents(CACHE_FILE_DEVICES);
 		$cache = json_decode($fileData, true);
-
-		if (isset($cache['deviceCacheTimestamp']) && time() - $cache['deviceCacheTimestamp'] < CACHE_DEVICES_DURATION) {
-			return $cache;
-		}
+		return $cache;
 	}
 	return null;
 }

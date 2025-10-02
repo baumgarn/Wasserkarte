@@ -1,5 +1,5 @@
 // dataStore.js
-import { toRaw, reactive } from 'vue';
+import { toRaw } from 'vue';
 import { state } from './state.js';
 import { dataModel } from './datamodel.js';
 import { config } from './config.js';
@@ -9,61 +9,55 @@ import pako from 'pako';
 
 const backendurl = '/api'
 const cacheddevicesurl = '/api/cache/devices.json.gz'
+const alltelemetryurl = '/api/cache/alltelemetry.json.gz'
 
-
-const dataStore = reactive({
+const dataStore = {
 
 	dataCache: {},
 
-
 	async fetchDevicesData() {
 		try {
-			const res = await fetch(cacheddevicesurl + '?' + dataStore.getTimestamp());
-			const buf = await res.arrayBuffer();
-			const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
-			const data = JSON.parse(text);
+			// Fetch device data file and all telemetry file 
+			const devicesPromise = fetch(cacheddevicesurl + '?' + dataStore.getTimestamp())
+				.then(res => res.arrayBuffer())
+				.then(buf => {
+					const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
+					const data = JSON.parse(text);
+					if (data?.devices) {
+						dataStore.processDevices(data);
+					}
+					return data; //
+				});
 
-			if (data?.devices) {
-				dataStore.processDevices(data);
+			const telemetryPromise = fetch(alltelemetryurl + '?' + dataStore.getTimestamp())
+				.then(res => res.arrayBuffer())
+				.then(buf => {
+
+					let start = performance.now();
+					const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
+					console.log("Telemetry data uncompressed in", (performance.now() - start).toFixed(2), "ms");
+
+					start = performance.now();
+					const json = JSON.parse(text);
+					console.log("Telemetry data json parsed in ", (performance.now() - start).toFixed(2), "ms");
+
+					return json;
+				});
+
+			const [devicesData, telemetryData] = await Promise.all([devicesPromise, telemetryPromise]);
+
+			if (telemetryData) {
+				dataStore.processTelemetry(telemetryData);
 			}
+
 		} catch (err) {
-			console.error("Failed to fetch cached devices:", err);
+			console.error("Failed to fetch cached data:", err);
 		}
 	},
-
-	// async fetchDevicesData() {
-	// 	// first we are getting the cached device data
-	// 	const cacheRequest = fetch(cacheddevicesurl)
-	// 		.then(res => res.json())
-	// 		.then(data => ({ source: 'cache', data }))
-	// 		.catch(() => null);
-
-	// 	// then we are making a request to the apí for the live data
-	// 	// if the cached data is beyond a certain date old, the server makes a request to Thingsboard for live data
-	// 	const liveRequest = fetch(backendurl)
-	// 		.then(res => res.json())
-	// 		.then(data => ({ source: 'live', data }))
-	// 		.catch(() => null);
-
-	// 	Promise.race([cacheRequest, liveRequest]).then(firstResult => {
-	// 		if (firstResult && firstResult.data?.devices) {
-	// 			// Process Cached Data
-	// 			dataStore.processDevices(firstResult.data);
-	// 		}
-	// 	});
-		
-	// 	Promise.all([cacheRequest, liveRequest]).then(([cacheResult, liveResult]) => {
-	// 		if (liveResult && liveResult.data?.devices) {
-	// 			// Process Live Data
-	// 			dataStore.updateLiveTelemetry(liveResult.data); 
-	// 		}
-	// 	});
-	// },
 
 	processDevices(result) {
 		state.devices = [];
 
-	
 		for (const key in result.devices) {
 			const device = result.devices[key];
 			dataModel.wasserkapazität_setzen(device);
@@ -79,20 +73,30 @@ const dataStore = reactive({
 		document.body.classList.remove('loading');
 		document.body.classList.add('loaded');
 		state.loading = false;
-
 	},
 
-	// updateLiveTelemetry(result) {
-	// 	console.log('updateLiveTelemetry');
+	processTelemetry(result) {
 		
-	// 	for (const key in result.devices) {
-	// 		const liveDevice = result.devices[key];
-	// 		const device = this.getDevice(liveDevice.id);
-	// 		device.telemetry = liveDevice.telemetry
-	// 	}
+		this.nfk_daily_averages = result.nfk_daily_averages;
 
-	// 	console.log('devices', state.devices)
-	// },
+		for (const [deviceId, deviceTelemetry] of Object.entries(result.devices)) {
+			
+			const device = this.getDevice(deviceId);
+
+			// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
+			const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+			deviceTelemetry.data.push(lastTelemetryData);
+			
+			if (state.filterFaultyValues) {
+				let telemetry = this.filterTelemetry(deviceTelemetry, -10, 100);
+			}
+			
+
+
+			const cacheKey = `${deviceId}_all_1d`;
+			this.dataCache[cacheKey] = deviceTelemetry;
+		}
+	},
 
 	async fetchTelemetryData(deviceId, timerange, aggregation) {
 		const cacheKey = `${deviceId}_${timerange}_${aggregation}`;
@@ -110,20 +114,20 @@ const dataStore = reactive({
 				const response = await fetch(url);
 				if (!response.ok) throw new Error(`HTTP ${response.status}`);
 				json = await response.json();
+		
+				// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
+				if (aggregation === "1d") { 
+					const device = this.getDevice(deviceId);
+					const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+					json.telemetry.data.push(lastTelemetryData);
+				}
 
 				if (state.filterFaultyValues) {
 					json.telemetry = this.filterTelemetry(json.telemetry, -10, 100);
 				}
-
-				if (aggregation === "1d") {
-					const device = this.getDevice(deviceId);
-					const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
-					json.latestTimestamp = lastTelemetryData[0];
-					json.telemetry.data.push(lastTelemetryData);
-				}
-
-				this.dataCache[cacheKey] = json;
-				return json;
+				
+				this.dataCache[cacheKey] = json.telemetry;
+				return json.telemetry;
 
 			} catch (error) {
 				attempts++;
@@ -139,7 +143,7 @@ const dataStore = reactive({
 		}
 	},
 
-	filterTelemetry(telemetry, min = -10, max = 100) {
+	filterTelemetry(telemetry, min = -5, max = 100) {
 		if (!telemetry || !Array.isArray(telemetry.schema) || !Array.isArray(telemetry.data)) {
 			return telemetry;
 		}
@@ -280,7 +284,6 @@ const dataStore = reactive({
 		return `${year}${month}${day}${hour}`;
 	}
 
-});
-
+};
 
 export default dataStore;

@@ -55,8 +55,8 @@
 				sensorData: {},
 				graphScale: 1.0,
 				graphPosition: 0,
-				earliestDate: 0,
-				latestDate: 0,
+				// earliestDate: 0,
+				// latestDate: 0,
 				earliestTimestamp: 0,
 				latestTimestamp: 0,
 				frameMargin: 0,
@@ -215,13 +215,14 @@
 				this.earliestTimestamp = 0;
 				this.latestTimestamp = 0;
 				
-				const data = await dataStore.fetchTelemetryData(this.device.id, 'all', state.dataAggregation);
+				const telemetryData = await dataStore.fetchTelemetryData(this.device.id, 'all', state.dataAggregation);
+				
 				this.dataPresent = true;
-				this.earliestDate = data.earliestDate;
-				this.latestDate = data.latestDate;
-				this.earliestTimestamp = data.earliestTimestamp;
-				this.latestTimestamp = data.latestTimestamp;				
-				this.sensorData = data.telemetry;
+				
+				this.earliestTimestamp = telemetryData.data[0][0];
+				this.latestTimestamp = telemetryData.data[telemetryData.data.length - 1][0];
+				this.sensorData = telemetryData;
+
 				if (this.chartTimeRange == 0 ) {
 					this.chartTimeRange = -1
 					this.graphScale = 1
