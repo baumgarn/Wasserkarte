@@ -472,9 +472,9 @@
 	</div>
 
 	
-	<div class="additional" v-if="context=='sidebar'">
+	<!-- <div class="additional" v-if="context=='sidebar'">
 		<DebugInfo :device="device" :showTitle="false"></DebugInfo>
-	</div>
+	</div> -->
 
 </div>
 
@@ -525,23 +525,16 @@
 		flex-direction row
 		gap 24px
 		height 322px
-		// margin-top 24px
-		// margin-bottom 24px
-		// .locationheader
-			// min-height 280px
 		.left
 			flex-basis calc(50% - 12px)
 			flex-grow 0
 			flex-shrink 0
+			min-width: 0
 		.right
 			flex-basis calc(50% - 12px)
 			flex-grow 0
 			flex-shrink 0
-	
-	// .map
-	// 	height 200px
-	// 	border 1px solid red
-
+			min-width: 0
 	#mapcontainer
 		width 100%
 		margin 0 0 0

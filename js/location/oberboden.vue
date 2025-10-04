@@ -187,9 +187,10 @@
 
 			</span>
 
-			<div v-if="device.attributes.Beschreibung" class="beschreibung">
+			<Beschreibung :beschreibung="device.attributes.Beschreibung" />
+			<!-- <div v-if="device.attributes.Beschreibung" class="beschreibung">
 				{{ device.attributes.Beschreibung }}
-			</div>
+			</div> -->
 
 		</div>
 				
@@ -202,15 +203,21 @@
 	import { displayutil } from '@/displayutil.js'
 	import { dataModel } from '@/datamodel.js'
 	import { state } from '@/state.js'
-
+	
+	import Beschreibung from '@/location/beschreibung.vue'
 	import Barrell from '@/charts/barrell.vue';
 
 	export default {
 		name: 'Wassergehalt',
-		components: {Barrell},
+		components: {Barrell, Beschreibung},
 		props: {device: Object, hoverData: Object},
 		setup() {
 			return {state};
+		},
+		data() {
+			return {
+				beschrExpanded: false
+			};
 		},
 		computed: {
 			wassergehalt_oberboden() {
@@ -299,7 +306,7 @@
 
 	.oberboden_uebersicht
 		margin 1em 0 0
-		max-width 600px
+		width 100%
 		display flex
 		flex-direction column
 	.toparea
@@ -463,4 +470,6 @@
 			display none
 		.num
 			flex-grow 1
+
+	
 </style>

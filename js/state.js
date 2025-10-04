@@ -22,6 +22,7 @@ export const state = reactive({
 	uniqueSoilTypes: [],
 	uniqueTelemetryKeys: [],
 	loading: true,
+	telemetryLoaded: false,
 	wsmLayers: [],
 	wsmtransparency: false,
 	wsmlegends: false,

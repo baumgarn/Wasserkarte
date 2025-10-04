@@ -1,13 +1,10 @@
-// dataStore.js
+
 import { toRaw } from 'vue';
 import { state } from './state.js';
 import { dataModel } from './datamodel.js';
 import { config } from './config.js';
 import pako from 'pako';
 
-// import { vm } from './app_.js';
-
-const backendurl = '/api'
 const cacheddevicesurl = '/api/cache/devices.json.gz'
 const alltelemetryurl = '/api/cache/alltelemetry.json.gz'
 
@@ -47,11 +44,11 @@ const dataStore = {
 			const [devicesData, telemetryData] = await Promise.all([devicesPromise, telemetryPromise]);
 
 			if (telemetryData) {
-				dataStore.processTelemetry(telemetryData);
+				dataStore.processAllTelemetry(telemetryData);
 			}
 
 		} catch (err) {
-			console.error("Failed to fetch cached data:", err);
+			console.error("Failed to fetch data:", err);
 		}
 	},
 
@@ -75,26 +72,26 @@ const dataStore = {
 		state.loading = false;
 	},
 
-	processTelemetry(result) {
-		
+	processAllTelemetry(result) {
+
 		this.nfk_daily_averages = result.nfk_daily_averages;
 
 		for (const [deviceId, deviceTelemetry] of Object.entries(result.devices)) {
 			
 			const device = this.getDevice(deviceId);
-
+			let telemetry = deviceTelemetry;
+			
 			// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
 			const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
-			deviceTelemetry.data.push(lastTelemetryData);
-			
-			if (state.filterFaultyValues) {
-				let telemetry = this.filterTelemetry(deviceTelemetry, -10, 100);
-			}
-			
 
+			telemetry.data.push(lastTelemetryData);
+			if (state.filterFaultyValues) {
+				telemetry = this.filterTelemetry(deviceTelemetry, -5, 100);
+			}
 
 			const cacheKey = `${deviceId}_all_1d`;
-			this.dataCache[cacheKey] = deviceTelemetry;
+			this.dataCache[cacheKey] = telemetry;
+			state.telemetryLoaded = true; 
 		}
 	},
 
@@ -123,7 +120,7 @@ const dataStore = {
 				}
 
 				if (state.filterFaultyValues) {
-					json.telemetry = this.filterTelemetry(json.telemetry, -10, 100);
+					json.telemetry = this.filterTelemetry(json.telemetry, -5, 100);
 				}
 				
 				this.dataCache[cacheKey] = json.telemetry;

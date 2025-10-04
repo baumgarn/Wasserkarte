@@ -4,6 +4,8 @@
 	<div class="wrapper" :class="{ showtooltips: state.tooltips }" >
 
 		<Map />
+
+		<Timeline />
 		
 		<div class="ui">
 			
@@ -82,6 +84,7 @@ import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
 import { config } from '@/config.js';
 import Map from '@/map/map.vue';
+import Timeline from '@/map/timeline.vue';
 
 export default {
 	setup() {
@@ -101,6 +104,7 @@ export default {
 		ColorschemeMenu,
 		ColorschemeGradient,
 		SoilMenu,
+		Timeline,
 		Map,
 		Info
 	},
@@ -136,8 +140,9 @@ export default {
 		position fixed
 		left 0
 		bottom 0
-		height 40px
-		margin 12px
+		bottom var(--timelineheight);
+		height 36px
+		margin 16px
 
 	.infobutton
 		margin 6px

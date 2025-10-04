@@ -13,7 +13,7 @@
 			>
 
 			<ol-view :center="center" :zoom="zoom" />
-			
+
 			<ol-tile-layer>
 
 				<ol-source-osm />
@@ -176,9 +176,9 @@ export default {
 	
 				const extent = boundingExtent(points);
 	
-				var padding = [25, 25, 25, 25];
+				var padding = [25, 25, 70, 25];
 				if (state.menuOpen.info) {
-					padding = [25, 625, 25, 25];
+					padding = [25, 625, 70, 25];
 				}
 				view.fit(extent, {
 					size: size,

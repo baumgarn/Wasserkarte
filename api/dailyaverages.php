@@ -74,7 +74,7 @@ function dailyAverages() {
 			
 			// collect nfk_avg values from previous last day on, to calculate daily average of all devices
 			// exclude locations with groundwater attribute
-			if (!isset($device['attributes']['Grundwasser'])) {
+			// if (!isset($device['attributes']['Grundwasser'])) {
 				$nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
 				if ($nfk_avg_index) {
 					$rows = $data['telemetry']['data'];
@@ -96,7 +96,7 @@ function dailyAverages() {
 						}
 					}
 				}
-			}
+			// }
 		}
 	}
 

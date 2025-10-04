@@ -60,7 +60,7 @@ warningred = #e83f3f
 	--logorot #f15f5c
 	--infobg #44444499
 	--infobgopaque #888
-
+	--timelineheight 32px
 
 
 *
@@ -141,7 +141,7 @@ body.loaded
 #map
 	position: fixed;
 	top: 0;
-	bottom: 0;
+	bottom: 44px;
 	left: 0;
 	width: 100%;
 
@@ -154,6 +154,7 @@ body.loaded
 .ol-attribution
 	font-family sans-serif
 	opacity .7
+	bottom var(--timelineheight) !important
 	ul li
 		font-size 11px
 		color #444
@@ -206,7 +207,7 @@ menuwidth = 250px
 	position fixed
 	left 0
 	top 45px
-	bottom 0
+	bottom var(--timelineheight);
 	pointer-events none
 	display flex
 	flex-direction column
@@ -216,6 +217,9 @@ menuwidth = 250px
 	> *
 		pointer-events all
 
+.is-mobile .leftui
+	bottom 0
+	z-index 11
 
 
 .bottombar
@@ -648,6 +652,7 @@ input[type=radio]
 .windowbuttons.plain
 	background transparent
 	box-shadow none
+	border-left 1px solid transparent
 	bottom unset
 	&:after
 		display none

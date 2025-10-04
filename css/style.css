@@ -31,6 +31,7 @@
   --logorot: #f15f5c;
   --infobg: rgba(68,68,68,0.6);
   --infobgopaque: #888;
+  --timelineheight: 32px;
 }
 * {
   box-sizing: border-box;
@@ -98,7 +99,7 @@ body.loaded #app {
 #map {
   position: fixed;
   top: 0;
-  bottom: 0;
+  bottom: 44px;
   left: 0;
   width: 100%;
 }
@@ -111,6 +112,7 @@ body.loaded #app {
 .ol-attribution {
   font-family: sans-serif;
   opacity: 0.7;
+  bottom: var(--timelineheight) !important;
 }
 .ol-attribution ul li {
   font-size: 11px;
@@ -162,7 +164,7 @@ button.ol-zoom-out {
   position: fixed;
   left: 0;
   top: 45px;
-  bottom: 0;
+  bottom: var(--timelineheight);
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -171,6 +173,10 @@ button.ol-zoom-out {
 }
 .leftui > * {
   pointer-events: all;
+}
+.is-mobile .leftui {
+  bottom: 0;
+  z-index: 11;
 }
 .bottombar {
   flex-shrink: 0;
@@ -567,6 +573,7 @@ input[type=radio] {
 .windowbuttons.plain {
   background: transparent;
   box-shadow: none;
+  border-left: 1px solid transparent;
   bottom: unset;
 }
 .windowbuttons.plain:after {
