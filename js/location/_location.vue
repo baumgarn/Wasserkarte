@@ -36,7 +36,7 @@
 			SelectGroup
 		},
 		setup() {
-			return {dataModel}
+			return {dataModel, displayutil}
 		},
 
 		props: {
@@ -51,12 +51,9 @@
 		},
 		data() {
 			return {
-				displayutil,
 				sensorData: {},
 				graphScale: 1.0,
 				graphPosition: 0,
-				// earliestDate: 0,
-				// latestDate: 0,
 				earliestTimestamp: 0,
 				latestTimestamp: 0,
 				frameMargin: 0,
@@ -145,21 +142,42 @@
 			wideView() {
 				return (this.frameWidth > 900);
 			},
+			timelineDate() {
+				return state.timelineDate
+			},
 			hoverData() {
-				const tele = this.sensorData;
-				if (!tele?.schema?.length || !tele?.data?.length) return null;
 
-				const idxTs = tele.schema.indexOf('ts');
-				if (idxTs < 0) return null;
+				if (!this.sensorData?.schema?.length || !this.sensorData?.data?.length) {
+					return null;
+				}
 
-				if (this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) return null;
+				const tsIndex = this.sensorData.schema.indexOf('ts');
+				if (tsIndex < 0) {
+					return null;
+				}
 
+				if ((this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) && !this.timelineDate) {
+					return null;	
+				}
+				if (this.hoverPosition < 0 && this.timelineDate) {
+					if (this.timelineDate < this.earliestTimestamp || this.timelineDate > this.latestTimestamp + config.timelineHoverCutoff) {
+						return [];
+					}
+				} 
+
+				
 				const xScale = d3.scaleTime().domain(this.globalExtentX).range([0, this.chartWidth]);
-				const hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
+				let hovertime;
+				if (state.timelineDate && this.hoverPosition < 0) {
+					hovertime = state.timelineDate;
+				} else {
+					hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
+					state.timelineDate = hovertime;
+				}
 
 				// collect ts column once (coerce to milliseconds if needed)
-				const tsArr = tele.data.map(row => {
-					const v = row[idxTs];
+				const tsArr = this.sensorData.data.map(row => {
+					const v = row[tsIndex];
 					return typeof v === 'number' ? v : new Date(v).getTime();
 				});
 
@@ -182,17 +200,14 @@
 					xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1
 				};
 
-				const colIndex = Object.fromEntries(tele.schema.map((k, i) => [k, i]));
+				const colIndex = Object.fromEntries(this.sensorData.schema.map((k, i) => [k, i]));
 
-				for (const k of tele.schema) {
+				for (const k of this.sensorData.schema) {
 					if (k === 'ts') continue;
 					const col = colIndex[k];
-					const raw = tele.data[idx][col];
-					const num = Number(raw);
-					result[k] = Number.isFinite(num) ? num : raw ?? null;
+					result[k] = this.sensorData.data[idx][col];
 				}
 
-				// console.log(result);
 				return result;
 
 			}
@@ -234,12 +249,11 @@
 
 			},
 			filterSensors(sensorKeys) {
-				const tele = this.sensorData;
-				if (!tele?.schema?.length) return [];
-				const present = new Set(tele.schema);
+				if (!this.sensorData?.schema?.length) return [];
+				const present = new Set(this.sensorData.schema);
 				const filtered = sensorKeys
 					.filter(k => k !== 'ts' && present.has(k))
-					.map(k => ({ key: k, col: tele.schema.indexOf(k) })) // just key + column index
+					.map(k => ({ key: k, col: this.sensorData.schema.indexOf(k) })) // just key + column index
 					.sort((a, b) => a.key.localeCompare(b.key));
 				return filtered;
 			},
@@ -290,12 +304,13 @@
 				const rect = this.$refs.frameRef.getBoundingClientRect();
 				if (event.type === "mousemove") {
 					this.hoverPosition = event.clientX - rect.left;
-				} else if (event.type === "touchmove") {
+				} else if (event.type === "touchmove" || event.type === "touchstart") {
 					this.hoverPosition = event.touches[0].clientX; - rect.left;
 				}
 			},
 			hoverOut() {
 				this.hoverPosition = -1;
+				state.timelineDate = null;
 			},
 			linktomap() {
 				this.$router.push('/');
@@ -307,6 +322,7 @@
 			},
 			device() {
 				this.loadSensorData();
+				console.log(this.device)
 			},
 			dataAggregation() {
 				this.loadSensorData();
@@ -324,6 +340,7 @@
 		},
 		mounted() {
 			this.loadSensorData();
+			console.log(this.device)
 			state.minimapZoom = config.minimapZoom;
 			window.addEventListener('resize', this.updateFrameWidth);
 		},
@@ -378,7 +395,7 @@
 
 		<div class="scrollcontainer" @wheel="scrollWheel">
 			
-			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchmove="hover" @touchend="hoverOut">
+			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 			
 			<div v-if="hasBodenfeuchteSensors">
 				<!-- <hr/> -->

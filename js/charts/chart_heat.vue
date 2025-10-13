@@ -83,12 +83,12 @@
 						:key="'label-'+i"
 						:style="{ height: ( rowHeight + rowMargin) + 'px'}">
 
-						<div v-if="!heatmap && hoverData?.xpos"
+						<!-- <div v-if="!heatmap && hoverData?.xpos && !timelineDate"
 							:style="{
 								left: (hoverData?.xpos + 0.5) + 'px',
 								top: getYPosition(hoverData[sensor.key]) + 'px'
 							}"
-							class="hover-dot"></div>
+							class="hover-dot"></div> -->
 
 						
 						<div class="labelinner">
@@ -105,24 +105,33 @@
 							</div>
 
 							<template v-if="title=='Bodenfeuchte'">
-								
-								<div class="bodenfeuchtedata" v-if="validData(sensor.key)">
-	
-									<div class="bodenfeuchteName">
-									<span class="name">{{ getNFKName(sensor.key) }}</span>
-									</div>
-									<div class="bodenfeuchteNFK" v-if="hasSoilAttributes">
-										<span class="value">{{ getNFKValue(sensor.key) }}</span>
-										<span class="unit"><span class="unittype">nFK</span>%</span>
-									</div>
-									<div class="bodenfeuchteVol">
-										<span class="value">{{getVolValue(sensor.key)}}</span>
-										<span class="unit"><span class="unittype">Vol</span>%</span>
-									</div>
-	
-								</div>
 
-								<div v-else class="data"><div class="value empty">-</div></div>
+								<template  v-if="validData(sensor.key)">
+								
+									<div class="bodenfeuchtedata">
+									
+										<div class="bodenfeuchteName">
+										<span class="name">{{ getNFKName(sensor.key) }}</span>
+										</div>
+										<div class="bodenfeuchteNFK" v-if="hasSoilAttributes">
+											<span class="value">{{ getNFKValue(sensor.key) }}</span>
+											<span class="unit"><span class="unittype">nFK</span>%</span>
+										</div>
+										<div class="bodenfeuchteVol">
+											<span class="value">{{getVolValue(sensor.key)}}</span>
+											<span class="unit"><span class="unittype">Vol</span>%</span>
+										</div>
+										
+									</div>
+									
+								</template>
+
+								<template v-else>
+
+									<div class="data"><div class="value empty">-</div></div>
+									
+								</template>
+
 								
 							</template>
 							
@@ -266,6 +275,9 @@ export default {
 		},
 		hoverOrLastData() {
 			return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+		},
+		timelineDate() {
+			return state.timelineDate;
 		},
 		daysSinceLastTelemetry() {
 			const latestTimestamp = this.getLastTimestamp();
@@ -515,8 +527,10 @@ export default {
 			return this.sensorData.data[this.sensorData.data.length - 1][0];
 		},
 		getData(key) {
-			const hv = this.hoverData?.[key];
-			if (hv && hv.value !== '-' && hv.value != null) return hv.value;
+			if (this.hoverData) {
+				const hv = this.hoverData?.[key];
+				return hv ? hv : '-';
+			}
 			const last = this.getLastSensorData(key);
 			return last ? last.value : '-';
 		},
@@ -734,14 +748,6 @@ export default {
 			margin-right .25em
 			font-size 85%
 	.data
-		display flex
-		flex-direction row
-		flex-basis 48px
-		align-items baseline
-		justify-content flex-end
-		display flex
-		justify-content flex-end
-		flex-direction row
 	.bodenfeuchtedata
 		display flex
 		flex-direction row

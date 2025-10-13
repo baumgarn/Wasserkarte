@@ -53,6 +53,9 @@
 			if (wassergehalt < 10 ) return parseFloat(wassergehalt.toFixed(1));
 			return wassergehalt.toFixed(0)	 
 		},
+		is_valid() {
+			return (this.wassergehalt_oberboden == '–')
+		},
 		gesamtkapazität_oberboden() {
 			return Math.round(this.device.attributes.avg_FK * 6)
 		},
@@ -139,7 +142,7 @@
 
 			const totwasserTopY = topY + (bottomY - topY) * (1 - this.totwasser_percentage);
 
-			if (this.nfk != '–') {
+			if (this.nfk != '–' && !isNaN(this.percentage)) {
 				// Liquid body
 				ctx.beginPath();
 				ctx.moveTo(centerX - this.barrel_width / 2, liquidTopY);
@@ -179,7 +182,7 @@
 
 			// Totwasser area offscreen canvas
 
-			if (this.nfk != '–') {
+			if (this.nfk != '–' && !isNaN(this.percentage)) {
 
 				// Create offscreen canvas
 				const offscreen = document.createElement('canvas');
@@ -223,7 +226,7 @@
 			}
 
 			// Liquid top ellipse fill and line
-			
+		
 			ctx.beginPath();
 			ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
 			if (this.percentage > this.totwasser_percentage) {
@@ -244,11 +247,10 @@
 			ctx.lineWidth = 1.5;
 			ctx.strokeStyle = '#00000020';
 			ctx.stroke();
-
-
+			
 
 			// totwasser ellipsis only if percentage less than totwasser
-			if (this.percentage < this.totwasser_percentage) {
+			if (this.percentage < this.totwasser_percentage && !isNaN(this.percentage)) {
 
 				ctx.beginPath();
 				ctx.lineWidth = 1;
@@ -258,7 +260,7 @@
 				ctx.stroke();
 				ctx.setLineDash([]);
 
-				}
+			}
 
 
 

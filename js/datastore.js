@@ -113,11 +113,11 @@ const dataStore = {
 				json = await response.json();
 		
 				// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
-				if (aggregation === "1d") { 
-					const device = this.getDevice(deviceId);
-					const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
-					json.telemetry.data.push(lastTelemetryData);
-				}
+				// if (aggregation === "1d") { 
+				// 	const device = this.getDevice(deviceId);
+				// 	const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+				// 	json.telemetry.data.push(lastTelemetryData);
+				// }
 
 				if (state.filterFaultyValues) {
 					json.telemetry = this.filterTelemetry(json.telemetry, -5, 100);
@@ -146,14 +146,14 @@ const dataStore = {
 		}
 
 		// find the indices of the moisture columns in the schema
-		const moistureIdx = ["Bodenfeuchte_10cm","Bodenfeuchte_30cm","Bodenfeuchte_60cm","Bodenfeuchte_80cm"]
+		const moistureIndices = ["Bodenfeuchte_10cm","Bodenfeuchte_30cm","Bodenfeuchte_60cm","Bodenfeuchte_80cm"]
 			.map((k) => telemetry.schema.indexOf(k))
 			.filter((i) => i >= 0);
 
-		if (moistureIdx.length === 0) return telemetry;
+		if (moistureIndices.length === 0) return telemetry;
 
 		const filteredData = telemetry.data.filter((row) => {
-			return moistureIdx.every((i) => {
+			return moistureIndices.every((i) => {
 				const v = row[i];
 				// Keep row only if all moisture values are within bounds
 				return typeof v !== "number" || (v >= min && v <= max);

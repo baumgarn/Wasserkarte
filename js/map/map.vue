@@ -14,7 +14,7 @@
 
 			<ol-view :center="center" :zoom="zoom" />
 
-			<ol-tile-layer>
+			<ol-tile-layer :opacity=".9" >
 
 				<ol-source-osm />
 

@@ -43,8 +43,8 @@ function expandSchema($schema) {
 	}
 	
 	if ($c > 2) {
-		$schema[] = 'vol_avg';
 		$schema[] = 'nfk_avg';
+		$schema[] = 'vol_avg';
 	}
 
 	return $schema;

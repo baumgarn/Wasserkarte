@@ -77,35 +77,6 @@
 						</div>
 
 					</template>
-
-					<template v-else>
-
-						<div 
-							class="map-marker einzeln"
-							:class="{ mouseover, selected: isSelected }"
-							@mouseenter="onMouseEnter"
-							@mouseleave="onMouseLeave"
-							@click="click"
-							@wheel="wheelForward"
-							v-if="lastData"
-							>
-							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_10cm' && this.lastData.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_10cm)">
-								<div class="value">{{ this.lastData.Bodenfeuchte_10cm.toFixed(0) }}<span class="unit">%</span></div>
-							</div>	  
-							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_30cm' && this.lastData.Bodenfeuchte_30cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_30cm)">
-								<div class="value">{{ this.lastData.Bodenfeuchte_30cm.toFixed(0) }}<span class="unit">%</span></div>
-							</div>	  
-							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_60cm' && this.lastData.Bodenfeuchte_60cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_60cm)">
-								<div class="value">{{ this.lastData.Bodenfeuchte_60cm.toFixed(0) }}<span class="unit">%</span></div>
-							</div>	  
-							<div class="schicht" v-if="this.markerStyle == 'Bodenfeuchte_80cm' && this.lastData.Bodenfeuchte_80cm" :style="'background:'+dataModel.get_nfk_color(this.lastData.nfk_80cm)">
-								<div class="value">{{ this.lastData.Bodenfeuchte_80cm.toFixed(0) }}<span class="unit">%</span></div>
-							</div>	  
-
-							<div class="disabled" v-else></div>
-						</div>
-						
-					</template>
 					
 				</div>
 					
@@ -146,18 +117,12 @@ export default {
 	},
 	computed: {
 		telemetry() {
+			console.log(this.device.telemetry)
 			return this.device.telemetry || {};
 		},
 		hasTelemetry() {
+			// console.log(this.device)
 			return Object.keys(this.device.telemetry).length > 0;
-		},
-		bodenfeuchteSensors() {
-			return Object.entries(this.telemetry)
-				.filter(([key]) => key.startsWith("Bodenfeuchte"))
-				.map(([key, data]) => ({ key, data }));
-		},
-		attributes() {
-			return this.device.attributes || {};
 		},
 		getLastValue() {
 			return (array) => array ? array[array.length - 1].value : null;
@@ -180,9 +145,19 @@ export default {
 		isSelectedSoil() {
 			return (state.selectedSoil == this.device.attributes?.soilType)
 		},
+		displayData() {
+			return this.lastData;
+		},
+		schema() {
+			return this.device.telemetrySchema.schema;
+		},
+		bf10_index() {
+			const i = this.schema.indexOf('Bodenfeuchte_10cm');
+			return (i > 0) ? i : null;
+		},
 		lastData() {
 			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
-				return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
+				return dataModel.rowToProps(this.device.telemetrySchema.data[0], this.schema)
 			} else {
 				return null;
 			}
@@ -254,7 +229,8 @@ export default {
 					overlayContainer.style.zIndex = '0';
 				}
 			}
-		}
+		},
+		
 	},
 	watch: {
 		selectedDevice(newValue) {

@@ -227,6 +227,9 @@
 				if (wassergehalt < 10 ) return parseFloat(wassergehalt.toFixed(1));
 				return wassergehalt.toFixed(0)	 
 			},
+			is_valid() {
+				return (this.wassergehalt_oberboden == '–')
+			},
 			gesamtkapazität_oberboden() {
 				return Math.round(this.device.attributes.avg_FK * 6)
 			},
@@ -258,6 +261,9 @@
 				return parseFloat(l.toFixed(0));
 			},
 			nfk_label() {
+				if (this.is_valid) {
+					return ''
+				}
 				return dataModel.get_nfk_label(this.nfk);
 			},
 			nfk_color() {
@@ -305,12 +311,13 @@
 <style lang="stylus" scoped>
 
 	.oberboden_uebersicht
-		margin 1em 0 0
+		margin .6em 0 0
 		width 100%
 		display flex
 		flex-direction column
 	.toparea
 		display flex
+		// flex-direction row-reverse
 		flex-direction row
 		align-items center
 		margin .2em 0 0
@@ -318,6 +325,7 @@
 		flex-grow 0
 		flex-shrink 0
 		margin-right 1.65em
+		// margin-left 1em
 		position relative
 	.datacol	
 		flex-grow 1
@@ -326,6 +334,7 @@
 		font-size 13.5pt
 		height 20px
 		margin 0 0 .3em
+		margin 0 0 .5em
 		letter-spacing 0.03em;
 		position relative
 		> *
@@ -425,7 +434,7 @@
 		font-weight 600
 		letter-spacing .01em
 	.soilinfo
-		margin 2em 0 .7em
+		margin 1.6em 0 .7em
 		font-size 9pt
 		.description
 		.soil

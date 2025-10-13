@@ -151,8 +151,8 @@ export default {
 	box-shadow 2px 1px 4px #00000022
 
 .menubaritem
-	width 44px
-	height 44px
+	width var(--menubariconsize)
+	height var(--menubariconsize)
 	background-color var(--menuinactivebg)
 	background-color #eaeaea
 	// background-color #fff

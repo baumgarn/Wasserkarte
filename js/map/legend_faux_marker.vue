@@ -81,7 +81,9 @@ export default {
 
 	.map-marker.kreis
 		.schichten
-			border 2px solid #66666688
+			border 1px solid #44444477
+			filter none
+			filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
 
 
 </style>

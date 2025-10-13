@@ -39,17 +39,17 @@
 					</div>
 
 				</div>
-				<div class="dotcontainer" :style="{ height: rowHeight + 'px', width: frameWidth + 'px'}">
+				<!-- <div class="dotcontainer" :style="{ height: rowHeight + 'px', width: frameWidth + 'px'}">
 
 					<svg :width="chartWidth" :height="rowHeight" class="dot-svg">
 						<template v-for="(sensor, i) in sensors">
-							<circle v-if="hoverData?.xpos" :cx="(hoverData?.xpos + .5)"
+							<circle v-if="hoverData?.xpos && !timelineDate" :cx="(hoverData?.xpos + .5)"
 								:cy="getYPosition(hoverData[sensor.key])" r="3" class="hover-dot"
 								:style="{ fill: getDepthColor(getDepthValue(sensor.key))}" />
 						</template>
 					</svg>
 
-				</div>
+				</div> -->
 				<div class="hoverline" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
 
 				<div class="scrolloverlay" v-if="dataPresent">
@@ -222,6 +222,9 @@ export default {
 				return days;
 			}
 		},
+		timelineDate() {
+			return state.timelineDate;
+		}
 
 	},
 	methods: {

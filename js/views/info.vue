@@ -91,8 +91,7 @@
 					</p>
 					<p>
 						Projektleitung Wassermeisterei: Daniel Diehl<br>
-						Projektleitung Zukunftsschusterei: Konrad Traupe<br>
-						Ansprechpartner Zukunftsschusterei: Malte Specht<br>
+						Projektleitung Zukunftsschusterei: Malte Specht<br>
 						Design und Programmierung Wasserkarte: Nikolaus Baumgarten<br>
 					</p>
 						<div class="settings-item">

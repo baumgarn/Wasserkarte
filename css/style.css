@@ -31,6 +31,7 @@
   --logorot: #f15f5c;
   --infobg: rgba(68,68,68,0.6);
   --infobgopaque: #888;
+  --menubariconsize: 42px;
   --timelineheight: 32px;
 }
 * {
@@ -112,14 +113,26 @@ body.loaded #app {
 .ol-attribution {
   font-family: sans-serif;
   opacity: 0.7;
-  bottom: var(--timelineheight) !important;
+  top: 0 !important;
+  bottom: unset !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 4px !important;
 }
 .ol-attribution ul li {
-  font-size: 11px;
-  color: #444;
+  font-size: 10px;
+  color: #222;
 }
 .ol-attribution ul li a {
-  color: #444;
+  color: #222;
+}
+.ol-attribution ul li a:hover {
+  text-decoration: underline;
+}
+.minimap .ol-attribution {
+  top: unset !important;
+  bottom: 0 !important;
+  border-top-left-radius: 4px !important;
+  border-bottom-left-radius: 0 !important;
 }
 .sidebaropen .ol-attribution {
   right: 600px !important;
@@ -163,7 +176,8 @@ button.ol-zoom-out {
 .leftui {
   position: fixed;
   left: 0;
-  top: 45px;
+  top: var(--menubariconsize);
+  margin-top: 1px;
   bottom: var(--timelineheight);
   pointer-events: none;
   display: flex;
@@ -834,8 +848,8 @@ hr {
   height: auto;
 }
 .map-marker.kreis .schichten {
-  border: 2px solid rgba(68,68,68,0.533);
-  border: 2px solid rgba(68,68,68,0.467);
+  border: 1px solid rgba(68,68,68,0.467);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -852,8 +866,9 @@ hr {
 .map-marker.selected .disabled,
 .map-marker.selected .schichten,
 .map-marker.einzeln.selected .schicht {
-  border: 2px solid #888;
-  outline: 3px solid rgba(255,255,255,0.8);
+  border: 1px solid #666;
+  outline: 3px solid rgba(255,255,255,0.867);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
 }
 .map-marker .disabled {
   width: auto;

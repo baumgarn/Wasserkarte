@@ -60,6 +60,7 @@ warningred = #e83f3f
 	--logorot #f15f5c
 	--infobg #44444499
 	--infobgopaque #888
+	--menubariconsize 42px
 	--timelineheight 32px
 
 
@@ -145,6 +146,8 @@ body.loaded
 	left: 0;
 	width: 100%;
 
+// .map .ol-viewport { background: #00000044; }
+
 .ol-zoom
 	left: unset;
 	top: unset;
@@ -154,12 +157,23 @@ body.loaded
 .ol-attribution
 	font-family sans-serif
 	opacity .7
-	bottom var(--timelineheight) !important
+	// bottom var(--timelineheight) !important
+	top 0 !important
+	bottom unset !important
+	border-top-left-radius 0 !important
+	border-bottom-left-radius 4px !important
 	ul li
-		font-size 11px
-		color #444
+		font-size 10px
+		color #222
 		a
-			color #444
+			color #222
+			&:hover
+				text-decoration underline
+.minimap .ol-attribution
+	top unset !important
+	bottom 0 !important
+	border-top-left-radius 4px !important
+	border-bottom-left-radius 0 !important
 
 .sidebaropen .ol-attribution
 	right 600px !important
@@ -206,7 +220,9 @@ menuwidth = 250px
 .leftui
 	position fixed
 	left 0
-	top 45px
+	top var(--menubariconsize)
+	margin-top 1px
+	// bottom 0
 	bottom var(--timelineheight);
 	pointer-events none
 	display flex
@@ -895,10 +911,9 @@ hr
 .map-marker.kreis
 	width auto
 	height auto
-	// box-shadow 0 1px 2px 2px #00000011
 	.schichten
-		border 2px solid #44444488
-		border 2px solid #44444477
+		border 1px solid #44444477
+		filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 		width 36px
 		height 36px
 		border-radius 50%
@@ -914,8 +929,12 @@ hr
 .map-marker.selected .disabled
 .map-marker.selected .schichten
 .map-marker.einzeln.selected .schicht
-	border 2px solid #888
-	outline 3px solid #ffffffcc
+	border 1px solid #666
+	outline 3px solid #ffffffdd
+	// border 2px solid #fff
+	// outline 2px solid #00000044
+	filter: drop-shadow(0 1px 2px rgba(0,0,0,.45));
+	// outline 2px solid #ffffff
 
 .map-marker .disabled
 	width auto
