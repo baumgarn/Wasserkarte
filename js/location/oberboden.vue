@@ -30,7 +30,8 @@
 
 				<div class="datarow wassergehalt hastooltip">
 
-					<div class="icon"></div>
+					<div class="icon">
+					</div>
 				
 					<div class="label">
 						Wassergehalt
@@ -138,12 +139,12 @@
 		</div>
 
 		<div class="hinweis mobile">
-			Modellierte Annäherungswerte Oberboden 1m² bis 60cm Tiefe
+			Modellierte Annäherungswerte Oberboden 1m², 60cm Tiefe
 		</div>
 			
 		<div class="soilinfo">
 
-			<span class="soil" v-if="usageName || soilName || humusName" >
+			<span class="typeitems" v-if="usageName || soilName || humusName" >
 
 				<template v-if="usageName">
 
@@ -437,20 +438,25 @@
 		margin 1.6em 0 .7em
 		font-size 9pt
 		.description
-		.soil
+		.typeitems
 			margin .2em 0
 			display inline-block
-		.soil
+		.typeitems
+			display flex
+			flex-wrap wrap
 			font-weight bold
-		.typeitem + .typeitem:before
-			content '–'
-			opacity .3
-			display inline-block
-			margin 0 .3em
-		.soiltype
-		.humustype
-			display inline-block
-
+			gap 6px 4px
+			margin 0 -10px 10px
+		.typeitem
+			display inline-flex
+			align-items center
+			border 1px solid #ddd
+			border-radius 15px
+			height 28px
+			padding 0 10px
+			cursor pointer
+			background #fff
+			box-shadow 0 2px 1px rgba(0,0,0,.025);
 	@media (max-width 500px)
 		.oberboden_uebersicht
 			max-width 100%

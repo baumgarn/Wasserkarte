@@ -8,76 +8,80 @@
 				>
 				<div class="marker-outer" :class="{selectedSoil: (selectedSoil != 'Alle' && isSelectedSoil), notSelectedSoil: (selectedSoil != 'Alle' && !isSelectedSoil)}">
 
-					<template v-if="selectedSoil != 'Alle' && !isSelectedSoil">
+					<template v-if="isVisible">
 
-						<div class="map-marker disabled">
-							<div class="disabled">
+						<template v-if="selectedSoil != 'Alle' && !isSelectedSoil">
+
+							<div class="map-marker disabled">
+								<div class="disabled">
+									
+								</div>	
+							</div>
+						
+						</template>
+
+						<template v-else-if="markerStyle == 'Bodenfeuchte_Farbkreis'">
+
+							<div 
+								class="map-marker kreis"
+								:class="{ mouseover, selected: isSelected }"
+								@mouseenter="onMouseEnter"
+								@mouseleave="onMouseLeave"
+								@click="click"
+								@wheel="wheelForward"
+								>
 								
-							</div>	
-						</div>
-					
-					</template>
+								<div class="schichten">
 
-					<template v-else-if="markerStyle == 'Bodenfeuchte_Farbkreis'">
+								<div class="schicht" v-if="nfk_10 != undefined" :style="'background:'+dataModel.get_nfk_color(nfk_10)"></div>
+								<div class="schicht" v-if="nfk_30 != undefined" :style="'background:'+dataModel.get_nfk_color(nfk_30)"></div>
+								<div class="schicht" v-if="nfk_60 != undefined" :style="'background:'+dataModel.get_nfk_color(nfk_60)"></div>
+								<div class="schicht" v-if="nfk_80 != undefined" :style="'background:'+dataModel.get_nfk_color(nfk_80)"></div>
 
-						<div 
-							class="map-marker kreis"
-							:class="{ mouseover, selected: isSelected }"
-							@mouseenter="onMouseEnter"
-							@mouseleave="onMouseLeave"
-							@click="click"
-							@wheel="wheelForward"
-							>
-							
-							<div class="schichten">
-
-							<div class="schicht" v-if="lastData.nfk_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)"></div>
-							<div class="schicht" v-if="lastData.nfk_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)"></div>
-							<div class="schicht" v-if="lastData.nfk_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)"></div>
-							<div class="schicht" v-if="lastData.nfk_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)"></div>
+								</div>
 
 							</div>
 
-						</div>
-
-					</template>
-					
-					<template v-else-if="markerStyle == 'Bodenfeuchte_vol'">
+						</template>
 						
-						<div 
-							class="map-marker einzeln"
-							:class="{ mouseover, selected: isSelected }"
-							@mouseenter="onMouseEnter"
-							@mouseleave="onMouseLeave"
-							@click="click"
-							@wheel="wheelForward"
-							v-if="lastData"
-							>
-							<div v-if="vol && !Number.isNaN(vol)"  class="schicht" :style="'background:'+nfk_color">
-								<div class="value">{{ vol.toFixed(0) }}<span class="unit">%</span></div>
-							</div>	  
-						</div>
+						<template v-else-if="markerStyle == 'Bodenfeuchte_vol'">
+							
+							<div 
+								class="map-marker einzeln"
+								:class="{ mouseover, selected: isSelected }"
+								@mouseenter="onMouseEnter"
+								@mouseleave="onMouseLeave"
+								@click="click"
+								@wheel="wheelForward"
+								v-if="lastData"
+								>
+								<div v-if="vol_avg && !Number.isNaN(vol_avg)"  class="schicht" :style="'background:'+nfk_color">
+									<div class="value">{{ vol_avg.toFixed(0) }}<span class="unit">%</span></div>
+								</div>	  
+							</div>
+
+						</template>
+
+						<template v-else-if="markerStyle == 'Bodenfeuchte_nfk'">
+							
+							<div 
+								class="map-marker einzeln"
+								:class="{ mouseover, selected: isSelected }"
+								@mouseenter="onMouseEnter"
+								@mouseleave="onMouseLeave"
+								@click="click"
+								@wheel="wheelForward"
+								v-if="lastData"
+								>
+								<div v-if="nfk_avg && !Number.isNaN(nfk_avg)" class="schicht" :style="'background:'+nfk_color">
+									<div class="value">{{ nfk_avg.toFixed(0) }}<span class="unit">%</span></div>
+								</div>	  
+							</div>
+
+						</template>
 
 					</template>
 
-					<template v-else-if="markerStyle == 'Bodenfeuchte_nfk'">
-						
-						<div 
-							class="map-marker einzeln"
-							:class="{ mouseover, selected: isSelected }"
-							@mouseenter="onMouseEnter"
-							@mouseleave="onMouseLeave"
-							@click="click"
-							@wheel="wheelForward"
-							v-if="lastData"
-							>
-							<div v-if="nfk && !Number.isNaN(nfk)" class="schicht" :style="'background:'+nfk_color">
-								<div class="value">{{ nfk.toFixed(0) }}<span class="unit">%</span></div>
-							</div>	  
-						</div>
-
-					</template>
-					
 				</div>
 					
      		 </ol-overlay>
@@ -89,6 +93,7 @@ import { fromLonLat } from 'ol/proj.js';
 import { config } from '@/config.js';
 import { displayutil } from '@/displayutil.js';
 import { dataModel } from '@/dataModel.js';
+import dataStore from '@/dataStore.js';
 import {state} from '@/state.js'
 import MapPopup from '@/map/popup.vue';
 
@@ -145,23 +150,104 @@ export default {
 		isSelectedSoil() {
 			return (state.selectedSoil == this.device.attributes?.soilType)
 		},
-		displayData() {
-			return this.lastData;
-		},
 		schema() {
 			return this.device.telemetrySchema.schema;
 		},
-		bf10_index() {
-			const i = this.schema.indexOf('Bodenfeuchte_10cm');
-			return (i > 0) ? i : null;
+		nfk10_index() {
+			const i = this.schema.indexOf('nfk_10cm');
+			return (i >= 0) ? i : null;
+		},
+		nfk30_index() {
+			const i = this.schema.indexOf('nfk_30cm');
+			return (i >= 0) ? i : null;
+		},
+		nfk60_index() {
+			const i = this.schema.indexOf('nfk_60cm');
+			return (i >= 0) ? i : null;
+		},
+		nfk80_index() {
+			const i = this.schema.indexOf('nfk_80cm');
+			return (i >= 0) ? i : null;
+		},
+		nfkavg_index() {
+			const i = this.schema.indexOf('nfk_avg');
+			return (i >= 0) ? i : null;
+		},
+		volavg_index() {
+			const i = this.schema.indexOf('vol_avg');
+			return (i >= 0) ? i : null;
+		},
+		nfk_10() {
+			if (this.nfk10_index != null) {
+				return this.displayData[this.nfk10_index];
+			}
+		},
+		nfk_30() {
+			if (this.nfk30_index != null) {
+				return this.displayData[this.nfk30_index];
+			}
+		},
+		nfk_60() {
+			if (this.nfk60_index != null) {
+				return this.displayData[this.nfk60_index];
+			}
+		},
+		nfk_80() {
+			if (this.nfk80_index != null) {
+				return this.displayData[this.nfk80_index];
+			}
+		},
+		nfk_avg() {
+			if (this.nfkavg_index != null) {
+				return this.displayData[this.nfkavg_index];
+			}
+		},
+		vol_avg() {
+			if (this.volavg_index != null) {
+				return this.displayData[this.volavg_index];
+			}
 		},
 		lastData() {
 			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
-				return dataModel.rowToProps(this.device.telemetrySchema.data[0], this.schema)
+				return this.device.telemetrySchema.data[0];
 			} else {
 				return null;
 			}
 		},
+		telemetryLoaded() {
+			return state.telemetryLoaded;
+		},
+		timelineDate() {
+			return state.timelineDate;
+		},
+		firstDate() {
+			return this.telemetryData.data[0][0];
+		},
+		lastDate() {
+			return this.telemetryData.data[this.telemetryData.data.length-1][0];
+		},
+		isVisible() {
+			if (!this.timelineDate) return true;
+			if (this.timelineDate && this.timelineDate > this.firstDate && this.timelineDate < this.lastDate) {
+				return true;
+			}
+		},
+		displayData() {
+			if (state.timelineDate && this.telemetryData){
+				const i = this.get_index_binary(this.telemetryData.data,state.timelineDate);
+				console.log(i)
+				if (i > -1) {
+					const data = this.telemetryData.data[i];
+					return data;
+				}
+			} 
+			return this.lastData;
+		},
+		nfk_color() {
+			if (this.nfk_avg != null) {
+				return dataModel.get_nfk_color(this.nfk_avg);
+			}
+		}
 	},
 	methods: {
 		position(device) {
@@ -175,13 +261,6 @@ export default {
 			this.map.mouseoverDevice = this.device;
 			this.setZindex()
 		},
-		calculateValues() {
-			if (this.lastData) {
-				this.vol = this.lastData?.vol_avg;
-				this.nfk = this.lastData?.nfk_avg;
-				this.nfk_color = dataModel.get_nfk_color(this.nfk);
-			}
-		},
 		onMouseLeave(event) {
 			this.mouseover = false;
 			this.map.mouseoverDevice = null;
@@ -190,6 +269,10 @@ export default {
 		click(event) {
 			state.markerClicked = true;
 			state.selectedDevice = this.device?.name || null;
+		},
+		async getTelemetry(){
+			this.telemetryData = await dataStore.fetchTelemetryData(this.device.id, 'all', '1d');
+			console.log(this.telemetryData);
 		},
 		wheelForward(event) {
 
@@ -230,7 +313,25 @@ export default {
 				}
 			}
 		},
-		
+		get_index_binary(data, T) { // binary search timestamp
+			const n = data.length;
+			if (n < 2) return -1;
+			let lo = 0, hi = n; // search in [0, n)
+			while (lo < hi) {
+				const mid = (lo + hi) >>> 1;
+				if (this.tsAt(data, mid) <= T) lo = mid + 1;
+				else hi = mid;
+			}
+			const i = lo - 1; // rightmost <= T
+			if (i < 0 || i >= n - 1) return -1;
+			return i;
+		},
+		tsAt(data, i) {
+			return data[i][0];
+		},
+		inInterval(data, i, T) {
+			return i >= 0 && i < data.length - 1 && tsAt(data, i) <= T && T < tsAt(data, i + 1);
+		}
 	},
 	watch: {
 		selectedDevice(newValue) {
@@ -240,14 +341,17 @@ export default {
 		selectedSoil() {
 			this.setZindex();
 		},
+		telemetryLoaded() {
+			this.getTelemetry();
+		},
 		markerStyle() {
-			if (this.markerStyle == 'Bodenfeuchte_vol' || this.markerStyle == 'Bodenfeuchte_nfk' ) {
-				this.calculateValues();
-			}
+			// if (this.markerStyle == 'Bodenfeuchte_vol' || this.markerStyle == 'Bodenfeuchte_nfk' ) {
+				// this.calculateValues();
+			// }
 			this.setZindex();
 		},
 		device() {
-			this.calculateValues();
+			// this.calculateValues();
 		},
 	},
 	mounted() {

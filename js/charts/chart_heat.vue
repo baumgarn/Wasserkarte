@@ -719,10 +719,12 @@ export default {
 	flex-direction row
 	justify-content space-between
 	align-items baseline
-	padding 0 2px
+	padding 2px 2px
 	height 20px
 	margin-bottom 0
 	> *
+	> * *
+		line-height 11pt
 		vertical-align baseline
 	.depth
 		font-size 8pt

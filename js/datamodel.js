@@ -87,7 +87,7 @@ export const dataModel = {
 		"RA" : {name: 'Rasen'},
 		"A" : {name: 'Acker'},
 		"AG" : {name: 'Gemüsegarten'},
-		"B" : {name: 'Freistehender Baum'},
+		"B" : {name: 'freistehender Baum'},
 		"VB" : {name: 'Stadtbaum'},
 		"GB" : {name: 'Gebüsch'},
 		"SST" : {name: 'Streuobstwiese'},

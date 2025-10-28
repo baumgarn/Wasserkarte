@@ -848,7 +848,7 @@ hr {
   height: auto;
 }
 .map-marker.kreis .schichten {
-  border: 1px solid rgba(68,68,68,0.467);
+  border: 2px solid rgba(68,68,68,0.2);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
   width: 36px;
   height: 36px;
@@ -866,8 +866,8 @@ hr {
 .map-marker.selected .disabled,
 .map-marker.selected .schichten,
 .map-marker.einzeln.selected .schicht {
-  border: 1px solid #666;
-  outline: 3px solid rgba(255,255,255,0.867);
+  border: 2px solid #999;
+  outline: 2px solid rgba(255,255,255,0.867);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
 }
 .map-marker .disabled {
