@@ -95,6 +95,14 @@ const dataStore = {
 		}
 	},
 
+	async fetchTelemetryCache(deviceId) {
+		const cacheKey = `${deviceId}_all_1d`;
+
+		if (this.dataCache[cacheKey]) {
+			return this.dataCache[cacheKey];
+		}
+	},
+
 	async fetchTelemetryData(deviceId, timerange, aggregation) {
 		const cacheKey = `${deviceId}_${timerange}_${aggregation}`;
 

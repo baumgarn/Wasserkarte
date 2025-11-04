@@ -55,7 +55,7 @@
 								@wheel="wheelForward"
 								v-if="lastData"
 								>
-								<div v-if="vol_avg && !Number.isNaN(vol_avg)"  class="schicht" :style="'background:'+nfk_color">
+								<div v-if="vol_avg != null && !Number.isNaN(vol_avg)"  class="schicht" :style="'background:'+nfk_color">
 									<div class="value">{{ vol_avg.toFixed(0) }}<span class="unit">%</span></div>
 								</div>	  
 							</div>
@@ -73,7 +73,7 @@
 								@wheel="wheelForward"
 								v-if="lastData"
 								>
-								<div v-if="nfk_avg && !Number.isNaN(nfk_avg)" class="schicht" :style="'background:'+nfk_color">
+								<div v-if="nfk_avg != null && !Number.isNaN(nfk_avg)" class="schicht" :style="'background:'+nfk_color">
 									<div class="value">{{ nfk_avg.toFixed(0) }}<span class="unit">%</span></div>
 								</div>	  
 							</div>
@@ -122,7 +122,6 @@ export default {
 	},
 	computed: {
 		telemetry() {
-			console.log(this.device.telemetry)
 			return this.device.telemetry || {};
 		},
 		hasTelemetry() {
@@ -199,7 +198,7 @@ export default {
 		},
 		nfk_avg() {
 			if (this.nfkavg_index != null) {
-				return this.displayData[this.nfkavg_index];
+				return Math.max(0,this.displayData[this.nfkavg_index]);
 			}
 		},
 		vol_avg() {
@@ -235,7 +234,6 @@ export default {
 		displayData() {
 			if (state.timelineDate && this.telemetryData){
 				const i = this.get_index_binary(this.telemetryData.data,state.timelineDate);
-				console.log(i)
 				if (i > -1) {
 					const data = this.telemetryData.data[i];
 					return data;
@@ -271,8 +269,7 @@ export default {
 			state.selectedDevice = this.device?.name || null;
 		},
 		async getTelemetry(){
-			this.telemetryData = await dataStore.fetchTelemetryData(this.device.id, 'all', '1d');
-			console.log(this.telemetryData);
+			this.telemetryData = await dataStore.fetchTelemetryCache(this.device.id);
 		},
 		wheelForward(event) {
 

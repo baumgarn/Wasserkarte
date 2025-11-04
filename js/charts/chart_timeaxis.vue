@@ -154,6 +154,7 @@ export default {
 	position: relative;
 	overflow: hidden;
 	height: 16px
+	height: 24px
 	background transparent
 	border-radius calc(var(--barheight) / 2)
 	border var(--borderstyle)

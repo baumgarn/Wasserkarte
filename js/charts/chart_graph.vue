@@ -11,6 +11,8 @@
 		</div>
 
 		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
+			<div class="hovertriangle" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
+			<div class="hovertrianglebottom" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
 
 			<div class="scrollframe" :style="{ width: frameWidth + 'px', height: rowHeight + 'px'}">
 
@@ -439,7 +441,6 @@ export default {
 .scrollview
 	margin 0
 	position relative
-	filter var(--chartdropshadowfilter)
 
 .dotcontainer
 .chartcontainer
@@ -450,6 +451,7 @@ export default {
 	height 100%
 
 .scrollframe
+	filter var(--chartdropshadowfilter)
 	border-radius var(--chartborderradius)
 	position: relative;
 	overflow: hidden;

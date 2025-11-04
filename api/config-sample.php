@@ -12,3 +12,4 @@
 	define('USERNAME', 'username');
 	define('PASSWORD', 'password');
 	define('ALLOWED_SENSOR_KEYS', ['Bodenfeuchte_10cm', 'Bodenfeuchte_30cm', 'Bodenfeuchte_60cm', 'Bodenfeuchte_80cm']);
+	define('CUTOFF_DATE', 1737072000000); // Jan 17, 2025 UTC in ms

@@ -332,16 +332,18 @@
 		flex-grow 1
 	.nfklabel
 		font-weight bold
-		font-size 13.5pt
+		font-size 14pt
 		height 20px
 		margin 0 0 .3em
 		margin 0 0 .5em
 		letter-spacing 0.03em;
 		position relative
+		text-transform uppercase
 		> *
 			position absolute
 		.nameoverlay
-			opacity .12
+			opacity .1
+			text-shadow none
 	.nfklabel.mobile
 	.hinweis.mobile
 		display none
@@ -454,7 +456,7 @@
 			border-radius 15px
 			height 28px
 			padding 0 10px
-			cursor pointer
+			// cursor pointer
 			background #fff
 			box-shadow 0 2px 1px rgba(0,0,0,.025);
 	@media (max-width 500px)

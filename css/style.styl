@@ -62,6 +62,7 @@ warningred = #e83f3f
 	--infobgopaque #888
 	--menubariconsize 42px
 	--timelineheight 32px
+	--timelinedatebg #33333388
 
 
 *
@@ -781,7 +782,7 @@ hr
 .chartouterframe
 	margin 1.2em 0 .4em
 	position relative
-	user-select none
+	user-select none#
 	.scrollframe
 		background transparent
 
@@ -830,6 +831,23 @@ hr
 	border-left 1px dotted #00000088
 	pointer-events none
 	z-index 100
+// .hovertriangle
+// 	margin-left -3.5px
+// 	top -8px
+// 	position absolute
+// 	border-top 8px solid var(--timelinedatebg)
+// 	border-left 5px solid transparent
+// 	border-right 5px solid transparent
+// 	opacity .6
+
+// .hovertrianglebottom
+// 	margin-left -3.5px
+// 	bottom -8px
+// 	position absolute
+// 	border-bottom 8px solid var(--timelinedatebg)
+// 	border-left 5px solid transparent
+// 	border-right 5px solid transparent
+// 	opacity .6
 
 .hover-dot
 	stroke-width 0
@@ -911,9 +929,12 @@ hr
 .map-marker.kreis
 	width auto
 	height auto
+	// filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 	.schichten
 		border 2px solid #44444433
+		border 2px solid #00000033
 		filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+		// border: 2px solid rgba(68,68,68,.467)
 		width 36px
 		height 36px
 		border-radius 50%

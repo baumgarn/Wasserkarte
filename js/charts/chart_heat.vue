@@ -31,6 +31,9 @@
 		</div>
 
 		<div class="scrollview chart-heat" :class="heatmap ? 'heatmap' : 'schichten'">
+			<div class="hovertriangle" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
+			<div class="hovertrianglebottom" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
+
 				
 			<div class="scrollframe" :style="{ width: frameWidth + 'px', height: (rowHeight + rowMargin) * sensors.length + 'px'}">
 				<div class="scrollinner" :style="{ width: chartWidth + 'px', marginLeft: -scrollLeft + 'px' }" v-if="dataPresent">
@@ -670,13 +673,13 @@ export default {
 .scrollview
 	margin 0
 	position relative
-	filter var(--chartdropshadowfilter)
 
 .scrollframe
 	position: relative;
 	overflow: hidden;
 	border 1px solid transparent
 	box-sizing content-box
+	filter var(--chartdropshadowfilter)
 
 .heatmap .scrollframe
 	border-radius var(--chartborderradius)
@@ -807,9 +810,9 @@ export default {
 	background #00000066
 	position absolute
 
-.schichten .hoverline
-	bottom 20px
-	top -20px
+// .schichten .hoverline
+// 	bottom 20px
+// 	top -20px
 
 
 </style>

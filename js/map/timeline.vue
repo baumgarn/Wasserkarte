@@ -4,9 +4,11 @@
 		<div class="timelineinner">
 			<canvas ref="heatmap"></canvas>
 			<div class="hoverline" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition ) + 'px' }"></div>
-			<div class="hoverdate" v-if="(hoverLinePosition > 0)">
+			<div class="timelinehovertriangle" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition - 1 ) + 'px' }"></div>
+			<div class="hoverdate" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverDatePosition ) + 'px', width: hoverDateWidth + 'px' }">
 				{{ formattedHoverDate }}
 			</div>
+			<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
 		</div>
 	</div>
 
@@ -30,14 +32,19 @@ export default {
 	},
 	data() {
 		return {
+			selectedDeviceTelemetry: null,
 			earliestTimestamp: 0,
 			latestTimestamp: 0,
 			hoverPosition: -1,
+			hoverDateWidth: 85,
 		};
 	},
 	props: {
 	},
 	computed: {
+		device() {
+			return dataStore.getDeviceByName(state.selectedDevice);
+		},
 		fullWidth() {
 			return (state.selectedDevice == null && !state.menuOpen.info) 
 		},
@@ -47,6 +54,7 @@ export default {
 		colorScheme() {
 			return state.colorScheme;
 		},
+		
 		timelineDate() {
 			let ts = null;
 			if (this.hoverPosition > -1) {
@@ -69,6 +77,12 @@ export default {
 				pos = -1;
 			}
 			return pos;
+		},
+		hoverDatePosition() {
+			let pos = this.hoverLinePosition - (this.hoverDateWidth / 2)
+			if (pos < 0) pos = 0;
+			if (pos > this.timelineWidth - this.hoverDateWidth) pos = this.timelineWidth - this.hoverDateWidth;
+			return pos
 		},
 		formattedHoverDate() {
 			return displayutil.formatDateShort(this.timelineDate);
@@ -134,6 +148,10 @@ export default {
 			this.hoverPosition = -1;
 			state.timelineDate = null;
 		},
+		toTimelineX(ts) {
+			if (!this.timelineWidth || !this.timelineSpan) return 0;
+			return ((ts - this.earliestTimestamp) / this.timelineSpan) * this.timelineWidth;
+		}
 	},
 	watch: {
 		telemetryLoaded() {
@@ -146,6 +164,24 @@ export default {
 		},
 		colorScheme() {
 			this.drawHeatmap()
+		},
+		device() {
+			this.$nextTick(async () => {
+				if (this.device) {
+					this.selectedDeviceTelemetry = await dataStore.fetchTelemetryCache(this.device.id);
+					console.log(this.selectedDeviceTelemetry.data)
+					if (this.selectedDeviceTelemetry && this.selectedDeviceTelemetry.data) {
+						this.selectedDeviceStartDate = this.selectedDeviceTelemetry.data[0][0]
+						this.selectedDeviceEndDate = this.selectedDeviceTelemetry.data[this.selectedDeviceTelemetry.data.length-1][0]
+						this.selectedDeviceStartPos = this.toTimelineX(this.selectedDeviceStartDate)
+						this.selectedDeviceEndPos = this.toTimelineX(this.selectedDeviceEndDate)
+						console.log(this.selectedDeviceStartPos,this.selectedDeviceEndPos)
+					}
+				} else {
+					this.selectedDeviceTelemetry = null;
+				}
+			});
+
 		}
 
 	},
@@ -179,22 +215,34 @@ export default {
 			right 600px !important
 		.hoverline
 			border-left 1px dotted #000000
-			border-left 1px solid #00000066
+			top -1px
+			// border-left 1px solid #00000066
 		.hoverdate
 			position absolute
-			right 0
-			bottom 100%
-			font-size 12px
+			bottom calc(100% + 8px)
+			font-size 9pt
 			opacity 1
 			pointer-events none
-			width 95px
-			background #44444488
+			background var(--timelinedatebg)
 			color #fff
 			text-align center
-			padding 4px 6px
-			border-top-left-radius 4px
-			border-bottom 1px solid #00000022
-			border-right 1px solid #00000022
-
+			padding 4px 0
+			white-space nowrap
+			border-radius 4px
+		.timelinehovertriangle
+			margin-left -4.5px
+			top -8px
+			position absolute
+			border-top 8px solid var(--timelinedatebg)
+			border-left 6px solid transparent
+			border-right 6px solid transparent
+			opacity 1
+			z-index 101
+		.selectedDeviceArea
+			position absolute
+			bottom 0
+			height 4px
+			background #00000044
+			z-index 102
 
 </style>

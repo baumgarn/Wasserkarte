@@ -322,7 +322,6 @@
 			},
 			device() {
 				this.loadSensorData();
-				console.log(this.device)
 			},
 			dataAggregation() {
 				this.loadSensorData();
@@ -340,7 +339,6 @@
 		},
 		mounted() {
 			this.loadSensorData();
-			console.log(this.device)
 			state.minimapZoom = config.minimapZoom;
 			window.addEventListener('resize', this.updateFrameWidth);
 		},

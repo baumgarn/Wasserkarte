@@ -48,12 +48,15 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 		$startTs = $timerangeMapping[$timerange] ?? $now;
 		$cachedData = null;
 	}
-
+	
 	if ($aggregation !== 'raw') {
 		$startTs = floorToLocalMidnightMs($startTs);
 		$endTs = floorToLocalMidnightMs($now);
 	}
-
+	if ($startTs < CUTOFF_DATE) {
+		$startTs = CUTOFF_DATE;
+	}
+	
 	$telemetryData = $cachedData;
 
 	$newDataPointsCount = 0;
@@ -373,7 +376,7 @@ function getEarliestTimestamp($token, $deviceId, $sensorKeys)
 {
 	$params = [
 		'keys' => $sensorKeys,
-		'startTs' => 0,
+		'startTs' => CUTOFF_DATE,
 		'endTs' => round(microtime(true) * 1000),
 		'limit' => 1,
 		'orderBy' => 'ASC',
