@@ -14,57 +14,49 @@
 						{{ device.attributes.Anzeigename || device.name }}
 					</div>
 
-					<div class="nfklabel">
-						<div class="name">
-							{{ nfk_label }}
+					<template v-if="isInactive">
+						
+						<div class="notelemetry">
+							Keine Telemetrie seit {{ daysSinceLastTelemetry }} Tagen
 						</div>
-						<div class="nameoverlay">
-							{{ nfk_label }}
-						</div>
-					</div>
 
-					<div v-if="bodenfeuchteSensors.length > 0">
-						<div class="dataheader">
-							<div class="left">Tiefe</div>
-							<div class="right">Bodenfeuchte</div>
-						</div>
-						<div class="datarow" v-if="lastData.Bodenfeuchte_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)">
-							<div class="depth">10 cm</div>
-							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_10cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<div class="datarow" v-if="lastData.Bodenfeuchte_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)">
-							<div class="depth">30 cm</div>
-							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_30cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<div class="datarow" v-if="lastData.Bodenfeuchte_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)">
-							<div class="depth">60 cm</div>
-							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_60cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<div class="datarow" v-if="lastData.Bodenfeuchte_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)">
-							<div class="depth">80 cm</div>
-							<div class="value">{{ formatNumber(lastData.Bodenfeuchte_80cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<!-- <div class="datarow" v-if="telemetry.Bodenfeuchte_10cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_10cm))">
-							<div class="depth">10 cm</div>
-							<div class="value">{{ formatNumber(getLastValue(telemetry.Bodenfeuchte_10cm)) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<div class="datarow" v-if="telemetry.Bodenfeuchte_30cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_30cm))">
-							<div class="depth">30 cm</div>
-							<div class="value">{{ formatNumber(getLastValue(telemetry.Bodenfeuchte_30cm)) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<div class="datarow" v-if="telemetry.Bodenfeuchte_60cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_60cm))">
-							<div class="depth">60 cm</div>
-							<div class="value">{{ formatNumber(getLastValue(telemetry.Bodenfeuchte_60cm)) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div>
-						<div class="datarow" v-if="telemetry.Bodenfeuchte_80cm" :style="'background:'+dataModel.get_vol_color(device, getLastValue(telemetry.Bodenfeuchte_80cm))">
-							<div class="depth">80 cm</div>
-							<div class="value">{{ formatNumber(getLastValue(telemetry.Bodenfeuchte_80cm)) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
-						</div> -->
-					</div>
+					</template>
 					
-					<!-- <div v-if="state.showHelp" class="helpnotes">
-						Klick für detaillierte Sensordaten
-					</div> -->
+					<template v-else>
+
+						<div class="nfklabel">
+							<div class="name">
+								{{ nfk_label }}
+							</div>
+							<div class="nameoverlay">
+								{{ nfk_label }}
+							</div>
+						</div>
+
+						<div v-if="bodenfeuchteSensors.length > 0">
+							<div class="dataheader">
+								<div class="left">Tiefe</div>
+								<div class="right">Bodenfeuchte</div>
+							</div>
+							<div class="datarow" v-if="lastData.Bodenfeuchte_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)">
+								<div class="depth">10 cm</div>
+								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_10cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+							</div>
+							<div class="datarow" v-if="lastData.Bodenfeuchte_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)">
+								<div class="depth">30 cm</div>
+								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_30cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+							</div>
+							<div class="datarow" v-if="lastData.Bodenfeuchte_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)">
+								<div class="depth">60 cm</div>
+								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_60cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+							</div>
+							<div class="datarow" v-if="lastData.Bodenfeuchte_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)">
+								<div class="depth">80 cm</div>
+								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_80cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+							</div>
+						</div>
+			
+					</template>
 
 				</div>
 			</div>
@@ -83,6 +75,7 @@ import { config } from '../config.js';
 import { state } from '../state.js';
 import { displayutil } from '../displayutil.js';
 import { dataModel } from '../dataModel.js';
+import dataStore from '../dataStore.js';
 
 export default {
 	name: "MapPopup",
@@ -129,6 +122,8 @@ export default {
 				return 20
 			} else if (state.markerStyle == 'Bodenfeuchte Alle') {
 				return 6
+			} else if (this.isInactive) {
+				return 12
 			} else {
 				return 16
 			}
@@ -154,6 +149,17 @@ export default {
 				return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
 			} else {
 				return null;
+			}
+		},
+		hoursSinceLastTelemetry() {
+			return dataStore.hoursSinceLastTelemetry(this.device.id);
+		},
+		daysSinceLastTelemetry() {
+			return Math.floor(this.hoursSinceLastTelemetry / 24)
+		},
+		isInactive() {
+			if (this.hoursSinceLastTelemetry > config.noTelemetryCutoff ) {
+				return true;
 			}
 		},
 	},
@@ -259,7 +265,7 @@ body.sensor-Bodenfeuchte .popupcontent
 	border-radius: 10px;
 	background #fff
 	overflow hidden
-	width 175px
+	width 190px
 	border 2px solid white
 	padding 0 0
 	text-align center
@@ -268,12 +274,20 @@ body.sensor-Bodenfeuchte .popupcontent
 		font-weight bold
 		font-size 100%
 		font-size 9pt
+	.notelemetry
+		font-size 8pt
+		margin 6px 0 2px
+		font-weight bold
+		opacity .75
+		text-transform uppercase
+		color var(--warningred)
 	.nfklabel
 		font-weight bold
 		font-size 9pt
 		margin 2px 8px 2px
 		letter-spacing 0.03em;
 		position relative
+		text-transform uppercase
 		.name
 			color var(--nfk_color)
 			position relative

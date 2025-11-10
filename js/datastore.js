@@ -54,6 +54,7 @@ const dataStore = {
 
 	processDevices(result) {
 		state.devices = [];
+		state.cacheTime = result.telemetryCacheTimestamp;
 
 		for (const key in result.devices) {
 			const device = result.devices[key];
@@ -95,7 +96,7 @@ const dataStore = {
 		}
 	},
 
-	async fetchTelemetryCache(deviceId) {
+	fetchTelemetryCache(deviceId) {
 		const cacheKey = `${deviceId}_all_1d`;
 
 		if (this.dataCache[cacheKey]) {
@@ -176,14 +177,14 @@ const dataStore = {
 		return `/api/?deviceId=${deviceId}&time=${timerange}&agg=${aggregation}`;
 	},
 
-	timeSinceLastTelemetry(deviceId) {
-		
+	hoursSinceLastTelemetry(deviceId) {
+
 		if (this.dataCache[deviceId]) {
 			const latestTimestamp = this.dataCache[deviceId].latestTimestamp;
 			const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
 			return hours
 		}
-		
+
 		const device = this.getDevice(deviceId);
 
 		let latestTimestamp = 0;
@@ -198,7 +199,11 @@ const dataStore = {
 			}
 		});
 
-		const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
+		if (latestTimestamp == 0) {
+			return -1
+		}
+		const ms = (Date.now() - latestTimestamp);
+		const hours = ms / (1000 * 60 * 60);
 		return hours;
 	},
 
@@ -258,14 +263,32 @@ const dataStore = {
 	},
 
 	sortFaultyDevices() {
-		state.faultyDevices = []
+		state.faultyDevices = [];
+
 		for (const device of state.devices) {
-			if (this.timeSinceLastTelemetry(device.id) >= 48 
-				|| (!device.attributes?.longitude || !device.attributes?.latitude)
-				|| (!device.attributes?.Bodenart || !device.attributes?.Humusgehalt)) {
+			const hours = this.hoursSinceLastTelemetry(device.id);
+
+			if (
+				(hours >= 48 || hours == -1) ||
+				(!device.attributes?.longitude || !device.attributes?.latitude) ||
+				(!device.attributes?.Bodenart || !device.attributes?.Humusgehalt)
+			) {
 				state.faultyDevices.push(device);
 			}
 		}
+
+		state.faultyDevices.sort((a, b) => {
+			const hoursA = this.hoursSinceLastTelemetry(a.id);
+			const hoursB = this.hoursSinceLastTelemetry(b.id);
+
+			// -1 should always be at the top
+			if (hoursA === -1 && hoursB !== -1) return 1;
+			if (hoursB === -1 && hoursA !== -1) return -1;
+
+			// reverse order: smaller first
+			return hoursA - hoursB;
+		});
+
 		return state.faultyDevices;
 	},
 
@@ -279,8 +302,8 @@ const dataStore = {
 	},
 
 	getTimestamp() {
-		const now = new Date();
 
+		const now = new Date();
 		const year = now.getFullYear();
 		const month = String(now.getMonth() + 1).padStart(2, '0');
 		const day = String(now.getDate()).padStart(2, '0');

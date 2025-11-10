@@ -81,7 +81,10 @@ export default {
 			return dataModel.color_schemes.nfk[state.colorScheme];
 		}, 
 		showErrorMenu() {
-			return ( state.showErrors && state.faultyDevices.length > 0)
+			return ( this.telemetryLoaded && state.showErrors && state.faultyDevices.length > 0)
+		},
+		telemetryLoaded() {
+			return state.telemetryLoaded;
 		}
 	},
 	methods: {

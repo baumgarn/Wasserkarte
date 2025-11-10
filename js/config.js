@@ -1,6 +1,4 @@
 
-
-
 export const config = {
 
 	initialLocation : [12.59272, 52.14184], // bad belzig
@@ -10,7 +8,11 @@ export const config = {
 
 	dataGapLength: 24 * 60 * 60 * 1000 * 5, // 5 Days in ms
 	timelineHoverCutoff: 24 * 60 * 60 * 1000 * 2, // 2 Days in ms
-	segmentation: false,
+	timeDisplayCutoff: 24 * 60 * 60 * 1000 * 2, // 2 Days in ms
+	noTelemetryCutoff: 48, // hours  
+
+	segmentation: true,
+	
 
 	infoArrowDevice : 'wiesenburg-schlosspark',
 

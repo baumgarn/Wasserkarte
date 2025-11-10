@@ -2,15 +2,6 @@
 
 	<div class="oberboden_uebersicht" v-if="hasSoilAttributes">
 
-			<div class="nfklabel mobile">
-				<div class="name" :style="'color:'+nfk_color">
-					{{ nfk_label }}
-				</div>
-				<div class="nameoverlay">
-					{{ nfk_label }}
-				</div>
-			</div>
-
 			<div class="toparea">
 
 				<div class="barrell">
@@ -20,12 +11,23 @@
 				<div class="datacol">
 					
 				<div class="nfklabel">
-					<div class="name" :style="'color:'+nfk_color">
-						{{ nfk_label }}
-					</div>
-					<div class="nameoverlay">
-						{{ nfk_label }}
-					</div>
+
+					<template v-if="isInactive">
+						<div class="notelemetry">
+							Keine Telemetrie seit {{ daysSinceLastTelemetry }} Tagen
+						</div>
+					</template>
+
+					<template v-else>
+
+						<div class="name" :style="'color:'+nfk_color">
+							{{ nfk_label }}
+						</div>
+						<div class="nameoverlay">
+							{{ nfk_label }}
+						</div>
+
+					</template>
 				</div>
 
 				<div class="datarow wassergehalt hastooltip">
@@ -138,10 +140,6 @@
 
 		</div>
 
-		<div class="hinweis mobile">
-			Modellierte Annäherungswerte Oberboden 1m², 60cm Tiefe
-		</div>
-			
 		<div class="soilinfo">
 
 			<span class="typeitems" v-if="usageName || soilName || humusName" >
@@ -204,6 +202,8 @@
 	import { displayutil } from '@/displayutil.js'
 	import { dataModel } from '@/datamodel.js'
 	import { state } from '@/state.js'
+	import dataStore from '@/datastore.js'
+	import {config} from '@/config.js'
 	
 	import Beschreibung from '@/location/beschreibung.vue'
 	import Barrell from '@/charts/barrell.vue';
@@ -222,6 +222,7 @@
 		},
 		computed: {
 			wassergehalt_oberboden() {
+				if (this.isInactive) return '–';
 				const wassergehalt = this.hoverOrLastData.vol_avg * 6;
 				if (!wassergehalt) return '–';
 				if (wassergehalt < 0 ) return 0;
@@ -247,11 +248,13 @@
 				return l.toFixed(0)
 			},
 			vol() {
+				if (this.isInactive) return '–';
 				const vol = this.hoverOrLastData.vol_avg;
 				if (isNaN(vol)) return '–'
 				return parseFloat(vol.toFixed(0));
 			},
 			nfk() {
+				if (this.isInactive) return '–';
 				const nfk = Math.max(0,this.hoverOrLastData.nfk_avg);
 				if (isNaN(nfk)) return '–'
 				return parseFloat(nfk.toFixed(0));
@@ -290,7 +293,22 @@
 			},
 			hoverOrLastData() {
 				return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-			}
+			},
+			timelineDate() {
+				return state.timelineDate;
+			},
+			hoursSinceLastTelemetry() {
+				return dataStore.hoursSinceLastTelemetry(this.device.id);
+			},
+			daysSinceLastTelemetry() {
+				return Math.floor(this.hoursSinceLastTelemetry / 24);
+			},
+			isInactive() { // no current telemetry
+				if (!this.timelineDate && this.hoursSinceLastTelemetry > config.noTelemetryCutoff ) {
+					return true;
+				} 
+				// TODO return true if inactive on timeline
+			},
 		},
 		methods: {
 			formatNumber(value) {
@@ -318,7 +336,6 @@
 		flex-direction column
 	.toparea
 		display flex
-		// flex-direction row-reverse
 		flex-direction row
 		align-items center
 		margin .2em 0 0
@@ -326,7 +343,6 @@
 		flex-grow 0
 		flex-shrink 0
 		margin-right 1.65em
-		// margin-left 1em
 		position relative
 	.datacol	
 		flex-grow 1
@@ -334,7 +350,6 @@
 		font-weight bold
 		font-size 14pt
 		height 20px
-		margin 0 0 .3em
 		margin 0 0 .5em
 		letter-spacing 0.03em;
 		position relative
@@ -344,9 +359,16 @@
 		.nameoverlay
 			opacity .1
 			text-shadow none
-	.nfklabel.mobile
-	.hinweis.mobile
-		display none
+	.notelemetry
+		width 100%
+		color var(--warningred)
+		text-transform normal
+		font-size 10pt
+		opacity .8
+		margin-top 4px
+	.notelemetry .icon
+		width 30px
+		height 30px
 	.hinweis
 		font-size 8pt
 		opacity .55
@@ -460,24 +482,18 @@
 			background #fff
 			box-shadow 0 2px 1px rgba(0,0,0,.025);
 	@media (max-width 500px)
-		.oberboden_uebersicht
-			max-width 100%
-			> .nfklabel.mobile
-				display block
-				margin-bottom .75em
-			> .hinweis.mobile
-				display block
+		.nfklabel
+			font-size 14pt
 		.barrell
-			// margin-bottom .75em
-			margin-right 12px
-		.toparea
-			.nfklabel
-			.hinweis
-				display none
+			margin-right 24px
 		.datarow .label
 			font-size 10px
 		.datarow.totwasser .icon
 			top 10px
+		.datarow .icon
+			width 28px
+			height 28px
+			flex-basis 28px
 		.datarow.gesamtkapazitaet
 			border-bottom none
 		.soilinfo

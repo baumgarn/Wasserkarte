@@ -14,7 +14,7 @@ export default {
 	},
 	data() {
 		return {
-			isExpanded: false
+			isExpanded: true
 		}
 	},
 	computed: {
@@ -44,12 +44,12 @@ export default {
 
 <template>
 	<div class="debuginfo">
-		<div class="expand-button" :class="{ isexpanded: isExpanded }" @click="isExpanded = !isExpanded">
+		<!-- <div class="expand-button" :class="{ isexpanded: isExpanded }" @click="isExpanded = !isExpanded">
 			<span class="arrow">▶</span>
 			Geräteattribute
-		</div>
+		</div> -->
 
-		<div v-show="isExpanded" class="expanded">
+		<!-- <div v-show="isExpanded" class="expanded"> -->
 			<h3>Gerät</h3>
 			<table>
 				<tr>
@@ -104,8 +104,8 @@ export default {
 					</tr>
 				</table>
 			</template>
-
-		</div>
+<!-- 
+		</div> -->
 	</div>
 </template>
 
@@ -114,7 +114,7 @@ export default {
 		width 100%
 		max-width 100%
 		font-size 10pt
-		margin 1em 0 0
+		margin 3em 0 2em
 		h3
 			font-size 9pt
 			margin 1em 0 .25em

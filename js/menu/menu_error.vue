@@ -8,21 +8,20 @@
 		</div>
 		<div class="menuwindow-content">
 
-			<div v-for="device in faultyDevices" :key="device.name" class="menu-item" :class="[{ 
+			<div v-if="telemetryLoaded" v-for="device in faultyDevices" :key="device.name" class="menu-item" :class="[{ 
 						selected: selectedDevice === device.name,
-						red: (!nowarning && (timeSinceLastTelemetry(device.id) >= 48 || noLocationAttributes(device) || noSoilAttributes(device)) ),
 					}]" @click="selectDevice(device)">
 
 				<div class="title">
 					{{ device.attributes?.Anzeigename || device.name }}
 				</div>
 
-				<div class="latestdate message" v-if="daysSinceLastTelemetry(device.id) >= 10000">
+				<div class="latestdate message" v-if="hoursSinceLastTelemetry(device.id) == -1">
 					Keine Telemetrie
 				</div>
 
-				<div class="latestdate message" v-else-if="timeSinceLastTelemetry(device.id) >= 48">
-					Keine Telemetrie seit {{daysSinceLastTelemetry(device.id)}} {{daysSinceLastTelemetry(device.id) == 1 ? 'Tag' : 'Tagen'}}
+				<div class="latestdate message" v-else-if="hoursSinceLastTelemetry(device.id) >= 48">
+					Keine Telemetrie seit <span class="days">{{daysSinceLastTelemetry(device.id)}}</span> {{daysSinceLastTelemetry(device.id) == 1 ? 'Tag' : 'Tagen'}}
 				</div>
 					
 				<div v-if="noLocationAttributes(device)" class="nolocationattributes message">
@@ -74,6 +73,9 @@ export default {
 		},
 		deviceTitles() {
 			return this.devices;
+		},
+		telemetryLoaded() {
+			return state.telemetryLoaded;
 		}
 	},
 	methods: {
@@ -96,14 +98,15 @@ export default {
 		noSoilAttributes(device) {
 			return ( ! device.attributes?.Bodenart || ! device.attributes?.Humusgehalt )  
 		},
-		timeSinceLastTelemetry(deviceId) {
-			return dataStore.timeSinceLastTelemetry(deviceId)
+		hoursSinceLastTelemetry(deviceId) {
+			return dataStore.hoursSinceLastTelemetry(deviceId)
 		},
 		daysSinceLastTelemetry(deviceId) {
-			const hours = dataStore.timeSinceLastTelemetry(deviceId);
+			const hours = dataStore.hoursSinceLastTelemetry(deviceId);
 			const days = Math.floor(hours / 24);
 			return days;
 		},
+
 	
 	},
 	mounted() {
@@ -119,7 +122,6 @@ export default {
 	.menu-item
 		display: flex
 		flex-direction column
-	.red
 		color: #ea4545ee
 	.title
 		overflow hidden

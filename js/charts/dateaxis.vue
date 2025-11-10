@@ -1,5 +1,5 @@
 <template>
-	<div class="scrollview chart-time" :class="{ insideGraph }">
+	<div class="scrollview chart-time" :class="{ insideGraph, insideTimeline }">
 		<div class="scrollframe" :style="{ width: frameWidth + 'px'}">
 			<div class="scrollinner" :style="{ width: chartWidth + 'px', marginLeft: -scrollLeft + 'px' }">
 				<template v-if="dayWidth > 80">
@@ -19,7 +19,8 @@
 				</template>
 				<template v-else-if="dayWidth > 5">
 					<div v-for="day in months" class="day" :key="day.timestamp" :style="{ left: day.position + '%' }">
-						{{ day.monthlong }}
+						<!-- {{ day.monthlong }} -->
+						{{ day.month }}
 					</div>
 				</template>
 				<template v-else-if="dayWidth > 1">
@@ -66,6 +67,11 @@ export default {
 			required: true
 		},
 		insideGraph: {
+			type: Boolean,
+			required: false,
+			default: false
+		},
+		insideTimeline: {
 			type: Boolean,
 			required: false,
 			default: false
@@ -133,6 +139,7 @@ export default {
 
 <style lang="stylus" scoped>
 
+.chart-time.insideTimeline
 .chart-time.insideGraph
 	position absolute
 	top 0
@@ -146,6 +153,8 @@ export default {
 		border none
 	.hoverline
 		display none
+
+
 .scrollview {	
 	margin .9em 0 .6em
 	filter var(--dropshadowfilter)
@@ -172,16 +181,20 @@ export default {
 .day
 	position: absolute;
 	left: 0;
-	top 4px;
+	top 13px;
 	bottom: 4px;
 	width 0;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: left;
 	white-space: nowrap;
 	overflow: visible;
-	padding-left: 0.5em;
+	// padding-left: 0.5em;
 	font-size 9px
 	color #000000cc
 	
+.chart-time.insideTimeline .day
+	top 10px
+
+
 </style>

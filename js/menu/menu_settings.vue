@@ -23,20 +23,25 @@
 			</div>
 
 			<div class="settings-group">
-
+			
 				<div class="settings-item">
-					<input type="checkbox" id="locationwarnings" v-model="state.showErrors">
-					<label for="locationwarnings">Fehlermeldungen anzeigen</label>
+					<input type="checkbox" id="faultyvalues" v-model="state.focusMode">
+					<label for="faultyvalues">Monochrome Karte</label>
 				</div>
 
-				<!-- <div class="settings-item">
-					<input type="checkbox" id="faultyvalues" v-model="state.filterFaultyValues">
-					<label for="faultyvalues">Fehlerhafte Sensordaten filtern</label>
-				</div> -->
+				<div class="settings-item">
+					<input type="checkbox" id="showdatagaps" v-model="state.showDataGaps">
+					<label for="showdatagaps">Datenlücken in Graphen</label>
+				</div>
+				
+				<div class="settings-item">
+					<input type="checkbox" id="locationwarnings" v-model="state.showErrors">
+					<label for="locationwarnings">Fehlermeldungen</label>
+				</div>
 
 				<div class="settings-item">
-					<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
-					<label for="showinfoonstart">Infofenster bei Start anzeigen</label>
+					<input type="checkbox" id="showinfoonstart" v-model="state.debugAttributes">
+					<label for="showinfoonstart">Debug Attribute</label>
 				</div>
 
 			</div>
@@ -80,6 +85,7 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+
 .menuwindow.settings
 	width 320px
 
@@ -88,12 +94,14 @@ export default {
 
 .notice
 	opacity .5
+
 .split
 	margin-top -2px
 	display flex
 	justify-content space-between
 	font-size 10px
-	margin-bottom 12px
+	// margin-bottom 12px
 	.right
 		text-align right
+
 </style>

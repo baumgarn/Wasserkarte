@@ -5,6 +5,8 @@
 	<script>
 	import { state } from '@/state.js'
 	import { dataModel } from '@/datamodel.js'
+	import { config } from '@/config.js'
+	import dataStore from '@/datastore.js'
 	import linePatternUrl from '/img/totwasser2.png';
 
 	export default {
@@ -34,10 +36,10 @@
 	},
 	computed: {
 		barrel_width() {
-			return (state.windowWidth < 500) ? 140 : 175;
+			return (state.windowWidth < 600) ? 140 : 175;
 		},
 		barrel_height() {
-			return (state.windowWidth < 500) ? 125 : 150;
+			return (state.windowWidth < 600) ? 125 : 150;
 		},
 		canvasWidth() {
 			return this.barrel_width + this.margin * 2;
@@ -90,7 +92,19 @@
 		},
 		hoverOrLastData() {
 			return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-		}
+		},
+		timelineDate() {
+			return state.timelineDate;
+		},
+		hoursSinceLastTelemetry() {
+			return dataStore.hoursSinceLastTelemetry(this.device.id);
+		},
+		isInactive() { // no current telemetry
+			if ( this.nfk == '–' || (!this.timelineDate && this.hoursSinceLastTelemetry > config.noTelemetryCutoff )) {
+				return true;
+			} 
+			// TODO return true if inactive on timeline
+		},
 	},
 	watch: {
 		nfk() {
@@ -115,6 +129,7 @@
 			// const strokeColor = '#000';
 			// const strokeWidth = 1;
 			const strokeColor = '#aaa';
+			const strokeColorLight = '#ddd';
 			const strokeWidth = 1.5;
 
 			const canvas = this.$refs.barrelCanvas;
@@ -142,7 +157,7 @@
 
 			const totwasserTopY = topY + (bottomY - topY) * (1 - this.totwasser_percentage);
 
-			if (this.nfk != '–' && !isNaN(this.percentage)) {
+			if (!this.isInactive && !isNaN(this.percentage)) {
 				// Liquid body
 				ctx.beginPath();
 				ctx.moveTo(centerX - this.barrel_width / 2, liquidTopY);
@@ -172,17 +187,28 @@
 				ctx.strokeStyle = strokeColor;
 				ctx.stroke();
 			} else {
-				// Draw bottom ellipse
+					// Draw bottom half of bottom ellipse (thinner line)
 				ctx.beginPath();
-				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, Math.PI, 2 * Math.PI);
+				ctx.strokeStyle = strokeColorLight;
+				ctx.stroke();
+				
+				ctx.beginPath();
+				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI);
 				ctx.lineWidth = strokeWidth;
 				ctx.strokeStyle = strokeColor;
 				ctx.stroke();
+				// // Draw bottom ellipse
+				// ctx.beginPath();
+				// ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				// ctx.lineWidth = strokeWidth;
+				// ctx.strokeStyle = strokeColor;
+				// ctx.stroke();
 			}
 
 			// Totwasser area offscreen canvas
 
-			if (this.nfk != '–' && !isNaN(this.percentage)) {
+			if (!this.isInactive && !isNaN(this.percentage)) {
 
 				// Create offscreen canvas
 				const offscreen = document.createElement('canvas');
@@ -227,30 +253,33 @@
 
 			// Liquid top ellipse fill and line
 		
-			ctx.beginPath();
-			ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
-			if (this.percentage > this.totwasser_percentage) {
-				ctx.fillStyle = '#ffffff22';
-				ctx.strokeStyle = '#ffffff88';
-			} else {
-				ctx.fillStyle = '#0000002';
-				ctx.strokeStyle = '#ffffff10';
-			}	
-			ctx.fill();
-			if (this.percentage < 1) {
-				ctx.lineWidth = 2;
+			if (! this.isInactive) {
+
+				ctx.beginPath()
+				ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, 0, Math.PI * 2);
+				if (this.percentage > this.totwasser_percentage) {
+					ctx.fillStyle = '#ffffff22';
+					ctx.strokeStyle = '#ffffff88';
+				} else {
+					ctx.fillStyle = '#0000002';
+					ctx.strokeStyle = '#ffffff10';
+				}	
+				ctx.fill();
+				if (this.percentage < 1) {
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				}
+				
+				ctx.beginPath();
+				ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, Math.PI, 0);
+				ctx.lineWidth = 1.5;
+				ctx.strokeStyle = '#00000020';
 				ctx.stroke();
 			}
 			
-			ctx.beginPath();
-			ctx.ellipse(centerX, liquidTopY, this.barrel_width / 2, ellipseH / 2, 0, Math.PI, 0);
-			ctx.lineWidth = 1.5;
-			ctx.strokeStyle = '#00000020';
-			ctx.stroke();
-			
 
 			// totwasser ellipsis only if percentage less than totwasser
-			if (this.percentage < this.totwasser_percentage && !isNaN(this.percentage)) {
+			if (this.isInactive || (this.percentage < this.totwasser_percentage && !isNaN(this.percentage))) {
 
 				ctx.beginPath();
 				ctx.lineWidth = 1;

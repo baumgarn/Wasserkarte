@@ -1,5 +1,5 @@
 <template>
-	<div id="mapcontainer">
+	<div id="mapcontainer" :class="{ focusmode: state.focusMode }">
 
 		 <ol-map 
 		 	class="map" 
@@ -14,12 +14,14 @@
 
 			<ol-view :center="center" :zoom="zoom" />
 
-			<ol-tile-layer :opacity=".9" >
+			<ol-tile-layer :className="'osm-layer'">
 
 				<ol-source-osm />
 
 			</ol-tile-layer>
-			
+
+			<!-- <TintLayer color="rgba(0, 0, 0, 0.05)" /> -->
+
 			<div class="wsmlayers">
 
 				<MapWSMLayers />
@@ -28,8 +30,12 @@
 
 			<ol-zoom-control />
 
-			<MapMarker v-for="device in devices" :device="device" :map="this"/>
-					
+			<div class="markers">
+
+				<MapMarker v-for="device in devices" :device="device" :map="this"/>
+				
+			</div>
+
 			<MapPopup v-if="mouseoverDevice" :device="mouseoverDevice"/>
 
 			<ol-attribution-control />
@@ -49,6 +55,7 @@ import { config } from '@/config.js';
 import MapMarker from '@/map/marker.vue';
 import MapPopup from '@/map/popup.vue';
 import MapWSMLayers from '@/map/wsmlayers.vue';
+import TintLayer from '@/map/tintlayer.vue'
 import 'ol/ol.css';
 import { state } from '@/state.js';
 import dataStore from '@/datastore.js';
@@ -61,6 +68,7 @@ export default {
 	components: {
 		MapMarker,
 		MapPopup,
+		TintLayer,
 		MapWSMLayers,
 	},
 	setup() {
@@ -79,6 +87,9 @@ export default {
 	computed: {
 		devices() {
 			return state.devices;
+		},
+		focusMode() {
+			return state.focusMode;
 		},
 		infoArrowDevice() {
 			return dataStore.getDeviceByName(config.infoArrowDevice);
@@ -228,6 +239,9 @@ export default {
 
 <style lang="stylus">
 
+	#mapcontainer, .map
+		position: relative
+
 	.device-marker {
 		position: absolute;
 		background-color: red;
@@ -240,9 +254,37 @@ export default {
 		width: 100%;
 	}
 
-	.map {
+	.map
 		height: 100%;
 		width: 100%;
-	}
+
+	.osm-layer
+		opacity .9
+		filter saturate(90%)
+	
+	.focusmode .osm-layer
+		filter saturate(0%)
+		opacity 1
+		
+	// .map-tint
+	// 	position: absolute
+	// 	background: rgba(0, 120, 255, 0.15) /* <- pick your color/alpha */
+	// 	// pointer-events: none
+	// 	z-index: 1
+	// 	display none
+
+
+	// .wsmlayers
+	// 	position: absolute
+	// 	inset: 0
+	// 	z-index: 20
+
+	// .markers
+	// 	position: absolute
+	// 	inset: 0
+	// 	z-index: 30
+
+	// .markers * 
+	// 	pointer-events: auto
 
 </style>

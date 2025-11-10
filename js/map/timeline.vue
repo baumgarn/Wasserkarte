@@ -9,6 +9,13 @@
 				{{ formattedHoverDate }}
 			</div>
 			<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
+			<DateAxis
+				:chartWidth="timelineWidth"
+				:frameWidth="timelineWidth"
+				:startTimestamp="earliestTimestamp"
+				:numberOfDays
+				:insideTimeline="true"
+			></DateAxis>
 		</div>
 	</div>
 
@@ -20,11 +27,13 @@ import { state } from '@/state.js';
 import { dataModel } from '@/dataModel.js'
 import dataStore from '@/datastore.js';
 import { displayutil } from '@/displayutil.js'
+import DateAxis from '@/charts/dateaxis.vue'
 
 
 
 export default {
 	name: 'MapInfoArrow',
+	components: {DateAxis},
 	setup() {
 		return {
 			state, displayutil,
@@ -37,6 +46,7 @@ export default {
 			latestTimestamp: 0,
 			hoverPosition: -1,
 			hoverDateWidth: 85,
+			timelineWidth: 0
 		};
 	},
 	props: {
@@ -54,7 +64,9 @@ export default {
 		colorScheme() {
 			return state.colorScheme;
 		},
-		
+		numberOfDays() {
+			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
+		},		
 		timelineDate() {
 			let ts = null;
 			if (this.hoverPosition > -1) {
@@ -92,9 +104,11 @@ export default {
 		drawHeatmap() {
 			if (this.telemetryLoaded) {
 				const timeline = this.$refs.timeline;
+				if (timeline) {
+					this.timelineWidth = timeline.getBoundingClientRect().width;
+				}
 				const canvas = this.$refs.heatmap;
-
-				this.timelineWidth = timeline.getBoundingClientRect().width;
+				
 				const dpr = window.devicePixelRatio || 1;
 				canvas.style.width = this.timelineWidth + 'px';
 				canvas.width = Math.max(1, Math.floor(this.timelineWidth * dpr));
@@ -165,17 +179,20 @@ export default {
 		colorScheme() {
 			this.drawHeatmap()
 		},
+		timelineWidth() {
+			nextTick(()=>{
+				this.drawHeatmap()
+			})	
+		},
 		device() {
 			this.$nextTick(async () => {
 				if (this.device) {
 					this.selectedDeviceTelemetry = await dataStore.fetchTelemetryCache(this.device.id);
-					console.log(this.selectedDeviceTelemetry.data)
 					if (this.selectedDeviceTelemetry && this.selectedDeviceTelemetry.data) {
 						this.selectedDeviceStartDate = this.selectedDeviceTelemetry.data[0][0]
 						this.selectedDeviceEndDate = this.selectedDeviceTelemetry.data[this.selectedDeviceTelemetry.data.length-1][0]
 						this.selectedDeviceStartPos = this.toTimelineX(this.selectedDeviceStartDate)
 						this.selectedDeviceEndPos = this.toTimelineX(this.selectedDeviceEndDate)
-						console.log(this.selectedDeviceStartPos,this.selectedDeviceEndPos)
 					}
 				} else {
 					this.selectedDeviceTelemetry = null;
@@ -216,7 +233,6 @@ export default {
 		.hoverline
 			border-left 1px dotted #000000
 			top -1px
-			// border-left 1px solid #00000066
 		.hoverdate
 			position absolute
 			bottom calc(100% + 8px)
@@ -244,5 +260,6 @@ export default {
 			height 4px
 			background #00000044
 			z-index 102
+			display none
 
 </style>

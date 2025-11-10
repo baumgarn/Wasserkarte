@@ -3,7 +3,7 @@
 	import HeaderInfo from '@/location/headerinfo.vue';
 	import OberbodenUebersicht from '@/location/oberboden.vue';
 	import DebugInfo from '@/location/debuginfo.vue';
-	import ChartTime from '@/charts/chart_timeaxis.vue';
+	// import ChartTime from '@/charts/dateaxis.vue';
 	import ChartHeat from '@/charts/chart_heat.vue';
 	import ChartGraph from '@/charts/chart_graph.vue';
 	import ChartRange from '@/charts/chart_rangebar.vue';
@@ -26,7 +26,7 @@
 			OberbodenUebersicht,
 			ChartHeat,
 			ChartGraph,
-			ChartTime,
+			// ChartTime,
 			ChartSettings,
 			DebugInfo,
 			ChartRange,
@@ -210,6 +210,9 @@
 
 				return result;
 
+			},
+			debugAttributes() {
+				return state.debugAttributes;
 			}
 		},
 		
@@ -487,9 +490,9 @@
 	</div>
 
 	
-	<!-- <div class="additional" v-if="context=='sidebar'">
+	<div class="additional" v-if="context=='sidebar' && debugAttributes">
 		<DebugInfo :device="device" :showTitle="false"></DebugInfo>
-	</div> -->
+	</div>
 
 </div>
 

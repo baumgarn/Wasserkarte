@@ -5,7 +5,7 @@ import { config } from '@/config.js';
 
 
 export const state = reactive({
-	markerStyle: 'Bodenfeuchte_Farbkreis',
+	// markerStyle: 'Bodenfeuchte_Farbkreis',
 	selectedSoil: 'Alle',
 	selectedDevice: null,
 	selectedDeviceEmbed: null,
@@ -17,6 +17,7 @@ export const state = reactive({
 	mapCenter: fromLonLat(config.initialLocation),
 	devices: [],
 	faultyDevices: [],
+	cacheTime: 0,
 	uniqueBoden: [],
 	uniqueHumus: [],
 	uniqueSoilTypes: [],
@@ -39,12 +40,16 @@ export const state = reactive({
 	markerClicked: false,
 });
 
+localStorageState('markerStyle', 'Bodenfeuchte_Farbkreis');
+localStorageState('focusMode', false);
 localStorageState('chartStyle', 'schichten');
 localStorageState('showHelp', true);
 localStorageState('showInfoOnStart', true);
 localStorageState('showErrors', false);
+localStorageState('debugAttributes', false);
 localStorageState('colorScheme', 'normal');
 localStorageState('filterFaultyValues', true);
+localStorageState('showDataGaps', false);
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 

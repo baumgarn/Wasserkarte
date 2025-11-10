@@ -3,11 +3,11 @@
 		<div class="chartheader">
 			<h3>{{ title }}</h3>
 
-			<div v-if="daysSinceLastTelemetry > 2" class="latestdate warning">
+			<!-- <div v-if="daysSinceLastTelemetry > 2" class="latestdate warning">
 				Keine Telemetrie seit
 				{{ displayutil.formatDateShort(getLastTimestamp()) }}
 				({{ daysSinceLastTelemetry }} Tage)
-			</div>
+			</div> -->
 		</div>
 
 		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
@@ -85,9 +85,9 @@
 			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
 
 		</div>
-		<ChartTime :chart-width="chartWidth" :frame-width="frameWidth" :scroll-left="scrollLeft"
+		<DateAxis :chart-width="chartWidth" :frame-width="frameWidth" :scroll-left="scrollLeft"
 			:start-timestamp="startTimestamp" :number-of-days="numberOfDays" :data-present="dataPresent"
-			:hover-position="hoverPosition"></ChartTime>
+			:hover-position="hoverPosition"></DateAxis>
 
 		<div class="depths" >
 			<div class="sensor"
@@ -108,7 +108,7 @@
 <script>
 import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
 import ToolTip from './tooltip.vue'
-import ChartTime from './chart_timeaxis.vue'
+import DateAxis from './dateaxis.vue'
 import * as d3 from 'd3'
 import { displayutil } from '../displayutil.js'
 import { config } from '../config.js'
@@ -118,7 +118,7 @@ import { state } from '@/state.js'
 export default {
 	name: 'ChartGraph',
 	components: {
-		ChartTime,
+		DateAxis,
 		ToolTip,
 	},
 	data() {
@@ -226,6 +226,9 @@ export default {
 		},
 		timelineDate() {
 			return state.timelineDate;
+		},
+		showDataGaps() {
+			return state.showDataGaps
 		}
 
 	},
@@ -255,7 +258,7 @@ export default {
 			// Pre-split by gaps once (shared)
 			const segments = this.splitByGapsRows(
 				tele.data, idxTs, 
-				config.segmentation ? config.dataGapLength : Infinity
+				this.showDataGaps ? config.dataGapLength : Infinity
 			);
 
 			this.sensors.forEach((sensor, i) => {
@@ -412,6 +415,11 @@ export default {
 			},
 			immediate: true
 		},
+		showDataGaps() {
+			nextTick(() => {
+				this.drawCharts();
+			});
+		}
 		// filterFaultyValues() {
 		// 	// this.filterSensors();
 		// 	this.drawCharts();

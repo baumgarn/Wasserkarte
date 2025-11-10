@@ -107,8 +107,6 @@ function fetchDevicesFromThingsBoard($token)
 
 				$allDevices[] = $device;
 			}
-
-
 		}
 
 		if ($page >= $response['totalPages'] - 1) {

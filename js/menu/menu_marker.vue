@@ -10,6 +10,22 @@
 			>
 				{{ item.label }}
 			</div>
+
+			<!-- <div class="settings-group">
+			
+				<div class="settingslabel">
+					Farbschema
+				</div>
+				
+				<ColorSchemeSelect />
+
+				<div class="split">
+					<div class="left">Trocken</div>
+					<div class="right">Nass</div>
+				</div>
+
+			</div> -->
+
 		</div>
 	</div>
 </template>
@@ -17,9 +33,14 @@
 <script>
 import { displayutil } from '../displayutil.js'
 import { state } from '../state.js'
+import ColorSchemeSelect from '@/menu/colorscheme_select.vue'
 
 export default {
 	name: 'MarkerMenu',
+		components: {
+		ColorSchemeSelect
+	},
+
 	data() {
 		return {}
 	},

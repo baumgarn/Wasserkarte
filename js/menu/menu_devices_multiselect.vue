@@ -64,7 +64,7 @@ export default {
         faultyDevices() {
             let faultyDevices = [];
             for (const device of this.deviceItems) {
-                if (this.timeSinceLastTelemetry(device.id) >= 24) {
+                if (this.hoursSinceLastTelemetry(device.id) >= 24) {
                     faultyDevices.push(device);
                 }
             }
@@ -133,8 +133,8 @@ export default {
             window.dispatchEvent(new CustomEvent('sidebar:open', { detail: device }));
             window.dispatchEvent(new CustomEvent('device-selected', { detail: device }));
         },
-        timeSinceLastTelemetry(deviceId) {
-            return dataStore.timeSinceLastTelemetry(deviceId);
+        hoursSinceLastTelemetry(deviceId) {
+            return dataStore.hoursSinceLastTelemetry(deviceId);
         }
     },
     mounted() {

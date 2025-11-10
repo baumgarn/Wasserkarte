@@ -1,6 +1,7 @@
 <template>
 
 	<div class="colorscheme-items">
+
 		<div
 			v-for="key in colorSchemeKeys"
 			:key="key"
@@ -12,10 +13,11 @@
 			@click="selectColorScheme(key)"
 			@keydown.enter.space.prevent="selectColorScheme(key)">
 
-			<ColorSchemeGradient :width="220" :height="20" :colorScheme="colorSchemes[key]" />
+			<ColorSchemeGradient :width="220" :height="16" :colorScheme="colorSchemes[key]" />
 			<!-- <ColorSchemeItem :width="220" :height="20" :colorScheme="colorSchemes[key]" /> -->
 
 		</div>
+		
 	</div>
 	
 </template>
@@ -75,24 +77,12 @@ export default {
 	flex-direction column
 	padding 0
 	margin-bottom 4px
-	// gap 1px
+	gap 1px
 
 .colorscheme-item
 	cursor pointer
 	width 100%
-	margin 1px 0
 	position relative
-	// &.selected::after
-	// 	content ''
-	// 	display block
-	// 	position absolute
-	// 	left 0
-	// 	top 0
-	// 	right 0
-	// 	bottom 0
-	// 	// opacity .6
-	// 	border 1px solid #000
-	// 	// outline 2px solid #666
 	&.selected::after
 		content ''
 		display block

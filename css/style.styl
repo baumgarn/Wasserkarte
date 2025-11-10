@@ -28,7 +28,6 @@ uibggrau = #ccc
 uicardgrau = #eee
 
 
-warningred = #e83f3f
 
 :root
 	--borderstyle 1px solid #ccc
@@ -47,6 +46,7 @@ warningred = #e83f3f
 	--activecolorgreybrighter #5275a022
 	--activecolorbrighter #d4e7f7cc
 	--activecolorbrightest #d4e7f777
+	--warningred  #ea4545ee
 	--windowbg #efefef
 	--uibrighter #ffffffcc
 	--uibrighter #f7f7f7
@@ -164,7 +164,7 @@ body.loaded
 	border-top-left-radius 0 !important
 	border-bottom-left-radius 4px !important
 	ul li
-		font-size 10px
+		font-size 8pt
 		color #222
 		a
 			color #222
@@ -377,7 +377,7 @@ menuwidth = 250px
 // SETTINGS
 
 .settings-group:first-of-type
-	padding-top 3px
+	padding-top .4empx
 .settings-group
 	padding 8px 8px
 	position relative
@@ -391,7 +391,7 @@ menuwidth = 250px
 		margin 0 0 4px
 
 .settings-group + .settings-group
-	border-top var(--thinline)
+	margin-bottom 10px
 	
 .settings-item
 	margin 4px 0 0
@@ -855,6 +855,10 @@ hr
 
 // MARKER
 
+.marker-outer
+	opacity 0
+.marker-outer.telemetryloaded
+	opacity 1
 
 .map-marker
 	position: absolute;
@@ -866,6 +870,7 @@ hr
 .map-marker.faux
 	transform none
 	position relative
+
 
 .marker-container.mouseover
 	z-index 1000
@@ -961,10 +966,11 @@ hr
 	width auto
 	height auto
 	// box-shadow 0 1px 2px 2px #00000011
-	width 16px
-	height 16px
+	width 18px
+	height 18px
+	margin-left 1px
 	border-radius 50%
-	background #999
+	background #888
 	pointer-events none
 
 

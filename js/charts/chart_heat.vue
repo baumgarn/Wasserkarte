@@ -17,13 +17,13 @@
 				
 			</div>
 
-			<div v-else-if="daysSinceLastTelemetry > 2" class="latestdate warning">
+			<!-- <div v-else-if="daysSinceLastTelemetry > 2" class="latestdate warning">
 				Keine Telemetrie seit
 				{{ displayutil.formatDateShort(getLastTimestamp()) }}
 				({{ daysSinceLastTelemetry }} Tage)
-			</div>
+			</div> -->
 
-			<div v-else class="latestdate">
+			<div  v-else class="latestdate">
 				{{ displayutil.formatDateShort(getLastTimestamp()) }}
 				<span class="time">{{ displayutil.formatDateTime(getLastTimestamp()) }}</span>
 			</div>
@@ -163,7 +163,7 @@
 			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
 
 		</div>
-		<ChartTime 
+		<DateAxis 
 		:chart-width="chartWidth" 
 		:frame-width="frameWidth" 
 		:scroll-left="scrollLeft" 
@@ -171,14 +171,14 @@
 		:number-of-days="numberOfDays"
 		:data-present="dataPresent"
 		:hover-position="hoverPosition"
-		></ChartTime>
+		></DateAxis>
 
 	</div>
 </template>
 
 <script>
 import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
-import ChartTime from './chart_timeaxis.vue'
+import DateAxis from './dateaxis.vue'
 import * as d3 from 'd3'
 import { displayutil } from '@/displayutil.js'
 import { dataModel } from '@/datamodel.js'
@@ -188,7 +188,7 @@ import { state } from '@/state.js'
 export default {
 	name: 'ChartHeat',
 	components: {
-			ChartTime,
+			DateAxis,
 		},
 	data() {
 		return {
@@ -290,6 +290,9 @@ export default {
 				return days;
 			}
 		},
+		showDataGaps() {
+			return state.showDataGaps
+		}
 
 	},
 	methods: {
@@ -420,7 +423,7 @@ export default {
 					.defined(row => Number.isFinite(row[sensor.col]));
 
 					// Split by time gaps if enabled
-					const segments = this.splitByGapsRows(this.sensorData.data, idxTs, config.segmentation ? config.dataGapLength : Infinity);
+					const segments = this.splitByGapsRows(this.sensorData.data, idxTs, this.showDataGaps ? config.dataGapLength : Infinity);
 
 					d3.select(parentNode).selectAll('.gap-aware-line,.gap-aware-area').remove();
 
@@ -535,7 +538,7 @@ export default {
 				return hv ? hv : '-';
 			}
 			const last = this.getLastSensorData(key);
-			return last ? last.value : '-';
+			return (last && last.value) ? last.value : '-';
 		},
 		validData(key) {
 			const v = this.getData(key);
@@ -650,6 +653,11 @@ export default {
 			},
 			immediate: true
 		},
+		showDataGaps() {
+			nextTick(() => {
+				this.drawCharts();
+			});
+		}
 	},
 	mounted() {
 		window.addEventListener('sidebar:toggleFullWindow', this.drawCharts);
