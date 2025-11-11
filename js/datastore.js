@@ -190,11 +190,11 @@ const dataStore = {
 		let latestTimestamp = 0;
 
 		// Traverse all telemetry properties
-		Object.values(device.telemetry).forEach(dataArray => {
-			if (Array.isArray(dataArray) && dataArray.length > 0) {
-				const latestEntry = dataArray[dataArray.length - 1]; // Get the last entry in the array
+		Object.entries(device.telemetry).forEach(([key, dataArray]) => {
+			if (key != 'false_value_alarm' && key != 'false_value_note' && Array.isArray(dataArray) && dataArray.length > 0) {
+				const latestEntry = dataArray[dataArray.length - 1];
 				if (latestEntry.ts > latestTimestamp) {
-					latestTimestamp = latestEntry.ts; // Update the latest timestamp
+					latestTimestamp = latestEntry.ts;
 				}
 			}
 		});

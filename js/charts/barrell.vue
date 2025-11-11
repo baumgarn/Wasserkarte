@@ -190,7 +190,8 @@
 					// Draw bottom half of bottom ellipse (thinner line)
 				ctx.beginPath();
 				ctx.ellipse(centerX, bottomY, this.barrel_width / 2, ellipseH / 2, 0, Math.PI, 2 * Math.PI);
-				ctx.strokeStyle = strokeColorLight;
+				// ctx.strokeStyle = strokeColorLight;
+				ctx.strokeStyle = strokeColor;
 				ctx.stroke();
 				
 				ctx.beginPath();
@@ -279,7 +280,7 @@
 			
 
 			// totwasser ellipsis only if percentage less than totwasser
-			if (this.isInactive || (this.percentage < this.totwasser_percentage && !isNaN(this.percentage))) {
+			if (! this.isInactive && (this.percentage < this.totwasser_percentage && !isNaN(this.percentage))) {
 
 				ctx.beginPath();
 				ctx.lineWidth = 1;

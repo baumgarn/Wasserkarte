@@ -81,13 +81,11 @@ export default {
 .menuwindow.karten
 	max-width 440px
 .wms-provider
-	// margin .6em 0 
 	max-width 100%
-	// background red
+
 .attribution
 	margin 5px 5px -20px 5px
 	font-size 9.5pt
-	// opacity .5
 
 .map-section-header
 	cursor default
@@ -112,7 +110,6 @@ export default {
 	margin-right -.25em
 
 .wms-provider h4 {
-	// margin-bottom: 5px;
 	display none
 	border-bottom 1px solid #ccc
 	margin-left -.25em

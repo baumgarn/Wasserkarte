@@ -155,7 +155,7 @@
 				<template v-if="device.attributes.Bewässerung">
 					
 					<span class="bewaesserung typeitem">
-						regelmäßig bewässert
+						bewässert
 					</span>
 										
 				</template>

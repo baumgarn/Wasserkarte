@@ -35,6 +35,12 @@ export default {
 		formatNumber(floatString) {
 			return parseFloat(floatString).toFixed(1).replace('.', ',');
 		},
+		formatTs(ts) {
+			const d = new Date(ts);
+			const pad = n => String(n).padStart(2, '0');
+
+			return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+		}
 	}
 };
 
@@ -44,68 +50,65 @@ export default {
 
 <template>
 	<div class="debuginfo">
-		<!-- <div class="expand-button" :class="{ isexpanded: isExpanded }" @click="isExpanded = !isExpanded">
-			<span class="arrow">▶</span>
-			Geräteattribute
-		</div> -->
 
-		<!-- <div v-show="isExpanded" class="expanded"> -->
-			<h3>Gerät</h3>
-			<table>
-				<tr>
-					<td class="label">name</td>
-					<td class="value">{{ device.name }}</td>
-				</tr>
-				<tr>
-					<td class="label">id</td>
-					<td class="value">{{ device.id }}</td>
-				</tr>
-				<tr>
-					<td class="label">label</td>
-					<td class="value">{{ device.label }}</td>
-				</tr>
-			</table>
+		<h3>Gerät</h3>
 
-			<h3>Attribute</h3>
-			<table>
-				<tr v-for="(value, key) in attributes" :key="key">
-					<td class="label">{{ key }}</td>
-					<td class="value">{{ value }}</td>
-				</tr>
-			</table>
+		<div class="datagroup">
+			<div class="datarow">
+				<div class="label">name</div>
+				<div class="value">{{ device.name }}</div>
+			</div>
+			<div class="datarow">
+				<div class="label">id</div>
+				<div class="value">{{ device.id }}</div>
+			</div>
+			<div class="datarow">
+				<div class="label">label</div>
+				<div class="value">{{ device.label }}</div>
+			</div>
+		</div>
 
-			<h3>Telemetrie</h3>
-			<table>
-				<tr v-for="(values, key) in telemetryData" :key="key">
-					<td class="label">{{ key }}</td>
-					<td class="value">{{ values[0].value }}</td>
-				</tr>
-			</table>
+		<h3>Attribute</h3>
+		<div class="datagroup">
+			<div class="datarow" v-for="(value, key) in attributes" :key="key">
+				<div class="label">{{ key }}</div>
+				<div class="value">{{ value }}</div>
+			</div>
+		</div>
 
-			<template v-if="device.telemetrySchema && device.telemetrySchema.schema">
+		<h3>Telemetrie</h3>
+		<div class="datagroup">
+			<div class="datarow" :class="key" v-for="(values, key) in telemetryData" :key="key">
+				<div class="label">{{ key }}</div>
+				<div class="ts">{{ formatTs(values[0].ts) }}</div>
+				<div class="value">{{ values[0].value }}</div>
+			</div>
+		</div>
 
-				<h3>Telemetrie Schema</h3>
-				<table>
-					<tr>
-						<td class="label">schema</td>
-						<td class="value">
-							<span v-for="(field, index) in device.telemetrySchema.schema" :key="index">
-								{{ field }}<br>
-							</span>
-						</td>
-					</tr>
-					<tr>
-						<td class="label">data</td>
-						<td class="value">
-							<span v-for="(value, index) in device.telemetrySchema.data[0]" :key="index">
-								{{ value }}<br>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</template>
-<!-- 
-		</div> -->
+		<template v-if="device.telemetrySchema && device.telemetrySchema.schema">
+
+			<h3>Telemetrie Schema</h3>
+			<div class="datagroup">
+				<div class="datarow">
+					<div class="label">schema</div>
+					<div class="value">
+						<span v-for="(field, index) in device.telemetrySchema.schema" :key="index">
+							{{ field }}<br>
+						</span>
+					</div>
+				</div>
+				<div class="datarow">
+					<div class="label">data</div>
+					<div class="value">
+						<span v-for="(value, index) in device.telemetrySchema.data[0]" :key="index">
+							{{ value }}<br>
+						</span>
+					</div>
+				</div>
+			</div>
+
+		</template>
+
 	</div>
 </template>
 
@@ -118,49 +121,25 @@ export default {
 		h3
 			font-size 9pt
 			margin 1em 0 .25em
-		table
+		.datagroup
 			font-size 9pt
 			width 100%
-			border-collapse collapse
-			td
-				opacity .5
-				vertical-align top
+			.datarow
+				display flex
+				justify-content space-between
 				border-bottom 1px solid #00000011
-			tr:first-child td
-				border-top 1px solid #00000011
-			td.value
-				text-align right
-				opacity 1
-			td.timestamp
-				text-align left
-				padding-left .1em
+				> *
+					flex-basis 33.33%
+					flex-grow 0
+					flex-shrink 0
 			.value
 				font-weight bold
-				font-size 110%
-		.expanded
-			margin-bottom 24px
-
-	.expand-button
-		width 100%
-		text-align left
-		background none
-		border none
-		cursor pointer
-		display flex
-		align-items center
-		margin 3em 0 0
-		font-size 9pt
-	.arrow
-		display inline-block
-		width 1em
-		margin-right .2em
-		height 1em
-		font-size 90%
-		position relative
-		opacity .4
-		top 0
-	.isexpanded
-		.arrow
-			transform rotate(90deg)
-			top .1em
+				text-align right
+			.ts	
+				text-align right
+			.false_value_note 
+				flex-wrap wrap
+				.value
+					flex-basis 100%
+	
 </style>
