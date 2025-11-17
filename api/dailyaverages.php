@@ -4,6 +4,13 @@
 // Should run through a cronjob right after midnight. Add to crontab -e:
 // 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php >> $HOME/wasserkarte.log 2>&1
 
+$nfk_labels = [
+    [ "value" => 10,  "name" => "Sehr trocken" ], // 0–10
+    [ "value" => 30,  "name" => "Trocken"      ], // 10–30
+    [ "value" => 80,  "name" => "Optimal"      ], // 30–80
+    [ "value" => 100, "name" => "Nass"         ], // 80–100
+    [ "value" => 120, "name" => "Sehr nass"    ], // 100+
+];
 
 require_once 'config.php';
 
@@ -51,7 +58,7 @@ function dailyAverages() {
 	$earliest = PHP_INT_MAX;
 	$latest = 0;
 	$previousLatest = getLatestTimestampFromCache();
-	$new_nfk_averages = [];
+	$new_nfk_values = [];
 	
 	foreach ($deviceData['devices'] as $device) {
 		$deviceId = $device['id'];
@@ -76,7 +83,7 @@ function dailyAverages() {
 			// exclude locations with groundwater attribute
 			// if (!isset($device['attributes']['Grundwasser'])) {
 				$nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
-				if ($nfk_avg_index) {
+				if ($nfk_avg_index != false) {
 					$rows = $data['telemetry']['data'];
 					for ($i = count($rows) - 1; $i >= 0; $i--) {
 						$row = $rows[$i];
@@ -86,10 +93,10 @@ function dailyAverages() {
 						if ($ts > $previousLatest) { // until previous last day
 							if (isRowValid($row, $data['telemetry']['schema'])) {
 								$nfk_avg = $rows[$i][$nfk_avg_index];
-								if (! isset($new_nfk_averages[$ts])) {
-									$new_nfk_averages[$ts] = [];
+								if (! isset($new_nfk_values[$ts])) {
+									$new_nfk_values[$ts] = [];
 								}
-								$new_nfk_averages[$ts][] = $nfk_avg;
+								$new_nfk_values[$ts][] = $nfk_avg;
 							}
 						} else {
 							break;
@@ -101,10 +108,10 @@ function dailyAverages() {
 	}
 
 	// calculate nfk_averages
-	// $nfk_daily_averages = $new_nfk_averages;
+	// $nfk_daily_averages = $new_nfk_values;
 	$cached_nfk_averages = getDailyAveragesPairsFromCache();
-	$new_nfk_averages = averageBucketsAsPairs($new_nfk_averages, 2);
-	$nfk_daily_averages = array_merge($cached_nfk_averages, $new_nfk_averages);
+	$new_nfk_values = averageBucketsAsPairs($new_nfk_values, 2);
+	$nfk_daily_averages = array_merge($cached_nfk_averages, $new_nfk_values);
 
 	// $nfk_daily_averages = $cached_nfk_averages;
 
@@ -284,7 +291,41 @@ function getDailyAveragesPairsFromCache(): array {
     return [];
 }
 
-// Helper: row is valid only if all required fields are within [10, 100]
+// COUNT HOW OUR DAILY LOCATION NFK AVERAGES FALL INTO EACH LABEL CATEGORY IE: "TROCKEN" "NASS" ETC
+
+function bucketizeNfkValues(array $valuesPerTs, array $nfk_labels): array {
+    $out = [];
+    $numBuckets = count($nfk_labels);
+
+    foreach ($valuesPerTs as $ts => $values) {
+        // one counter per label
+        $buckets = array_fill(0, $numBuckets, 0);
+
+        foreach ($values as $v) {
+            if (!is_numeric($v)) {
+                continue;
+            }
+            $v = (float)$v;
+
+            // default: last bucket (e.g. "Sehr nass")
+            $bucketIndex = $numBuckets - 1;
+
+            // find first label where v < label.value
+            foreach ($nfk_labels as $i => $label) {
+                if ($v < $label['value']) {
+                    $bucketIndex = $i;
+                    break;
+                }
+            }
+            $buckets[$bucketIndex]++;
+        }
+        $out[$ts] = $buckets;
+    }
+    return $out;
+}
+
+
+// ROW IS VALID ONLY IF ALL REQUIRED FIELDS ARE WITHIN -10 AND 100
 function isRowValid(array $row, array $schema): bool {
     $fields = [
         'Bodenfeuchte_10cm',

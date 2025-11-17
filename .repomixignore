@@ -1,0 +1,11 @@
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+api/cache/
+api/config.php
+dist/
+node_modules/
+.tmp.drivedownload/
+.tmp.driveupload/
+.env

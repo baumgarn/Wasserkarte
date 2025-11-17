@@ -20,11 +20,7 @@ export const config = {
 		'Bodenfeuchte_10cm',
 		'Bodenfeuchte_30cm',
 		'Bodenfeuchte_60cm',
-		'Bodenfeuchte_80cm',
-		'Bodentemperatur_10cm',
-		'Bodentemperatur_30cm',
-		'Bodentemperatur_60cm',
-		'Bodentemperatur_80cm'
+		'Bodenfeuchte_80cm'
 	],
 
 	excludeFromMapFit: ['wassermeisterei002', 'caputh-schwielosee-1', 'caputh-schwielosee-kiefer', 'caputh-nadelwald'],

@@ -16,7 +16,7 @@
 						@mouseleave="onMouseLeave"
 						@click="click"
 						@wheel="wheelForward"
-			>
+						>
 					<div class="disabled">
 						
 					</div>	

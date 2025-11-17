@@ -53,7 +53,7 @@
 							<div class="icon karten"></div>
 						</div>
 						<div class="legendtext">
-							Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
+							Geologische Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('glossar', $event )">

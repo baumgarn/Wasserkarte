@@ -97,13 +97,17 @@ function fetchDevicesFromThingsBoard($token)
 					$device['attributes'][$attribute['key']] = $attribute['value'];
 				}		
 			}
-			ksort($device['attributes']);
-			$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
-			$device['telemetrySchema'] = expandSensorDataWithCalculations($allTelemetry[$deviceId]['schema'] ?? [], $device) ;
-
-			$device = setAvgTWFK($device);
-
+			
 			if (isset($device['attributes']['map']) && ($device['attributes']['map'] == 'true' || $device['attributes']['map'] == true)) {
+				
+				ksort($device['attributes']);
+	
+				$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
+	
+				$device['telemetrySchema'] = expandSensorDataWithCalculations($allTelemetry[$deviceId]['schema'] ?? [], $device) ;
+
+				$device = setAvgTWFK($device);
+
 
 				$allDevices[] = $device;
 			}

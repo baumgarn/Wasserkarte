@@ -389,10 +389,10 @@
 			</h2>
 						
 			<OberbodenUebersicht :device :hoverData />
-			
+					
 		</div>
-		
-		<ChartSettings :graphScale :frameWidth :graphPosition :dataPresent @range-update="handleRangeUpdate" :earliestTimestamp :latestTimestamp />
+	
+		<ChartSettings v-if="hasBodenfeuchteSensors" :graphScale :frameWidth :graphPosition :dataPresent @range-update="handleRangeUpdate" :earliestTimestamp :latestTimestamp />
 
 		<div class="scrollcontainer" @wheel="scrollWheel">
 			

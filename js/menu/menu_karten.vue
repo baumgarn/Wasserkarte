@@ -1,7 +1,7 @@
 <template>
 	<div class="karten menuwindow" :class="{ open: isOpen }">
 		<div class="menuwindow-header" @click="toggleOpen">
-			<h3>Karten</h3>
+			<h3>Geologische Karten</h3>
 			<div class="menuwindow-button-row">
 				<div class="menuwindow-button icon transparent" @click="toggleTransparency" :class="{ active: state.wsmtransparency }">Transparent</div>
 				<div class="menuwindow-button icon legende" @click="toggleLegends" :class="{ active: state.wsmlegends }">Legende</div>
@@ -80,6 +80,7 @@ export default {
 
 .menuwindow.karten
 	max-width 440px
+
 .wms-provider
 	max-width 100%
 
@@ -95,16 +96,13 @@ export default {
 		padding-top .6em
 		margin-top 2em
 		display block
-		color #5da0ecee
+		color #488eddee
 		font-size 80%
 		font-size 9.5pt
-		border-top 1px solid #5da0ec66
-
-
+		border-top 1px solid #488eddaa
 
 .map-section-header + .map-section-header .title
 	margin-top -.1em
-
 
 .menu-item
 	margin-right -.25em
@@ -128,4 +126,5 @@ export default {
 	span
 		margin-left .25em
 		margin-top .1em
+
 </style>

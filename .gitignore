@@ -14,15 +14,6 @@ dist/
 .DS_Store
 .vscode/
 
-# Cursor IDE
-.cursor
-.cursorignore
-
-# Repomix-related
-.repomixignore
-repomix-output.xml
-repomix.config.json
-
 # Logs
 *.log
 

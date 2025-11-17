@@ -41,7 +41,7 @@
 
 				<div class="settings-item">
 					<input type="checkbox" id="showinfoonstart" v-model="state.debugAttributes">
-					<label for="showinfoonstart">Debug Attribute</label>
+					<label for="showinfoonstart">Geräterohdaten</label>
 				</div>
 
 			</div>

@@ -36,6 +36,9 @@
   --timelineheight: 32px;
   --timelinedatebg: rgba(51,51,51,0.533);
 }
+body.is-mobile {
+  --timelineheight: 48px;
+}
 * {
   box-sizing: border-box;
 }
@@ -107,14 +110,22 @@ body.loaded #app {
   width: 100%;
 }
 .ol-zoom {
-  left: unset;
-  top: unset;
-  bottom: 24px;
+  right: 12px !important;
+  top: 24px !important;
+  left: unset !important;
   display: none;
+}
+.ol-zoom > * {
+  width: 24px;
+  height: 24px;
+}
+.sidebaropen .ol-zoom {
+  right: 612px !important;
 }
 .ol-attribution {
   font-family: sans-serif;
   opacity: 0.7;
+  z-index: 102;
   top: 0 !important;
   bottom: unset !important;
   border-top-left-radius: 0 !important;
@@ -367,9 +378,6 @@ input[type=radio] {
 .tooltip {
   display: none;
 }
-.tooltip.opaque {
-  --infobg: var(--infobgopaque);
-}
 .showtooltips .tooltip {
   display: block;
 }
@@ -384,7 +392,7 @@ input[type=radio] {
   text-align: left;
   color: #fff;
   background: var(--infobg);
-  font-size: 12px;
+  font-size: 9pt;
   padding: 4px 6px;
   border-radius: 3px;
   pointer-events: none;
@@ -393,6 +401,7 @@ input[type=radio] {
   visibility: hidden;
   user-select: none;
   transition: opacity 0.2s ease-in, visibility 0s linear 0.2s;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
 }
 .hastooltip .tooltip:after {
   content: '';
@@ -400,9 +409,8 @@ input[type=radio] {
   top: -7px;
   left: 12px;
   border-style: solid;
-  border-width: 0 5px 7px 5px;
+  border-width: 0 4px 7px 4px;
   border-color: transparent transparent var(--infobg) transparent;
-  z-index: 999;
 }
 .hastooltip .tooltip.left {
   max-width: 208px;
@@ -707,8 +715,8 @@ hr {
 .chartouterframe {
   margin: 1.2em 0 0.4em;
   position: relative;
+  user-select: none;
 }
-.chartouterframe user-select none#,
 .chartouterframe .scrollframe {
   background: transparent;
 }

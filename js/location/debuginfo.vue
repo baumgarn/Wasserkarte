@@ -68,14 +68,6 @@ export default {
 			</div>
 		</div>
 
-		<h3>Attribute</h3>
-		<div class="datagroup">
-			<div class="datarow" v-for="(value, key) in attributes" :key="key">
-				<div class="label">{{ key }}</div>
-				<div class="value">{{ value }}</div>
-			</div>
-		</div>
-
 		<h3>Telemetrie</h3>
 		<div class="datagroup">
 			<div class="datarow" :class="key" v-for="(values, key) in telemetryData" :key="key">
@@ -84,8 +76,16 @@ export default {
 				<div class="value">{{ values[0].value }}</div>
 			</div>
 		</div>
+		
+		<h3>Attribute</h3>
+		<div class="datagroup">
+			<div class="datarow" v-for="(value, key) in attributes" :key="key">
+				<div class="label">{{ key }}</div>
+				<div class="value">{{ value }}</div>
+			</div>
+		</div>
 
-		<template v-if="device.telemetrySchema && device.telemetrySchema.schema">
+		<!-- <template v-if="device.telemetrySchema && device.telemetrySchema.schema">
 
 			<h3>Telemetrie Schema</h3>
 			<div class="datagroup">
@@ -107,7 +107,7 @@ export default {
 				</div>
 			</div>
 
-		</template>
+		</template> -->
 
 	</div>
 </template>
@@ -124,22 +124,24 @@ export default {
 		.datagroup
 			font-size 9pt
 			width 100%
+			margin-bottom 2em
 			.datarow
 				display flex
 				justify-content space-between
 				border-bottom 1px solid #00000011
 				> *
-					flex-basis 33.33%
-					flex-grow 0
-					flex-shrink 0
+					flex-grow 1
+					flex-shrink 1
+			.label
+				flex-basis 30%
 			.value
+				flex-basis 40%
 				font-weight bold
 				text-align right
 			.ts	
+				flex-basis 30%
 				text-align right
 			.false_value_note 
 				flex-wrap wrap
-				.value
-					flex-basis 100%
 	
 </style>

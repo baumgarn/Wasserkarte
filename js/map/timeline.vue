@@ -261,5 +261,7 @@ export default {
 			background #00000044
 			z-index 102
 			display none
-
+		.chart-time
+			top 50%
+			transform translate(0,-65%)
 </style>

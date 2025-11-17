@@ -191,7 +191,7 @@ const dataStore = {
 
 		// Traverse all telemetry properties
 		Object.entries(device.telemetry).forEach(([key, dataArray]) => {
-			if (key != 'false_value_alarm' && key != 'false_value_note' && Array.isArray(dataArray) && dataArray.length > 0) {
+			if (config.allowedTelemetryKeys.includes(key) && Array.isArray(dataArray) && dataArray.length > 0) {
 				const latestEntry = dataArray[dataArray.length - 1];
 				if (latestEntry.ts > latestTimestamp) {
 					latestTimestamp = latestEntry.ts;
