@@ -17,12 +17,6 @@
 				
 			</div>
 
-			<!-- <div v-else-if="daysSinceLastTelemetry > 2" class="latestdate warning">
-				Keine Telemetrie seit
-				{{ displayutil.formatDateShort(getLastTimestamp()) }}
-				({{ daysSinceLastTelemetry }} Tage)
-			</div> -->
-
 			<div  v-else class="latestdate">
 				{{ displayutil.formatDateShort(getLastTimestamp()) }}
 				<span class="time">{{ displayutil.formatDateTime(getLastTimestamp()) }}</span>

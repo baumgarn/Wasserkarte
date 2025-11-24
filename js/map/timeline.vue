@@ -97,7 +97,7 @@ export default {
 			return pos
 		},
 		formattedHoverDate() {
-			return displayutil.formatDateShort(this.timelineDate);
+			return displayutil.formatDateAggregated(this.timelineDate);
 		}
 	},
 	methods: {

@@ -83,7 +83,7 @@ function dailyAverages() {
 			// exclude locations with groundwater attribute
 			// if (!isset($device['attributes']['Grundwasser'])) {
 				$nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
-				if ($nfk_avg_index != false) {
+				if ($nfk_avg_index !== false) {
 					$rows = $data['telemetry']['data'];
 					for ($i = count($rows) - 1; $i >= 0; $i--) {
 						$row = $rows[$i];
@@ -193,6 +193,10 @@ function averageBucketsAsPairs(array $buckets, ?int $precision = 2): array {
             $out[] = [(int)$ts, null];
             continue;
         }
+		$count = count($values);
+
+		// var_dump($ts);
+		// var_dump($values);
 
         $sum = 0.0;
         $n = 0;
@@ -208,11 +212,13 @@ function averageBucketsAsPairs(array $buckets, ?int $precision = 2): array {
         } else {
             $avg = $sum / $n;
             if (is_int($precision)) {
-                $avg = round($avg, $precision);
+				$avg = round($avg, $precision);
             }
         }
+		
+		$value_split = bucketizeNfkValues($values);
 
-        $out[] = [(int)$ts, $avg, count($values)];
+        $out[] = [(int)$ts, $avg, count($values), $value_split];
     }
 
     // sort by timestamp
@@ -268,7 +274,8 @@ function getDailyAveragesPairsFromCache(): array {
         }
 
         if ($startCaptured) {
-            if (preg_match('/\]\s*\]/', $fragment, $mm, PREG_OFFSET_CAPTURE)) {
+			if (preg_match('/\]\s*\]\s*\]/', $fragment, $mm, PREG_OFFSET_CAPTURE)) {
+            // if (preg_match('/\]\s*\]/', $fragment, $mm, PREG_OFFSET_CAPTURE)) {
                 $endPos = $mm[0][1] + strlen($mm[0][0]); 
                 $frag = substr($fragment, 0, $endPos);
 
@@ -293,35 +300,35 @@ function getDailyAveragesPairsFromCache(): array {
 
 // COUNT HOW OUR DAILY LOCATION NFK AVERAGES FALL INTO EACH LABEL CATEGORY IE: "TROCKEN" "NASS" ETC
 
-function bucketizeNfkValues(array $valuesPerTs, array $nfk_labels): array {
-    $out = [];
+function bucketizeNfkValues(array $values): array {
+	global $nfk_labels;
+
+	
     $numBuckets = count($nfk_labels);
 
-    foreach ($valuesPerTs as $ts => $values) {
-        // one counter per label
-        $buckets = array_fill(0, $numBuckets, 0);
+	// one counter per label
+	$buckets = array_fill(0, $numBuckets, 0);
 
-        foreach ($values as $v) {
-            if (!is_numeric($v)) {
-                continue;
-            }
-            $v = (float)$v;
+	foreach ($values as $v) {
+		if (!is_numeric($v)) {
+			continue;
+		}
+		$v = (float)$v;
 
-            // default: last bucket (e.g. "Sehr nass")
-            $bucketIndex = $numBuckets - 1;
+		// default: last bucket (e.g. "Sehr nass")
+		$bucketIndex = $numBuckets - 1;
 
-            // find first label where v < label.value
-            foreach ($nfk_labels as $i => $label) {
-                if ($v < $label['value']) {
-                    $bucketIndex = $i;
-                    break;
-                }
-            }
-            $buckets[$bucketIndex]++;
-        }
-        $out[$ts] = $buckets;
-    }
-    return $out;
+		// find first label where v < label.value
+		foreach ($nfk_labels as $i => $label) {
+			if ($v < $label['value']) {
+				$bucketIndex = $i;
+				break;
+			}
+		}
+		$buckets[$bucketIndex]++;
+	}
+    
+    return $buckets;
 }
 
 
@@ -340,7 +347,7 @@ function isRowValid(array $row, array $schema): bool {
             continue; // field not present in this schema → ignore
         }
         $val = $row[$idx] ?? null;
-        if (!is_numeric($val)) {
+        if ($val === false) {
             return false; // treat non-numeric as invalid
         }
         $f = (float)$val;

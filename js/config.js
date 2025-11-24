@@ -13,9 +13,6 @@ export const config = {
 
 	segmentation: true,
 	
-
-	infoArrowDevice : 'wiesenburg-schlosspark',
-
 	allowedTelemetryKeys: [
 		'Bodenfeuchte_10cm',
 		'Bodenfeuchte_30cm',

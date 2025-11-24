@@ -57,8 +57,9 @@ const dataStore = {
 		state.cacheTime = result.telemetryCacheTimestamp;
 
 		for (const key in result.devices) {
-			const device = result.devices[key];
+			var device = result.devices[key];
 			dataModel.wasserkapazität_setzen(device);
+			dataStore.addFilterKeywords(device)
 			state.devices.push(device);
 		}
 
@@ -73,6 +74,19 @@ const dataStore = {
 		state.loading = false;
 	},
 
+
+	addFilterKeywords(device) {
+			device.filterKeywords = [];
+			const nutzung = dataModel.get_usage_name(device);
+			const boden = dataModel.get_soil_name(device);
+			const humus = dataModel.get_humus_name(device);
+			if (nutzung) device.filterKeywords.push(nutzung);
+			if (boden) device.filterKeywords.push(boden);
+			if (humus) device.filterKeywords.push(humus);
+		if (device?.attributes?.Bewässerung) device.filterKeywords.push(dataModel.bewaessert_obj.name);
+		if (device?.attributes?.Grundwasser) device.filterKeywords.push(dataModel.grundwasser_obj.name);
+	},
+
 	processAllTelemetry(result) {
 
 		this.nfk_daily_averages = result.nfk_daily_averages;
@@ -84,6 +98,8 @@ const dataStore = {
 			
 			// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
 			const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+
+			// TODO fehlerhafte letzte telemetrie ausschließen
 
 			telemetry.data.push(lastTelemetryData);
 			if (state.filterFaultyValues) {
@@ -310,7 +326,33 @@ const dataStore = {
 		const hour = String(now.getHours()).padStart(2, '0');
 
 		return `${year}${month}${day}${hour}`;
-	}
+	},
+
+	getDataAtTimestamp(deviceId, timestamp) {
+		const data = this.fetchTelemetryCache(deviceId)?.data;
+		const index = this.get_index_binary(data, timestamp);
+		if (index > -1) {
+			return data[index];
+		}
+	},
+
+	get_index_binary(data, timestamp) { // binary search timestamp
+		const n = data.length;
+		if (n < 2) return -1;
+		let lo = 0, hi = n; // search in [0, n)
+		while (lo < hi) {
+			const mid = (lo + hi) >>> 1;
+			if (this.tsAt(data, mid) <= timestamp) lo = mid + 1;
+			else hi = mid;
+		}
+		const i = lo - 1; // rightmost <= T
+		if (i < 0 || i >= n - 1) return -1;
+		return i;
+	},
+
+	tsAt(data, i) {
+		return data[i][0];
+	},
 
 };
 

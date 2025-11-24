@@ -142,54 +142,21 @@
 
 		<div class="soilinfo">
 
-			<span class="typeitems" v-if="usageName || soilName || humusName" >
+			<span class="filteritems" v-if="device" >
 
-				<template v-if="usageName">
-
-					<span  class="usagename typeitem" >
-						{{ usageName }}
-					</span>
-
-				</template>
-
-				<template v-if="device.attributes.Bewässerung">
-					
-					<span class="bewaesserung typeitem">
-						bewässert
-					</span>
-										
-				</template>
+				<FilterItem v-if="usageObj" :obj="usageObj"/>
 				
-				<template v-if="device.attributes.Grundwasser">
-					
-					<span class="bewaesserung typeitem">
-						grundwassernah
-					</span>
-										
-				</template>
+				<FilterItem v-if="bewaessertObj" :obj="bewaessertObj"/>
 				
-				<template v-if="soilName">
-						
-					<span class="soiltype typeitem" >
-						{{ soilName }}
-					</span>
-										
-				</template>
+				<FilterItem v-if="grundwasserObj" :obj="grundwasserObj"/>
 				
-				<template v-if="humusName">
-					
-					<span class="humustype typeitem">
-						{{ humusName }}
-					</span>
+				<FilterItem v-if="soilObj" :obj="soilObj"/>
 
-				</template>
+				<FilterItem v-if="humusObj" :obj="humusObj"/>
 
 			</span>
 
 			<Beschreibung :beschreibung="device.attributes.Beschreibung" />
-			<!-- <div v-if="device.attributes.Beschreibung" class="beschreibung">
-				{{ device.attributes.Beschreibung }}
-			</div> -->
 
 		</div>
 				
@@ -207,10 +174,11 @@
 	
 	import Beschreibung from '@/location/beschreibung.vue'
 	import Barrell from '@/charts/barrell.vue';
+	import FilterItem from '@/location/filteritem.vue';
 
 	export default {
 		name: 'Wassergehalt',
-		components: {Barrell, Beschreibung},
+		components: {Barrell, Beschreibung, FilterItem},
 		props: {device: Object, hoverData: Object},
 		setup() {
 			return {state};
@@ -276,20 +244,24 @@
 			hasSoilAttributes() {
 				return (this.device.attributes.avg_FK && this.device.attributes.avg_TW)
 			},
-			usageName() {
-				return dataModel.get_usage_name(this.device);
+			usageObj() {
+				return dataModel.get_usage_obj(this.device);
 			},
-			soilName() {
-				return dataModel.get_soil_name(this.device);
+			soilObj() {
+				return dataModel.get_soil_obj(this.device);
 			},
-			soilColor() {
-				return dataModel.get_soil_color(this.device);
+			humusObj() {
+				return dataModel.get_humus_obj(this.device);
 			},
-			humusName() {
-				return dataModel.get_humus_name(this.device);
+			bewaessertObj() {
+				if (this.device.attributes.Bewässerung) {
+					return dataModel.bewaessert_obj;
+				}
 			},
-			humusColor() {
-				return dataModel.get_humus_color(this.device);
+			grundwasserObj() {
+				if (this.device.attributes.Grundwasser) {
+					return dataModel.grundwasser_obj;
+				}
 			},
 			hoverOrLastData() {
 				return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
@@ -459,28 +431,18 @@
 		font-weight 600
 		letter-spacing .01em
 	.soilinfo
-		margin 1.6em 0 .7em
+		margin 1.2em 0 .7em
 		font-size 9pt
 		.description
-		.typeitems
+		.filteritems
 			margin .2em 0
 			display inline-block
-		.typeitems
+		.filteritems
 			display flex
 			flex-wrap wrap
 			font-weight bold
 			gap 6px 4px
-			margin 0 -10px 10px
-		.typeitem
-			display inline-flex
-			align-items center
-			border 1px solid #ddd
-			border-radius 15px
-			height 28px
-			padding 0 10px
-			// cursor pointer
-			background #fff
-			box-shadow 0 2px 1px rgba(0,0,0,.025);
+			margin 0 -10px 8px
 	@media (max-width 500px)
 		.nfklabel
 			font-size 14pt

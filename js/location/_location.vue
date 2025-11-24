@@ -1,9 +1,13 @@
 <script>
+
+	// This component contains all the displayed visualization for the individual location
+	// Content can vary depending on context: Sidebar / Wideview / Iframe / Single location from Qr Code
+	// The mouseover graph timeline date is handled here because this way we can handle consistent hover over multiple graphs
+
 	import * as d3 from 'd3'
 	import HeaderInfo from '@/location/headerinfo.vue';
 	import OberbodenUebersicht from '@/location/oberboden.vue';
 	import DebugInfo from '@/location/debuginfo.vue';
-	// import ChartTime from '@/charts/dateaxis.vue';
 	import ChartHeat from '@/charts/chart_heat.vue';
 	import ChartGraph from '@/charts/chart_graph.vue';
 	import ChartRange from '@/charts/chart_rangebar.vue';
@@ -26,7 +30,6 @@
 			OberbodenUebersicht,
 			ChartHeat,
 			ChartGraph,
-			// ChartTime,
 			ChartSettings,
 			DebugInfo,
 			ChartRange,
@@ -168,11 +171,12 @@
 				
 				const xScale = d3.scaleTime().domain(this.globalExtentX).range([0, this.chartWidth]);
 				let hovertime;
+
 				if (state.timelineDate && this.hoverPosition < 0) {
 					hovertime = state.timelineDate;
 				} else {
 					hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
-					state.timelineDate = hovertime;
+					// state.timelineDate = hovertime;
 				}
 
 				// collect ts column once (coerce to milliseconds if needed)
@@ -199,6 +203,8 @@
 					ts: closestTs,
 					xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1
 				};
+
+				state.timelineDate = closestTs;
 
 				const colIndex = Object.fromEntries(this.sensorData.schema.map((k, i) => [k, i]));
 

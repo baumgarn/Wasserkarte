@@ -48,38 +48,38 @@ export const dataModel = {
 	soil_table : {
 		"Ss": {
 			name: "sandiger Sand",
-			color: "#f4e2d8",
 			TW: { "h0-1": 2, "h2": 3, "h3": 4, "h4": 6 },
-			FK: { "h0-1": 13, "h2": 16, "h3": 18, "h4": 23 }
+			FK: { "h0-1": 13, "h2": 16, "h3": 18, "h4": 23 },
+			soilIcon: [['sand',1]]
 		},
 		"Sl2": {
 			name: "schwach lehmiger Sand",
-			color: "#e0c7a7",
 			TW: { "h0-1": 6, "h2": 7, "h3": 8, "h4": 9 },
-			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 }
+			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 },
+			soilIcon: [['sand', 1],['lehm', .25]]
 		},
 		"Sl3": {
 			name: "mittel lehmiger Sand",
-			color: "#c2a97f",
 			TW: { "h0-1": 9, "h2": 10, "h3": 10, "h4": 12 },
-			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 }
+			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
+			soilIcon: [['sand', 1], ['lehm', .4]]
 		},
 		"Ls4": {
 			name: "sandiger Lehm",
-			color: "#a57f5a",
 			TW: { "h0-1": 13, "h2": 14, "h3": 14, "h4": 15 },
-			FK: { "h0-1": 28, "h2": 30, "h3": 32, "h4": 36 }
+			FK: { "h0-1": 28, "h2": 30, "h3": 32, "h4": 36 },
+			soilIcon: [['lehm', 1], ['sand', .4]]
 		}
 	},
 
 	humus_table : {
-		"h0-1": { name: "nahezu humusfrei", color: "#f5f3e7" },
-		"h0": { name: "nahezu humusfrei", color: "#f5f3e7" },
-		"h1": { name: "sehr schwach humos", color: "#f5f3e7" },
-		"h2": { name: "schwach humos", color: "#d2b48c" },
-		"h3": { name: "mittel humos", color: "#a47551" },
-		"h4": { name: "stark humos", color: "#654321" },
-		"org": { name: "organisch", color: "#3b2f2f" } 
+		"h0-1": { name: "nahezu humusfrei"},
+		"h0": { name: "nahezu humusfrei"},
+		"h1": { name: "sehr schwach humos"},
+		"h2": { name: "schwach humos"},
+		"h3": { name: "mittel humos"},
+		"h4": { name: "stark humos"},
+		"org": { name: "organisch"} 
 	},
 
 	usage_table : {
@@ -97,22 +97,37 @@ export const dataModel = {
 		"MW" : {name: 'Mischwald'},
 	},
 
+	bewaessert_obj : {
+		name: 'bewässert'
+	},
+
+	grundwasser_obj : {
+		name: 'grundwassernah'
+	},
+
 	get_usage_name (device) {
 		return this.usage_table[device.attributes.Nutzungsart]?.name
 	},
-
 	get_soil_name (device) {
 		return this.soil_table[device.attributes.Bodenart]?.name
 	},
-	get_soil_color (device) {
-		return this.soil_table[device.attributes.Bodenart]?.color
-	},
-
 	get_humus_name (device) {
 		return this.humus_table[device.attributes.Humusgehalt]?.name;
 	},
-	get_humus_color (device) {
-		return this.humus_table[device.attributes.Humusgehalt]?.color;
+
+	get_usage_obj(device) {
+		const key = device.attributes.Nutzungsart;
+		return this.usage_table[key] || null;
+	},
+
+	get_soil_obj(device) {
+		const key = device.attributes.Bodenart;
+		return this.soil_table[key] || null;
+	},
+
+	get_humus_obj(device) {
+		const key = device.attributes.Humusgehalt;
+		return this.humus_table[key] || null;
 	},
 
 

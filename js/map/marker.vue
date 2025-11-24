@@ -257,11 +257,15 @@ export default {
 		},
 		displayData() {
 			if (state.timelineDate && this.telemetryData){
-				const i = this.get_index_binary(this.telemetryData.data,state.timelineDate);
-				if (i > -1) {
-					const data = this.telemetryData.data[i];
+				const data = dataStore.getDataAtTimestamp(this.device.id, state.timelineDate);
+				if (data) {
 					return data;
 				}
+				// const i = this.get_index_binary(this.telemetryData.data,state.timelineDate);
+				// if (i > -1) {
+				// 	const data = this.telemetryData.data[i];
+				// 	return data;
+				// }
 			} 
 			return this.lastData;
 		},
@@ -354,9 +358,9 @@ export default {
 		tsAt(data, i) {
 			return data[i][0];
 		},
-		inInterval(data, i, T) {
-			return i >= 0 && i < data.length - 1 && tsAt(data, i) <= T && T < tsAt(data, i + 1);
-		}
+		// inInterval(data, i, T) {
+		// 	return i >= 0 && i < data.length - 1 && tsAt(data, i) <= T && T < tsAt(data, i + 1);
+		// }
 	},
 	watch: {
 		selectedDevice(newValue) {
