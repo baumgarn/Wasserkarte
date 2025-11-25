@@ -25,7 +25,7 @@ export default {
 
 			// If obj has an image filename, return its path
 			if (this.obj.img) {
-				return this.obj.img; // Can be a relative path or full URL
+				return '/img/' + this.obj.img; // Can be a relative path or full URL
 			}
 
 			// If obj has a soilIcon descriptor, generate it via IconFactory
@@ -45,16 +45,16 @@ export default {
 	display inline-flex
 	align-items center
 	border 1px solid #ddd
-	border-radius 18px
-	height 34px
+	border-radius 20px
+	height 40px
 	padding 0 10px
 	background #fff
 	box-shadow 0 2px 1px rgba(0,0,0,.05)
 	&.hasicon
-		padding-left 3px
+		padding-left 2px
 .icon
-	width 26px
-	height 26px
+	width 34px
+	height 34px
 	background-size contain
 	background-position center
 	background-repeat no-repeat

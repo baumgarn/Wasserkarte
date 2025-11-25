@@ -441,8 +441,8 @@
 			display flex
 			flex-wrap wrap
 			font-weight bold
-			gap 6px 4px
-			margin 0 -10px 8px
+			gap 6px 2px
+			margin 0 -24px 8px -12px
 	@media (max-width 500px)
 		.nfklabel
 			font-size 14pt
