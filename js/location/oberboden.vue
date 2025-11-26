@@ -443,6 +443,7 @@
 			font-weight bold
 			gap 6px 2px
 			margin 0 -24px 8px -12px
+			margin 0 -30px 8px -10px
 	@media (max-width 500px)
 		.nfklabel
 			font-size 14pt

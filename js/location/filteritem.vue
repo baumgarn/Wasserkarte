@@ -47,11 +47,12 @@ export default {
 	border 1px solid #ddd
 	border-radius 20px
 	height 40px
-	padding 0 10px
+	padding 0 8px
 	background #fff
 	box-shadow 0 2px 1px rgba(0,0,0,.05)
 	&.hasicon
 		padding-left 2px
+		padding-right 8px
 .icon
 	width 34px
 	height 34px

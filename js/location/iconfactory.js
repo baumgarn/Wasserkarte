@@ -8,7 +8,7 @@ export const IconFactory = {
 
 	soilColors: {
 		sand: '#f3efd2ff',
-		lehm: '#d5b688ff',
+		lehm: '#cdaf83ff',
 		ton: '#c04475',
 		schluff: '#757575',
 	},

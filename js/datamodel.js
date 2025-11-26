@@ -73,12 +73,12 @@ export const dataModel = {
 	},
 
 	humus_table : {
-		"h0-1": { name: "nahezu humusfrei"},
-		"h0": { name: "nahezu humusfrei"},
-		"h1": { name: "sehr schwach humos"},
-		"h2": { name: "schwach humos"},
-		"h3": { name: "mittel humos"},
-		"h4": { name: "stark humos"},
+		"h0-1": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
+		"h0": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
+		"h1": { name: "sehr schwach humos", img: 'Humus_sehr_schwach.svg' },
+		"h2": { name: "schwach humos", img: 'Humus_schwach.svg' },
+		"h3": { name: "mittel humos", img: 'Humus_mittel.svg' },
+		"h4": { name: "stark humos", img: 'Humus_stark.svg'},
 		"org": { name: "organisch"} 
 	},
 
@@ -98,11 +98,13 @@ export const dataModel = {
 	},
 
 	bewaessert_obj : {
-		name: 'bewässert'
+		name: 'bewässert',
+		img: 'Bewaessert.svg'
 	},
 
 	grundwasser_obj : {
-		name: 'grundwassernah'
+		name: 'grundwassernah',
+		img: 'Grundwasser.svg'
 	},
 
 	get_usage_name (device) {
