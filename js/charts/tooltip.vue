@@ -103,6 +103,8 @@ export default {
 	position: absolute;
 	display: block;
 	background-color: white;
+	// background var(--infobg);
+	// color white
 	border-radius: 3px;
 	min-width 105px
 	padding: 2px 6px;

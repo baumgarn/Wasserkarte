@@ -56,13 +56,13 @@ export const dataModel = {
 			name: "schwach lehmiger Sand",
 			TW: { "h0-1": 6, "h2": 7, "h3": 8, "h4": 9 },
 			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 },
-			soilIcon: [['sand', 1],['lehm', .25]]
+			soilIcon: [['sand', 1],['lehm', .3]]
 		},
 		"Sl3": {
 			name: "mittel lehmiger Sand",
 			TW: { "h0-1": 9, "h2": 10, "h3": 10, "h4": 12 },
 			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
-			soilIcon: [['sand', 1], ['lehm', .4]]
+			soilIcon: [['sand', 1], ['lehm', .5]]
 		},
 		"Ls4": {
 			name: "sandiger Lehm",
@@ -73,14 +73,23 @@ export const dataModel = {
 	},
 
 	humus_table : {
-		"h0-1": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
-		"h0": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
-		"h1": { name: "sehr schwach humos", img: 'Humus_sehr_schwach.svg' },
-		"h2": { name: "schwach humos", img: 'Humus_schwach.svg' },
-		"h3": { name: "mittel humos", img: 'Humus_mittel.svg' },
-		"h4": { name: "stark humos", img: 'Humus_stark.svg'},
-		"org": { name: "organisch"} 
+		"h0-1": { name: "nahezu humusfrei", humusIcon: 0 },
+		"h0": { name: "nahezu humusfrei", humusIcon: 0 },
+		"h1": { name: "sehr schwach humos", humusIcon: 1 },
+		"h2": { name: "schwach humos", humusIcon: 2 },
+		"h3": { name: "mittel humos", humusIcon: 3 },
+		"h4": { name: "stark humos", humusIcon: 4 },
+		"org": { name: "organisch", humusIcon: 5 } 
 	},
+	// humus_table : {
+	// 	"h0-1": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
+	// 	"h0": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
+	// 	"h1": { name: "sehr schwach humos", img: 'Humus_sehr_schwach.svg' },
+	// 	"h2": { name: "schwach humos", img: 'Humus_schwach.svg' },
+	// 	"h3": { name: "mittel humos", img: 'Humus_mittel.svg' },
+	// 	"h4": { name: "stark humos", img: 'Humus_stark.svg'},
+	// 	"org": { name: "organisch"} 
+	// },
 
 	usage_table : {
 		"G": { name: 'Grünland', img: "Nutzungsart_Gruenland.svg" },

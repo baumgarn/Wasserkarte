@@ -57,6 +57,9 @@
 
 			</div>
 
+			<div class="loadingoverlay" v-if="!telemetryLoaded">
+
+			</div>
 			
 		</div>
 		
@@ -109,7 +112,9 @@ export default {
 		Info
 	},
 	computed: {
-
+		telemetryLoaded() {
+			return state.telemetryLoaded;
+		},
 	},
 };
 </script>
@@ -160,6 +165,13 @@ export default {
 		cursor pointer
 		background #fff url(/img/info.png) center / 80% no-repeat
 
-
+	.loadingoverlay
+		background #fff
+		position fixed
+		left 0
+		top 0
+		right 0
+		bottom 0
+		z-index 10000
 
 </style>

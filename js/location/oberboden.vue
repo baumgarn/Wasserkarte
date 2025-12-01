@@ -442,8 +442,8 @@
 			flex-wrap wrap
 			font-weight bold
 			gap 6px 2px
-			margin 0 -24px 8px -12px
-			margin 0 -30px 8px -10px
+			margin 0 -50px 8px -12px
+			// margin 0 -30px 8px -10px
 	@media (max-width 500px)
 		.nfklabel
 			font-size 14pt
@@ -468,4 +468,10 @@
 			flex-grow 1
 
 	
+</style>
+
+<style lang="stylus" >
+	.context-iframe .soilinfo .filteritems
+	.context-single .soilinfo .filteritems
+		margin-right 0
 </style>

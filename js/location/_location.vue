@@ -507,6 +507,8 @@
 <style lang="stylus" scoped>
 	.location
 		padding 12px 24px 0
+		z-index 10
+		position relative
 	@media (max-width: 600px)
 		.location
 			padding 12px 16px 0
@@ -518,6 +520,7 @@
 		font-size 10pt
 		opacity .9
 	.context-single
+		margin-bottom 32px
 		.mapcontainer *
 			pointer-events none
 	.linktomap

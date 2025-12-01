@@ -1,30 +1,40 @@
 export const IconFactory = {
-	size: 36 * (window.devicePixelRatio || 1),
+	size: 32 * (window.devicePixelRatio || 1),
 	cache: new Map(),
 	textures: {},
 	textureUrls: {
 		soil: '/img/soil_texture.png',
+		humus: '/img/humus_texture_6.png',
 	},
 
 	soilColors: {
-		sand: '#f3efd2ff',
-		lehm: '#cdaf83ff',
+		sand: '#f0e6cb',
+		lehm: '#ccb592',
 		ton: '#c04475',
 		schluff: '#757575',
 	},
+	// lehm: '#c2a67b',
+
+	humusColor: '#ae8777',
+
 	preloadTextures() {
-		// only preload if not already loaded
-		Object.entries(this.textureUrls).forEach(([name, url]) => {
-			if (!this.textures[name]) {
+		const promises = Object.entries(this.textureUrls).map(([name, url]) => {
+			if (this.textures[name]) return Promise.resolve(); // already loaded
+			return new Promise((resolve, reject) => {
 				const img = new Image();
 				img.src = url;
-				this.textures[name] = img;
-			}
+				img.onload = () => {
+					this.textures[name] = img;
+					resolve();
+				};
+				img.onerror = reject;
+			});
 		});
+		return Promise.all(promises);
 	},
 
-	getSoilIcon(instructions) {
-		this.preloadTextures();
+	async getSoilIcon(instructions) {
+		await this.preloadTextures();
 
 		const key = JSON.stringify([instructions]);
 		if (this.cache.has(key)) return this.cache.get(key);
@@ -62,6 +72,70 @@ export const IconFactory = {
 			ctx.clip();
 
 			ctx.globalAlpha = .25;
+			ctx.fillStyle = pattern;
+			ctx.fill();
+			ctx.globalAlpha = 1;
+			ctx.restore();
+		}
+
+		const dataUrl = canvas.toDataURL();
+		this.cache.set(key, dataUrl);
+		return dataUrl;
+	},
+
+	async getHumusIcon(humuslevel) {
+		await this.preloadTextures();
+
+		const key = 'humus' + humuslevel;
+		if (this.cache.has(key)) return this.cache.get(key);
+
+		const dpr = window.devicePixelRatio || 1;
+		const px = this.size;
+		const canvas = document.createElement('canvas');
+		canvas.width = px;
+		canvas.height = px;
+		const ctx = canvas.getContext('2d');
+
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+		const cx = px / (2 * dpr);
+		const cy = px / (2 * dpr);
+		const radius = (px / 2) / dpr;
+
+		ctx.beginPath();
+		ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+		ctx.fillStyle = '#ffffff';
+		ctx.fill();
+
+		// global alpha from your original code
+		const alphas = [.1, .1, .3, .55, .9, 1];
+		ctx.globalAlpha = alphas[humuslevel] ?? 1;
+
+		// create vertical gradient from top to bottom of the circle
+		const grad = ctx.createLinearGradient(cx, cy - radius, cx, cy + radius);
+
+		// top: full color
+		grad.addColorStop(0, this.humusColor);
+
+		// bottom: same color, 50% opacity
+		grad.addColorStop(0.8, `${this.humusColor}00`);  // works if humusColor is #rrggbb
+
+		ctx.beginPath();
+		ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+		ctx.fillStyle = grad;
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		// ------------------------
+
+		// texture overlay (unchanged)
+		if (this.textures.humus?.complete) {
+			const pattern = ctx.createPattern(this.textures.humus, 'repeat');
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+			ctx.clip();
+
+			ctx.globalAlpha = humuslevel <= 1 ? .15 : .25;
 			ctx.fillStyle = pattern;
 			ctx.fill();
 			ctx.globalAlpha = 1;

@@ -261,11 +261,6 @@ export default {
 				if (data) {
 					return data;
 				}
-				// const i = this.get_index_binary(this.telemetryData.data,state.timelineDate);
-				// if (i > -1) {
-				// 	const data = this.telemetryData.data[i];
-				// 	return data;
-				// }
 			} 
 			return this.lastData;
 		},

@@ -6,7 +6,8 @@ import { config } from '@/config.js';
 
 export const state = reactive({
 	// markerStyle: 'Bodenfeuchte_Farbkreis',
-	selectedSoil: 'Alle',
+	activeFilter: null,
+	hoverFilter: null,
 	selectedDevice: null,
 	selectedDeviceEmbed: null,
 	devicesMultiselect: [],
