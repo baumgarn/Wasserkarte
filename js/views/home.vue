@@ -17,7 +17,9 @@
 
 				<div v-if="state.isMobile && !state.menuOpen.info" class="infobutton" @click="state.menuOpen.info = true"></div>
 
-			</div>	
+				<StatusBar />
+
+			</div>
 
 			<!-- <Legend v-if="state.showHelp"/> -->
 
@@ -83,6 +85,7 @@ import ColorschemeMenu from '@/menu/menu_colorscheme.vue';
 import ColorschemeGradient from '@/menu/colorscheme_gradient.vue';
 import SoilMenu from '@/menu/menu_soil.vue';
 import GeraeteMenu from '@/menu/menu_devices.vue';
+import StatusBar from '@/map/statusbar.vue';
 import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
 import { config } from '@/config.js';
@@ -108,6 +111,7 @@ export default {
 		ColorschemeGradient,
 		SoilMenu,
 		Timeline,
+		StatusBar,
 		Map,
 		Info
 	},

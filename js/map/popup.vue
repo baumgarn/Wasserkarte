@@ -33,6 +33,24 @@
 							</div>
 						</div>
 
+					</template>
+
+					<div class="filtericons">
+
+						<FilterIcon v-if="usageObj" :obj="usageObj" :size="26"/>
+						
+						<FilterIcon v-if="bewaessertObj" :obj="bewaessertObj" :size="26"/>
+						
+						<FilterIcon v-if="grundwasserObj" :obj="grundwasserObj" :size="26"/>
+						
+						<FilterIcon v-if="soilObj" :obj="soilObj" :size="26"/>
+
+						<FilterIcon v-if="humusObj" :obj="humusObj" :size="26"/>
+
+					</div>
+
+					<template v-if="!isInactive">
+
 						<div v-if="bodenfeuchteSensors.length > 0">
 							<div class="dataheader">
 								<div class="left">Tiefe</div>
@@ -75,10 +93,12 @@ import { config } from '../config.js';
 import { state } from '../state.js';
 import { displayutil } from '../displayutil.js';
 import { dataModel } from '../dataModel.js';
+import FilterIcon from '@/location/filtericon.vue';
 import dataStore from '../dataStore.js';
 
 export default {
 	name: "MapPopup",
+	components: {FilterIcon},
 	setup() {
 		return {state};
 	},
@@ -143,6 +163,25 @@ export default {
 		},
 		nfk_color() {
 			return dataModel.get_nfk_color(this.nfk);
+		},
+		usageObj() {
+			return dataModel.get_usage_obj(this.device);
+		},
+		soilObj() {
+			return dataModel.get_soil_obj(this.device);
+		},
+		humusObj() {
+			return dataModel.get_humus_obj(this.device);
+		},
+		bewaessertObj() {
+			if (this.device.attributes.Bewässerung) {
+				return dataModel.bewaessert_obj;
+			}
+		},
+		grundwasserObj() {
+			if (this.device.attributes.Grundwasser) {
+				return dataModel.grundwasser_obj;
+			}
 		},
 		lastData() {
 			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
@@ -230,7 +269,7 @@ export default {
 	padding: 0;
 	left: 50%;
 	transform: translateX(-50%);
-	border-radius: 10px;
+	border-radius: 12px;
 	text-align: center;
 	box-shadow 0 1px 2px 2px #00000013
 	bottom calc(var(--offset) + 6px)
@@ -262,7 +301,7 @@ body.sensor-Bodenfeuchte .popupcontent
 	filter: drop-shadow(0 -2px 1px rgba(0,0,0,.2));
 
 .popupcontentinner
-	border-radius: 10px;
+	border-radius: 12px;
 	background #fff
 	overflow hidden
 	width 190px
@@ -276,7 +315,7 @@ body.sensor-Bodenfeuchte .popupcontent
 		font-size 9pt
 	.notelemetry
 		font-size 8pt
-		margin 6px 0 2px
+		margin 6px 0 8px
 		font-weight bold
 		opacity .75
 		text-transform uppercase
@@ -284,7 +323,7 @@ body.sensor-Bodenfeuchte .popupcontent
 	.nfklabel
 		font-weight bold
 		font-size 9pt
-		margin 2px 8px 2px
+		margin 2px 8px 8px
 		letter-spacing 0.03em;
 		position relative
 		text-transform uppercase
@@ -297,6 +336,11 @@ body.sensor-Bodenfeuchte .popupcontent
 			top 0
 			right 0
 			opacity .15
+	.filtericons
+		display flex
+		gap 2px
+		justify-content center
+		margin-bottom 4px
 	.dataheader
 		font-size 8pt
 		display flex

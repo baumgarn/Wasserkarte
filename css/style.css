@@ -185,6 +185,7 @@ button.ol-zoom-out {
 }
 .is-mobile .topbar {
   background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
+  flex-wrap: wrap;
 }
 .leftui {
   position: fixed;
@@ -396,7 +397,7 @@ input[type=radio] {
   padding: 4px 6px;
   border-radius: 3px;
   pointer-events: none;
-  z-index: 1000;
+  z-index: 100;
   opacity: 0;
   visibility: hidden;
   user-select: none;

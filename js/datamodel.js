@@ -1,6 +1,11 @@
 import { config } from './config.js';
 import { state } from './state.js';
 
+const soilColors = {
+	sand: '#fff1a3',
+	lehmigerSand: '#f0e1bc',
+};
+
 export const dataModel = {
 
 	color_schemes: {
@@ -9,7 +14,7 @@ export const dataModel = {
 			normal: [
 				{ value: 0, color: '#ff8e70'},
 				{ value: 10, color: '#ffcf4c'},
-				{ value: 50, color: '#feff4c'},
+				{ value: 40, color: '#feff4c'},
 				{ value: 70, color: '#9ff24c'},
 				{ value: 100, color: '#4ce6cc'},
 				{ value: 120, color: '#55c9f0'},
@@ -37,35 +42,57 @@ export const dataModel = {
 		
 	},
 
+	
+	// lehm: '#c2a67b',
+
+
+
 	nfk_labels : [
-		{ value: 10, name: 'Sehr trocken'}, //  0 - 10
-		{ value: 30, name: 'Trocken'},		// 10 - 30
-		{ value: 80, name: 'Optimal'},		// 30 - 80
-		{ value: 100, name: 'Nass'},		// 80 - 100
-		{ value: 120, name: 'Sehr nass'},	// 100 +
+		{ value: 0, name: 'Kein Wasser verfügbar'}, 	//  < 0
+		{ value: 30, name: 'Sehr trocken'}, 			//  0 - 30
+		{ value: 50, name: 'Leicht trocken'}, 			// 30 - 50
+		{ value: 90, name: 'Optimal'},					// 50 - 90
+		{ value: 110, name: 'Nass'},					// 90 - 110
+		{ value: 120, name: 'Sehr nass'},				// > 110
 	],
+
+	// nfk_labels : [
+	// 	{ value: 10, name: 'Sehr trocken'}, //  0 - 10
+	// 	{ value: 30, name: 'Trocken'},		// 10 - 30
+	// 	{ value: 80, name: 'Optimal'},		// 30 - 80
+	// 	{ value: 100, name: 'Nass'},		// 80 - 100
+	// 	{ value: 120, name: 'Sehr nass'},	// 100 +
+	// ],
 
 	soil_table : {
 		"Ss": {
-			name: "sandiger Sand",
+			name: "Sandiger Sand",
+			short: 'Ss',
+			color: soilColors.sand,
 			TW: { "h0-1": 2, "h2": 3, "h3": 4, "h4": 6 },
 			FK: { "h0-1": 13, "h2": 16, "h3": 18, "h4": 23 },
 			soilIcon: [['sand',1]]
 		},
 		"Sl2": {
-			name: "schwach lehmiger Sand",
+			name: "Schwach lehmiger Sand",
+			short: 'Sl2',
+			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 6, "h2": 7, "h3": 8, "h4": 9 },
 			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 },
-			soilIcon: [['sand', 1],['lehm', .3]]
+			soilIcon: [['sand', 1],['lehm', .25]]
 		},
 		"Sl3": {
-			name: "mittel lehmiger Sand",
+			name: "Mittel lehmiger Sand",
+			short: 'Sl3',
+			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 9, "h2": 10, "h3": 10, "h4": 12 },
 			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
-			soilIcon: [['sand', 1], ['lehm', .5]]
+			soilIcon: [['sand', 1], ['lehm', .4]]
 		},
 		"Ls4": {
-			name: "sandiger Lehm",
+			name: "Sandiger Lehm",
+			short: 'Ls4',
+			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 13, "h2": 14, "h3": 14, "h4": 15 },
 			FK: { "h0-1": 28, "h2": 30, "h3": 32, "h4": 36 },
 			soilIcon: [['lehm', 1], ['sand', .4]]
@@ -73,22 +100,22 @@ export const dataModel = {
 	},
 
 	humus_table : {
-		"h0-1": { name: "nahezu humusfrei", humusIcon: 0 },
-		"h0": { name: "nahezu humusfrei", humusIcon: 0 },
-		"h1": { name: "sehr schwach humos", humusIcon: 1 },
-		"h2": { name: "schwach humos", humusIcon: 2 },
-		"h3": { name: "mittel humos", humusIcon: 3 },
-		"h4": { name: "stark humos", humusIcon: 4 },
-		"org": { name: "organisch", humusIcon: 5 } 
+		"h0-1": { name: "Nahezu humusfrei", short:'h0', humusIcon: 0 },
+		"h0": { name: "Nahezu humusfrei", short:'h0', humusIcon: 0 },
+		"h1": { name: "Sehr schwach humos", short:'h1', humusIcon: 1 },
+		"h2": { name: "Schwach humos", short:'h2', humusIcon: 2 },
+		"h3": { name: "Mittel humos", short:'h3', humusIcon: 3 },
+		"h4": { name: "Stark humos", short:'h4', humusIcon: 4 },
+		"org": { name: "Organisch", short:'org', humusIcon: 5 } 
 	},
 	// humus_table : {
-	// 	"h0-1": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
-	// 	"h0": { name: "nahezu humusfrei", img: 'Humus_frei.svg' },
-	// 	"h1": { name: "sehr schwach humos", img: 'Humus_sehr_schwach.svg' },
-	// 	"h2": { name: "schwach humos", img: 'Humus_schwach.svg' },
-	// 	"h3": { name: "mittel humos", img: 'Humus_mittel.svg' },
-	// 	"h4": { name: "stark humos", img: 'Humus_stark.svg'},
-	// 	"org": { name: "organisch"} 
+	// 	"h0-1": { name: "Nahezu humusfrei" },
+	// 	"h0": { name: "Nahezu humusfrei" },
+	// 	"h1": { name: "Sehr schwach humos" },
+	// 	"h2": { name: "Schwach humos" },
+	// 	"h3": { name: "Mittel humos" },
+	// 	"h4": { name: "Stark humos", borderColor: soilColors.humus},
+	// 	"org": { name: "Organisch"} 
 	// },
 
 	usage_table : {
@@ -107,12 +134,12 @@ export const dataModel = {
 	},
 
 	bewaessert_obj : {
-		name: 'bewässert',
+		name: 'Bewässert',
 		img: 'Bewaessert.svg'
 	},
 
 	grundwasser_obj : {
-		name: 'grundwassernah',
+		name: 'Grundwassernah',
 		img: 'Grundwasser.svg'
 	},
 
@@ -343,6 +370,78 @@ export const dataModel = {
 			return acc;
 		}, {});
 	},
+
+	mixColors(instructions) {
+		const colors = this.soilColors;
+
+		if (!instructions || instructions.length === 0)
+			return "#000000";
+
+		// Helpers
+		const hexToRgb = hex => {
+			hex = hex.replace('#', '');
+			if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+			const num = parseInt(hex, 16);
+			return {
+				r: (num >> 16) & 255,
+				g: (num >> 8) & 255,
+				b: num & 255
+			};
+		};
+
+		const toHex = v => {
+			const h = Math.round(v).toString(16);
+			return h.length === 1 ? "0" + h : h;
+		};
+
+		const rgbToHex = ({ r, g, b }) =>
+			"#" + toHex(r) + toHex(g) + toHex(b);
+
+		// Exactly 1 color? → mix with white
+		if (instructions.length === 1) {
+			let [type, amount] = instructions[0];
+
+			const baseHex = colors[type];
+			if (!baseHex) return "#000000";
+
+			// clamp 0..1
+			const p = Math.max(0, Math.min(1, amount));
+
+			const base = hexToRgb(baseHex);
+			const white = { r: 255, g: 255, b: 255 };
+
+			const r = base.r * p + white.r * (1 - p);
+			const g = base.g * p + white.g * (1 - p);
+			const b = base.b * p + white.b * (1 - p);
+
+			return rgbToHex({ r, g, b });
+		}
+
+		// More than one color? → weighted average
+		let total = 0;
+		let r = 0, g = 0, b = 0;
+
+		for (const [type, amount] of instructions) {
+			const hex = colors[type];
+			if (!hex) continue;
+
+			const w = Math.max(0, amount);
+			const rgb = hexToRgb(hex);
+
+			total += w;
+			r += rgb.r * w;
+			g += rgb.g * w;
+			b += rgb.b * w;
+		}
+
+		if (total === 0) return "#000000";
+
+		return rgbToHex({
+			r: r / total,
+			g: g / total,
+			b: b / total
+		});
+	}
 
 
 }	

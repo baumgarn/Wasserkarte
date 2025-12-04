@@ -6,8 +6,10 @@ import { config } from '@/config.js';
 
 export const state = reactive({
 	// markerStyle: 'Bodenfeuchte_Farbkreis',
-	activeFilter: null,
 	hoverFilter: null,
+	includeFilter: [],
+	excludeFilter: [],
+	filteredDevices: [],
 	selectedDevice: null,
 	selectedDeviceEmbed: null,
 	devicesMultiselect: [],
@@ -77,5 +79,25 @@ export function computedState(key, getter, options = {}) {
 	}, { immediate: false, ...options });
 }
 
+// watch filter and create the filteredDevices array
+watch(
+	[() => state.includeFilter, () => state.excludeFilter],
+	([include, exclude]) => {
+		state.filteredDevices = state.devices.filter(device => {
+			const keywords = device.filterKeywords || [];
 
-// console.log(state)
+			// included: ALL includeFilter names must exist in keywords
+			const included = include.length
+				? include.every(f => keywords.includes(f.name))
+				: true;
+
+			// excluded: device is excluded if ANY excludeFilter name exists in keywords
+			const excluded = exclude.length
+				? exclude.every(f => !keywords.includes(f.name))
+				: true;
+
+			return included && excluded;
+		});
+	},
+	{ immediate: true, deep: true }
+);
