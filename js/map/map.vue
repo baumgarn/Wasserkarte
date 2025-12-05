@@ -187,9 +187,9 @@ export default {
 	
 				const extent = boundingExtent(points);
 	
-				var padding = [25, 25, 70, 25];
+				var padding = [70, 30, 70, 30];
 				if (state.menuOpen.info) {
-					padding = [25, 625, 70, 25];
+					padding = [70, 625, 70, 30];
 				}
 				view.fit(extent, {
 					size: size,

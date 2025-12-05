@@ -1,7 +1,7 @@
 
 <template>
 
-	<div class="wrapper" :class="{ showtooltips: state.tooltips }" >
+	<div class="wrapper" :class="{ showtooltips: state.tooltips, sidebaropen: state.sidebarOpen }" >
 
 		<Map />
 
