@@ -160,7 +160,7 @@ export const IconFactory = {
 		ctx.fillStyle = '#ffffff';
 		ctx.fill();
 
-		const alphas = [.05, .05, .2, .4, .6, 1];
+		const alphas = [.05, .05, .2, .4, .7, 1];
 		ctx.globalAlpha = alphas[humuslevel] ?? 1;
 		
 		ctx.beginPath();

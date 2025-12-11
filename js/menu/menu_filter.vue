@@ -1,14 +1,35 @@
 <template>
-	<div class="marker menuwindow">
-		<div class="menuwindow-header"><h3>Darstellung</h3></div>
+	<div class="filter menuwindow">
+		<div class="menuwindow-header"><h3>Filter</h3></div>
 		<div class="menuwindow-content">
-			<div
-				v-for="item in menuItems"
-				:key="item.value"
-				:class="['menu-item', item.value.replace(/\s+/g, '_'), { selected: markerStyle === item.value }]"
-				@click="selectSensor(item.value)"
-			>
-				{{ item.label }}
+			
+			<div class="filter">
+
+				<div class="filteritems">
+
+				<h4>Wasserhaushalt</h4>
+
+					<FilterItem :obj="dataModel.bewaessert_obj" type="menuitem"/>
+					<FilterItem :obj="dataModel.grundwasser_obj" type="menuitem"/>
+				<!-- </div> -->
+
+				<h4>Bodenart</h4>
+
+				<!-- <div class="filteritems"> -->
+					<FilterItem v-for="item in dataModel.soil_table" :obj="item" type="menuitem"/>
+				<!-- </div> -->
+				
+				<h4>Humusgehalt</h4>
+
+				<!-- <div class="filteritems"> -->
+					<FilterItem v-for="item in dataModel.humus_table" :obj="item" type="menuitem"/>
+				<!-- </div> -->
+			
+				<h4>Nutzungsart</h4>
+				<!-- <div class="filteritems"> -->
+					<FilterItem v-for="item in dataModel.usage_table" :obj="item" type="menuitem"/>
+				</div>
+
 			</div>
 
 		</div>
@@ -77,11 +98,17 @@ export default {
 		font-weight bold
 		padding-top .6em
 		margin-top 2em
+		margin-left 0
+		padding-left 4px
 		display block
 		color #488eddee
 		font-size 80%
 		font-size 9.5pt
 		text-transform uppercase
 		border-top 1px solid #488eddaa
+	h4:first-of-type
+		border-top none
+		margin-top 0
+		padding-top 0
 
 </style>

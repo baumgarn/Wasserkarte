@@ -315,6 +315,7 @@
 		flex-grow 0
 		flex-shrink 0
 		margin-right 1.65em
+		margin-left -2px
 		position relative
 	.datacol	
 		flex-grow 1

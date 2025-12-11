@@ -52,6 +52,7 @@ uicardgrau = #eee
 	--uibrighter #f7f7f7
 	--menubg #aaa
 	--menuinactivebg #dbdbdb
+	--menuinactivebg #eaeaea
 	--menugrau #eee
 	--menugrau #eee
 	--separatorline 2px solid #00000011
@@ -171,9 +172,12 @@ body.loaded
 	font-family sans-serif
 	opacity .7
 	z-index 102
-	// bottom var(--timelineheight) !important
-	top 0 !important
-	bottom unset !important
+	bottom var(--timelineheight) !important
+	top unset !important
+	// top 0 !important
+	// bottom unset !important
+	transform rotate(-90deg)
+	transform-origin bottom right
 	border-top-left-radius 0 !important
 	border-bottom-left-radius 4px !important
 	ul li
@@ -333,6 +337,7 @@ menuwidth = 250px
 
 .menu-item.selected
 	background var(--activecolor)
+	background var(--activecolorgrey)
 
 .menuwindow-button-row
 	display flex
@@ -891,6 +896,12 @@ hr
 .marker-container
 	overflow visible
 
+// .marker-outer.filtered
+// 	opacity 0
+// 	pointer-events none
+// 	*
+// 		pointer-events none
+
 .map-marker.alle
 	width auto
 	height auto
@@ -965,6 +976,7 @@ hr
 			width 100%
 			flex-grow 1
 
+.map-marker.selected .filtered
 .map-marker.selected .disabled
 .map-marker.selected .schichten
 .map-marker.einzeln.selected .schicht
@@ -979,12 +991,49 @@ hr
 	width auto
 	height auto
 	// box-shadow 0 1px 2px 2px #00000011
-	width 18px
-	height 18px
-	margin-left 1px
+	width 20px
+	height 20px
+	// margin-left 1px
 	border-radius 50%
-	background #888
+	background #ea8d8dff
+	filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
 	pointer-events none
+	font-size 12pt
+	display flex
+	align-items center
+	justify-content center
+	color #000
+	// font-weight bold
+	text-align center
+
+.marker-outer.filtered
+	pointer-events none
+	display none
+
+.map-marker .filtered
+	pointer-events none
+	display none
+	width auto
+	height auto
+	// box-shadow 0 1px 2px 2px #00000011
+	width 6px
+	height 6px
+	margin-left 7px
+	border-radius 50%
+	background #666
+	// border 2px solid #00000077
+	pointer-events none
+// .map-marker .filtered
+// 	width auto
+// 	height auto
+// 	// box-shadow 0 1px 2px 2px #00000011
+// 	width 12px
+// 	height 12px
+// 	margin-left 4px
+// 	border-radius 50%
+// 	background #888
+// 	// border 2px solid #00000077
+// 	pointer-events none
 
 
 // ICONS
@@ -1008,6 +1057,11 @@ hr
 .bodenfeuchte.icon
 	background-image url('/img/tropfen.png')
 	background-size 45%
+
+.filter.icon
+	background-image url('/img/filter.png')
+	background-size 95%
+	opacity .6
 
 .boeden.icon
 	background-image url('/img/soil.png')

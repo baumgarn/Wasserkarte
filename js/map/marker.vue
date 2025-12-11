@@ -6,11 +6,27 @@
 		:key="device.id"
 		:position="position(device)"
 		>
-		<div class="marker-outer" :class="{selectedSoil: (selectedSoil != 'Alle' && isSelectedSoil), notSelectedSoil: (selectedSoil != 'Alle' && !isSelectedSoil), telemetryloaded: telemetryLoaded}">
+		<div class="marker-outer" :class="{telemetryloaded: telemetryLoaded, filtered: isFiltered}">
 
-			<template v-if="isInactive">
+			<template v-if="isFiltered">
 
-				<div class="map-marker disabled"
+				<div class="map-marker"
+						:class="{ mouseover, selected: isSelected }"
+						@mouseenter="onMouseEnter"
+						@mouseleave="onMouseLeave"
+						@click="click"
+						@wheel="wheelForward"
+						>
+					<div class="filtered">
+						
+					</div>	
+				</div>
+				
+			</template>
+
+			<template v-else-if="isInactive">
+
+				<div class="map-marker"
 						:class="{ mouseover, selected: isSelected }"
 						@mouseenter="onMouseEnter"
 						@mouseleave="onMouseLeave"
@@ -18,11 +34,12 @@
 						@wheel="wheelForward"
 						>
 					<div class="disabled">
-						
+						!
 					</div>	
 				</div>
 				
 			</template>
+			
 
 			<template v-else-if="isVisible">
 
@@ -219,11 +236,14 @@ export default {
 				return null;
 			}
 		},
+		filteredDevices() {
+			return state.filteredDevices;
+		},
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
 		firstDate() {
-			return this.telemetryData.data[0][0];
+			return this.telemetryData?.data[0][0];
 		},
 		lastDate() {
 			return this.telemetryData?.data[this.telemetryData.data.length-1][0];
@@ -245,6 +265,19 @@ export default {
 		},
 		hoursSinceLastTelemetry() {
 			return dataStore.hoursSinceLastTelemetry(this.device.id);
+		},
+		isFiltered() {
+			if (state.includeFilter.length == 0 && state.excludeFilter.length == 0) { 
+				return false
+			}
+			var isfiltered = true;
+			this.filteredDevices.forEach(device => {
+				if (device.id == this.device.id) {
+					isfiltered = false;
+				}
+			});
+			console.log(this.filteredDevices)
+			return isfiltered;
 		},
 		isInactive() { // no current telemetry
 			if (!this.timelineDate && this.hoursSinceLastTelemetry > config.noTelemetryCutoff ) {
@@ -319,6 +352,10 @@ export default {
 					overlayContainer.style.zIndex = '11';
 				} else if (this.isSelected) {
 					overlayContainer.style.zIndex = '10';
+				} else if (this.isInactive){
+					overlayContainer.style.zIndex = '0';
+				} else if (this.isFiltered){
+					overlayContainer.style.zIndex = '-1';
 				} else if (this.markerStyle != 'Bodenfeuchte_Farbkreis'
 						&& this.markerStyle != 'Bodenfeuchte_vol' 
 						&& this.markerStyle != 'Bodenfeuchte_nfk' 
@@ -328,42 +365,19 @@ export default {
 					} else {
 						overlayContainer.style.zIndex = '1';
 					}
-				// } else if (this.isInactive && state.showErrors){
-				// 	overlayContainer.style.zIndex = '11';
-				} else if (this.isInactive){
-					overlayContainer.style.zIndex = '0';
 				} else {
 					overlayContainer.style.zIndex = '1';
 				}
 			}
 		},
-		get_index_binary(data, T) { // binary search timestamp
-			const n = data.length;
-			if (n < 2) return -1;
-			let lo = 0, hi = n; // search in [0, n)
-			while (lo < hi) {
-				const mid = (lo + hi) >>> 1;
-				if (this.tsAt(data, mid) <= T) lo = mid + 1;
-				else hi = mid;
-			}
-			const i = lo - 1; // rightmost <= T
-			if (i < 0 || i >= n - 1) return -1;
-			return i;
-		},
-		tsAt(data, i) {
-			return data[i][0];
-		},
-		// inInterval(data, i, T) {
-		// 	return i >= 0 && i < data.length - 1 && tsAt(data, i) <= T && T < tsAt(data, i + 1);
-		// }
 	},
 	watch: {
 		selectedDevice(newValue) {
 			this.mouseoverDevice = null;
 			this.setZindex();
 		},
-		selectedSoil() {
-			this.setZindex();
+		filteredDevices() {
+			this.setZindex()
 		},
 		telemetryLoaded() {
 			this.getTelemetry();
@@ -373,13 +387,9 @@ export default {
 			this.setZindex();
 		},
 		markerStyle() {
-			// if (this.markerStyle == 'Bodenfeuchte_vol' || this.markerStyle == 'Bodenfeuchte_nfk' ) {
-				// this.calculateValues();
-			// }
 			this.setZindex();
 		},
 		device() {
-			// this.calculateValues();
 		},
 	},
 	mounted() {

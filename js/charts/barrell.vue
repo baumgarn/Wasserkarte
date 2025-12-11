@@ -21,7 +21,7 @@
 	data() {
 		return {
 			ellipseRatio: 0.25,
-			margin: 1,
+			margin: 3,
 			dpr: window.devicePixelRatio || 1,
 			patternImage : null,
 		};

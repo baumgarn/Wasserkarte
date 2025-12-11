@@ -1,10 +1,12 @@
 <template>
-	<div class="filteritem" :class="{ active: includeActive, exclude: excludeActive, hover: isHover }"
+	<div class="filteritem" :class="[{ active: includeActive, exclude: excludeActive, hover: isHover}, type]"
 	     @mouseleave="mouseLeave" @mouseenter="mouseEnter" @click="click">
 		
 		<div class="bg"></div>
 
-		<FilterIcon :obj :size="30"/>
+		<FilterIcon v-if="type=='menuitem'" :obj :size="24"/>
+		<FilterIcon v-else-if="type=='statusbaritem'" :obj :size="32"/>
+		<FilterIcon v-else :obj :size="30"/>
 		
 		<div class="name">
 			{{ obj.name }}
@@ -22,6 +24,10 @@ export default {
 		obj: {
 			type: Object,
 			required: true
+		},
+		type: {
+			type: String,
+			default: "pill"
 		}
 	},
 	components: {
@@ -120,15 +126,16 @@ export default {
 		z-index 1
 	.filtericon
 		z-index 1
-	&.hover .bg
+	&:hover .bg
 		background var(--activecolorgreybrighter)
 	&.active
-	&.active.hover
-		border 1px solid #bbb
+	&.active:hover
+		border 1px solid #ccc
+		// border 1px solid var(--activecolorgrey)
 		.bg
 			background var(--activecolorgrey)
 	&.exclude
-	&.exclude.hover
+	&.exclude:hover
 		border 1px solid #bbb
 		.bg
 			background var(--activecolorgrey)
@@ -144,4 +151,39 @@ export default {
 		border 2px solid var(--bordercolor)
 .name
 	white-space nowrap
+
+.filteritem.statusbaritem
+	border none
+	box-shadow none
+	pointer-events none
+	height 40px
+	.bg
+		display none
+	.filtericon
+		width 32px
+		height 32px
+		position relative
+		top -1px
+		margin-right .2em
+		filter: drop-shadow(0 2px 1px rgba(0,0,0,.15));
+.filteritem.menuitem
+	border none
+	border-radius 3px
+	height 27px
+	box-shadow none
+	font-size 11pt
+	font-weight normal
+	.filtericon
+		width 24px
+		height 24px
+		margin 0 3px
+	&:hover
+	&.active
+	&.active:hover
+		border none
+	&:hover .bg
+		background transparent
+	&.active:hover .bg
+		background var(--activecolorgrey)
+
 </style>

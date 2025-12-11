@@ -45,7 +45,15 @@
 							<div class="icon bodenfeuchte"></div>
 						</div>
 						<div class="legendtext">
-							Optionen für Bodenfeuchte Kartendarstellung
+							Optionen für Markerdarstellung auf der Karte
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('filter', $event )">
+						<div class="legendimage">
+							<div class="icon filter"></div>
+						</div>
+						<div class="legendtext">
+							Filter nach Standorteigenschaften
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('karten', $event )">
@@ -201,6 +209,7 @@ export default {
 
 				state.menuOpen.orte = false;
 				state.menuOpen.bodenfeuchte = false;
+				state.menuOpen.filter = false;
 				state.menuOpen.karten = false;
 				state.menuOpen.glossar = false;
 				state.menuOpen.einstellungen = false;

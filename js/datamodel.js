@@ -89,24 +89,23 @@ export const dataModel = {
 			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
 			soilIcon: [['sand', 1], ['lehm', .4]]
 		},
-		"Ls4": {
-			name: "Sandiger Lehm",
-			short: 'Ls4',
-			color: soilColors.lehmigerSand,
-			TW: { "h0-1": 13, "h2": 14, "h3": 14, "h4": 15 },
-			FK: { "h0-1": 28, "h2": 30, "h3": 32, "h4": 36 },
-			soilIcon: [['lehm', 1], ['sand', .4]]
-		}
+		// "Ls4": {
+		// 	name: "Sandiger Lehm",
+		// 	short: 'Ls4',
+		// 	color: soilColors.lehmigerSand,
+		// 	TW: { "h0-1": 13, "h2": 14, "h3": 14, "h4": 15 },
+		// 	FK: { "h0-1": 28, "h2": 30, "h3": 32, "h4": 36 },
+		// 	soilIcon: [['lehm', 1], ['sand', .4]]
+		// }
 	},
 
 	humus_table : {
 		"h0-1": { name: "Nahezu humusfrei", short:'h0', humusIcon: 0 },
-		"h0": { name: "Nahezu humusfrei", short:'h0', humusIcon: 0 },
 		"h1": { name: "Sehr schwach humos", short:'h1', humusIcon: 1 },
 		"h2": { name: "Schwach humos", short:'h2', humusIcon: 2 },
 		"h3": { name: "Mittel humos", short:'h3', humusIcon: 3 },
 		"h4": { name: "Stark humos", short:'h4', humusIcon: 4 },
-		"org": { name: "Organisch", short:'org', humusIcon: 5 } 
+		// "org": { name: "Organisch", short:'org', humusIcon: 5 } 
 	},
 	// humus_table : {
 	// 	"h0-1": { name: "Nahezu humusfrei" },

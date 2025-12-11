@@ -24,6 +24,7 @@
   --uibrighter: #f7f7f7;
   --menubg: #aaa;
   --menuinactivebg: #dbdbdb;
+  --menuinactivebg: #eaeaea;
   --menugrau: #eee;
   --menugrau: #eee;
   --separatorline: 2px solid rgba(0,0,0,0.067);
@@ -126,8 +127,10 @@ body.loaded #app {
   font-family: sans-serif;
   opacity: 0.7;
   z-index: 102;
-  top: 0 !important;
-  bottom: unset !important;
+  bottom: var(--timelineheight) !important;
+  top: unset !important;
+  transform: rotate(-90deg);
+  transform-origin: bottom right;
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 4px !important;
 }
@@ -276,6 +279,7 @@ button.ol-zoom-out {
 }
 .menu-item.selected {
   background: var(--activecolor);
+  background: var(--activecolorgrey);
 }
 .menuwindow-button-row {
   display: flex;
@@ -885,6 +889,7 @@ hr {
   width: 100%;
   flex-grow: 1;
 }
+.map-marker.selected .filtered,
 .map-marker.selected .disabled,
 .map-marker.selected .schichten,
 .map-marker.einzeln.selected .schicht {
@@ -895,11 +900,33 @@ hr {
 .map-marker .disabled {
   width: auto;
   height: auto;
-  width: 18px;
-  height: 18px;
-  margin-left: 1px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: #888;
+  background: #ea8d8d;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  pointer-events: none;
+  font-size: 12pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  text-align: center;
+}
+.marker-outer.filtered {
+  pointer-events: none;
+  display: none;
+}
+.map-marker .filtered {
+  pointer-events: none;
+  display: none;
+  width: auto;
+  height: auto;
+  width: 6px;
+  height: 6px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: #666;
   pointer-events: none;
 }
 .icon {
@@ -920,6 +947,11 @@ hr {
 .bodenfeuchte.icon {
   background-image: url("/img/tropfen.png");
   background-size: 45%;
+}
+.filter.icon {
+  background-image: url("/img/filter.png");
+  background-size: 95%;
+  opacity: 0.6;
 }
 .boeden.icon {
   background-image: url("/img/soil.png");

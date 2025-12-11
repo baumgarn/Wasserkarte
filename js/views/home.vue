@@ -31,6 +31,7 @@
 					<GeraeteMenu v-if="state.menuOpen.orte"/>
 					<ErrorMenu v-if="state.menuOpen.error"/>
 					<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
+					<FilterMenu v-if="state.menuOpen.filter"/>
 					<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
 					<GlossarMenu v-if="state.menuOpen.glossar"/>
 					<SettingsMenu v-if="state.menuOpen.einstellungen"/>
@@ -76,6 +77,7 @@ import Info from '@/views/info.vue';
 import MenuBar from '@/menu/menu_bar.vue';
 import Legend from '@/map/legend.vue';
 import MarkerMenu from '@/menu/menu_marker.vue';
+import FilterMenu from '@/menu/menu_filter.vue';
 import GlossarMenu from '@/menu/menu_glossar.vue';
 import KartenMenu from '@/menu/menu_karten.vue';
 import ErrorMenu from '@/menu/menu_error.vue';
@@ -103,6 +105,7 @@ export default {
 		LayerLegends,
 		Legend,
 		MarkerMenu,
+		FilterMenu,
 		GlossarMenu,
 		ErrorMenu,
 		SettingsMenu,
