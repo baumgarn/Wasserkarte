@@ -27,14 +27,16 @@
 			<template v-else-if="isInactive">
 
 				<div class="map-marker"
-						:class="{ mouseover, selected: isSelected }"
+						:class="{ mouseover, selected: isSelected, warning: showErrors }"
 						@mouseenter="onMouseEnter"
 						@mouseleave="onMouseLeave"
 						@click="click"
 						@wheel="wheelForward"
 						>
-					<div class="disabled">
-						!
+					<div class="disabled" :class="{warning: showErrors }">
+						<template v-if="showErrors">
+							!
+						</template>
 					</div>	
 				</div>
 				

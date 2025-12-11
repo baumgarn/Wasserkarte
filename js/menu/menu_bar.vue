@@ -198,8 +198,6 @@ export default {
 .icon.active:before
 	opacity .9
 
-
-
 // mobile
 
 .mobiletoggle

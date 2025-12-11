@@ -4,8 +4,8 @@
 		
 		<div class="bg"></div>
 
-		<FilterIcon v-if="type=='menuitem'" :obj :size="24"/>
-		<FilterIcon v-else-if="type=='statusbaritem'" :obj :size="32"/>
+		<FilterIcon v-if="type=='menuitem'" :obj :size="22"/>
+		<FilterIcon v-else-if="type=='statusbaritem'" :obj :size="36"/>
 		<FilterIcon v-else :obj :size="30"/>
 		
 		<div class="name">
@@ -103,7 +103,8 @@ export default {
 .filteritem
 	display inline-flex
 	align-items center
-	border 1px solid #ddd
+	justify-content center
+	border 1px solid #eee
 	border-radius 20px
 	height 36px
 	padding 0
@@ -153,36 +154,45 @@ export default {
 	white-space nowrap
 
 .filteritem.statusbaritem
+	display inline-flex
 	border none
 	box-shadow none
 	pointer-events none
-	height 40px
+	height 42px
+	padding-right 0
+	padding-left 0
+	// background red
 	.bg
 		display none
 	.filtericon
-		width 32px
-		height 32px
+		width 36px
+		height 36px
 		position relative
-		top -1px
+		margin 3px
 		margin-right .2em
-		filter: drop-shadow(0 2px 1px rgba(0,0,0,.15));
+		// filter: drop-shadow(0 2px 1px rgba(0,0,0,.15));
+
 .filteritem.menuitem
 	border none
 	border-radius 3px
-	height 27px
+	border-radius 14px
+	height 28px
 	box-shadow none
 	font-size 11pt
 	font-weight normal
+	justify-content flex-start
 	.filtericon
-		width 24px
-		height 24px
-		margin 0 3px
+		width 22px
+		height 22px
+		margin 0
+		margin-left 1px
+		margin-right 2px
 	&:hover
 	&.active
 	&.active:hover
 		border none
-	&:hover .bg
-		background transparent
+	// &:hover .bg
+		// background transparent
 	&.active:hover .bg
 		background var(--activecolorgrey)
 

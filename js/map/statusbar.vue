@@ -6,28 +6,34 @@
 
 			<div class="filterbar" v-if="hasIncludeFilter || hasExcludeFilter">
 
-				<div class="label before"><span class="count">{{filteredDevicesCount}}</span> 
-					{{filteredDevicesCount == 1 ? 'Standort' : 'Standorte'}}&nbsp;
-				</div>
+			
 					
-				
-				<template v-if="hasIncludeFilter">
+
+					<template v-if="hasIncludeFilter">
+						
+						<!-- <div class="label">mit</div> -->
+						<div class="include filteritems">
+							<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritem"/>
+						</div>
+						
+					</template>
 					
-					<!-- <div class="label">mit</div> -->
-					<div class="include filteritems">
-						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritem"/>
+					<template v-if="hasExcludeFilter">
+						
+						<div class="label ohne">ohne</div>
+						<div class="exclude filteritems">
+							<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritem"/>
+						</div>
+						
+					</template>
+					
+					<div class="label before">
+						<!-- <span class="count"> -->
+							{{filteredDevicesCount}}
+						<!-- </span>  -->
+						{{filteredDevicesCount == 1 ? 'Standort' : 'Standorte'}}&nbsp;
 					</div>
 
-				</template>
-				
-				<template v-if="hasExcludeFilter">
-
-					<div class="label not">ohne</div>
-					<div class="exclude filteritems">
-						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritem"/>
-					</div>
-
-				</template>
 
 				<div class="iconbutton close" @click="clearFilter"></div>
 
@@ -97,14 +103,14 @@ export default {
 	min-width: 0
 	flex-shrink 1
 	flex-wrap wrap
-	background #ddd
-	background #ddd
-	box-shadow 0 2px 1px rgba(0,0,0,.1)
+	// box-shadow 0 2px 1px rgba(0,0,0,.1)
 	font-size 9pt
 	border-top none
-	overflow hidden
-	background #44444444
+	// overflow hidden
+	// background #44444444
 	padding 0 6px
+	filter drop-shadow(2px 3px 2px #00000022)
+	// box-shadow 0 2px 2px rgba(0,0,0,.25)
 	// border-bottom-left-radius 12px
 	// border-bottom-right-radius 12px
 	// border-top-left-radius 8px
@@ -114,15 +120,17 @@ export default {
 	// border-radius 22px
 	// border-radius 8px
 .filterbar
-	height calc( var(--menubariconsize) + 1px)
-	border-top 1px solid #bbb
+	height 42px
+	// border-top 1px solid #bbb
 	position relative
-	border-bottom 1px solid #ccc
+	// border-bottom 1px solid #ccc
 	padding 0
-	padding-right 24px
-	padding-left 12px
-	min-width 320px
+	padding-right 20px
+	min-width 284px
+	border-radius 21px
+	// top 2px
 	background var(--menuinactivebg)
+	background #fff
 	// background var(--activecolorgrey)
 	display inline-flex
 	align-items center
@@ -131,22 +139,32 @@ export default {
 	// border-top-left-radius 8px
 	// border-top-right-radius 8px
 	justify-content flex-start
-	margin 0 .2em
+	margin 0
 .filteritems
 	display inline-flex
 	align-items center
+	height 42px
+	justify-content center
+	// top 0.6px
+	position relative
 	// flex-wrap wrap
-	gap 2px
-	margin 0 4px
+	gap 0
+	margin 0
 // .label.not
 // 	border-bottom 1px solid #00000033
 // 	padding-bottom 0
 // 	margin-bottom -1px
+.label.ohne
+	margin 0 4px 0 10px
 .label
-	display inline-block
-	height 24px
-	margin 0 .1em
-	line-height 24px
+	display inline-flex
+	height 100%
+	align-items center
+	justify-content center
+	// height 24px
+	margin 0
+	// line-height 24px
+	opacity .6
 .count
 	font-weight bold
 	display inline-block
@@ -156,8 +174,8 @@ export default {
 	margin-right .2em
 	margin-top -.1em
 	text-align right
-.label.before
-	min-width 85px
+// .label.before
+	// min-width 85px
 	// background red
 	// font-size 140%
 	// display inline-block
@@ -165,10 +183,10 @@ export default {
 
 .iconbutton.close
 	position absolute
-	right 4px
-	top 8px
-	background-size 110%
-	opacity .4
+	right 3px
+	top 9px
+	background-size 90%
+	opacity .5
 	&:hover
 		opacity .8
 </style>
