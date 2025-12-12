@@ -14,7 +14,7 @@
 			<template v-for="layer in layers" :key="layer.name">
 				<div
 					v-if="layer.hasChildLayers"
-					class="menu-item map-section-header">
+					class="map-section-header">
 					<span class="title">{{ layer.title || layer.name }}</span>
 				</div>
 				<div
@@ -91,9 +91,12 @@ export default {
 .map-section-header
 	cursor default
 	border-radius 0
+	height 32px
+	width 100%
+	padding 0 6px
 	.title
 		font-weight bold
-		padding-top .6em
+		padding-top 6px
 		margin-top 2em
 		display block
 		color #488eddee
