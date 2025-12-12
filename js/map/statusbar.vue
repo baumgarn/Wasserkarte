@@ -164,7 +164,7 @@ export default {
 	// height 24px
 	margin 0
 	// line-height 24px
-	opacity .6
+	opacity .55
 .count
 	font-weight bold
 	display inline-block

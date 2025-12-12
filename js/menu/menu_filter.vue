@@ -1,6 +1,6 @@
 <template>
 	<div class="filter menuwindow">
-		<div class="menuwindow-header"><h3>Filter</h3></div>
+		<div class="menuwindow-header"><h3>Standort Eigenschaften</h3></div>
 		<div class="menuwindow-content">
 			
 			<div class="filter">

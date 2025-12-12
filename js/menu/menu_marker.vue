@@ -1,6 +1,6 @@
 <template>
 	<div class="marker menuwindow">
-		<div class="menuwindow-header"><h3>Darstellung</h3></div>
+		<div class="menuwindow-header"><h3>Standort Darstellung</h3></div>
 		<div class="menuwindow-content">
 			<div
 				v-for="item in menuItems"

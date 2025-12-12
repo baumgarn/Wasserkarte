@@ -104,12 +104,12 @@ export default {
 	display inline-flex
 	align-items center
 	justify-content center
-	border 1px solid #eee
 	border-radius 20px
 	height 36px
 	padding 0
-	// background #fff
-	box-shadow 0 2px 1px rgba(0,0,0,.05)
+	border 1px solid #00000011
+	// border-bottom 1px solid #ddd
+	box-shadow 0 1px 2px rgba(0,0,0,.15)
 	padding-left 2px
 	font-size 9pt
 	font-weight bold
@@ -129,18 +129,15 @@ export default {
 		z-index 1
 	&:hover .bg
 		background var(--activecolorgreybrighter)
+		opacity .6
 	&.active
 	&.active:hover
-		border 1px solid #ccc
-		// border 1px solid var(--activecolorgrey)
-		.bg
-			background var(--activecolorgrey)
 	&.exclude
 	&.exclude:hover
-		border 1px solid #bbb
+		border 1px solid #00000022
 		.bg
 			background var(--activecolorgrey)
-			// background #ea4545ee
+			opacity .7
 	&.bordercolor
 		padding 2px
 	.innerborder
@@ -187,10 +184,13 @@ export default {
 		margin 0
 		margin-left 1px
 		margin-right 2px
-	&:hover
 	&.active
 	&.active:hover
+	&.exclude
+	&.exclude:hover
 		border none
+		.bg
+			opacity 1
 	// &:hover .bg
 		// background transparent
 	&.active:hover .bg

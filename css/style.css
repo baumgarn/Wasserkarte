@@ -129,17 +129,17 @@ body.loaded #app {
   z-index: 102;
   bottom: var(--timelineheight) !important;
   top: unset !important;
-  transform: rotate(-90deg);
-  transform-origin: bottom right;
+  transform: translate(100%, 0) rotate(-90deg);
+  transform-origin: 0 100%;
+  border-top-right-radius: 6px !important;
   border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 4px !important;
 }
 .ol-attribution ul li {
   font-size: 8pt;
-  color: #222;
+  color: #333;
 }
 .ol-attribution ul li a {
-  color: #222;
+  color: #333;
 }
 .ol-attribution ul li a:hover {
   text-decoration: underline;
@@ -446,7 +446,8 @@ input[type=radio] {
 .menubaritem.was-clicked:hover .tooltip {
   opacity: 0;
 }
-.menubar.anyactive:not(.soloactive) .tooltip {
+.menubar.anyactive:not(.soloactive) .tooltip,
+.menubar.anyactive .tooltip {
   display: none;
 }
 .fullview {

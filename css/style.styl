@@ -176,15 +176,16 @@ body.loaded
 	top unset !important
 	// top 0 !important
 	// bottom unset !important
-	transform rotate(-90deg)
-	transform-origin bottom right
+	transform translate(100%, 0) rotate(-90deg)
+	transform-origin 0 100%
+	border-top-right-radius 6px !important
 	border-top-left-radius 0 !important
-	border-bottom-left-radius 4px !important
+	// border-bottom-left-radius 4px !important
 	ul li
 		font-size 8pt
-		color #222
+		color #333
 		a
-			color #222
+			color #333
 			&:hover
 				text-decoration underline
 .minimap .ol-attribution
@@ -508,6 +509,7 @@ input[type=radio]
 	opacity 0
 
 .menubar.anyactive:not(.soloactive)
+.menubar.anyactive
 	.tooltip
 		display none
 

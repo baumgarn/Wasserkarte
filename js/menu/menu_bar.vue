@@ -55,7 +55,7 @@ export default {
 				{ title: 'Orte', tooltip: 'Alle ' + this.state.devices.length + ' Standorte', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Darstellung', tooltip: 'Markerdarstelllung', key: 'bodenfeuchte', group: '1' },
-				{ title: 'Filter', tooltip: 'Filter', key: 'filter', group: '1' },
+				{ title: 'Filter', tooltip: 'Filter nach Standorteigenschaften', key: 'filter', group: '1' },
 				{ title: 'Karten', tooltip: 'Karten der Landesvermessung\nund Geobasisinformation Brandenburg (LGB)', key: 'karten', group: '1' },
 				{ title: 'Glossar', tooltip: 'Bodenkunde Glossar', key: 'glossar', group: '1' },
 				{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' },
