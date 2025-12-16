@@ -11,6 +11,7 @@
 
 					<FilterItem :obj="dataModel.bewaessert_obj" type="menuitem"/>
 					<FilterItem :obj="dataModel.grundwasser_obj" type="menuitem"/>
+					<FilterItem :obj="dataModel.regenabhängig_obj" type="menuitem"/>
 				<!-- </div> -->
 
 				<h4>Bodenart</h4>

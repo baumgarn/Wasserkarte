@@ -957,7 +957,7 @@ hr {
 .filter.icon {
   background-image: url("/img/filter.png");
   background-size: 95%;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 .boeden.icon {
   background-image: url("/img/soil.png");

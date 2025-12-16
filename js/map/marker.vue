@@ -244,6 +244,9 @@ export default {
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
+		sidebarFullView() {
+			return state.sidebarFullView;
+		},
 		firstDate() {
 			return this.telemetryData?.data[0][0];
 		},
@@ -379,6 +382,9 @@ export default {
 			this.setZindex();
 		},
 		filteredDevices() {
+			this.setZindex()
+		},
+		sidebarFullView() {
 			this.setZindex()
 		},
 		telemetryLoaded() {

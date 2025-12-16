@@ -142,6 +142,11 @@ export const dataModel = {
 		img: 'Grundwasser.svg'
 	},
 
+	regenabhängig_obj : {
+		name: 'Regenabhängig',
+		img: 'regenabhaengig.svg'
+	},
+
 	get_usage_name (device) {
 		return this.usage_table[device.attributes.Nutzungsart]?.name
 	},

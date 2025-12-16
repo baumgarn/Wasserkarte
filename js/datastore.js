@@ -83,8 +83,13 @@ const dataStore = {
 			if (nutzung) device.filterKeywords.push(nutzung);
 			if (boden) device.filterKeywords.push(boden);
 			if (humus) device.filterKeywords.push(humus);
-		if (device?.attributes?.Bewässerung) device.filterKeywords.push(dataModel.bewaessert_obj.name);
-		if (device?.attributes?.Grundwasser) device.filterKeywords.push(dataModel.grundwasser_obj.name);
+		if (device?.attributes?.Bewässerung) { 
+			device.filterKeywords.push(dataModel.bewaessert_obj.name);
+		} else if (device?.attributes?.Grundwasser) { 
+			device.filterKeywords.push(dataModel.grundwasser_obj.name);
+		} else {
+			device.filterKeywords.push(dataModel.regenabhängig_obj.name);
+		}
 	},
 
 	processAllTelemetry(result) {

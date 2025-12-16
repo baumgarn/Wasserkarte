@@ -149,6 +149,8 @@
 				<FilterItem v-if="bewaessertObj" :obj="bewaessertObj"/>
 				
 				<FilterItem v-if="grundwasserObj" :obj="grundwasserObj"/>
+
+				<FilterItem v-if="regenabhängigObj" :obj="regenabhängigObj"/>
 				
 				<FilterItem v-if="soilObj" :obj="soilObj"/>
 
@@ -261,6 +263,11 @@
 			grundwasserObj() {
 				if (this.device.attributes.Grundwasser) {
 					return dataModel.grundwasser_obj;
+				}
+			},
+			regenabhängigObj() {
+				if (this.device.filterKeywords.indexOf(dataModel.regenabhängig_obj.name)>-1) {
+					return dataModel.regenabhängig_obj;
 				}
 			},
 			hoverOrLastData() {
@@ -443,7 +450,7 @@
 			flex-wrap wrap
 			font-weight bold
 			gap 6px 2px
-			margin 0 -50px 8px -12px
+			margin 0 -50px 8px -11px
 			// margin 0 -30px 8px -10px
 	@media (max-width 500px)
 		.nfklabel

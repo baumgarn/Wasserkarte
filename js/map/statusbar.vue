@@ -6,9 +6,6 @@
 
 			<div class="filterbar" v-if="hasIncludeFilter || hasExcludeFilter">
 
-			
-					
-
 					<template v-if="hasIncludeFilter">
 						
 						<!-- <div class="label">mit</div> -->
@@ -103,6 +100,7 @@ export default {
 	min-width: 0
 	flex-shrink 1
 	flex-wrap wrap
+	margin-top 12px
 	// box-shadow 0 2px 1px rgba(0,0,0,.1)
 	font-size 9pt
 	border-top none
@@ -195,11 +193,21 @@ export default {
 .is-mobile .statusbarouter
 	flex-basis 100vw
 
-@media (max-width: 1200px) 
+@media (max-width: 1250px) 
 	.sidebaropen .topbar .statusbarouter
 		position fixed
 		top calc(var(--menubariconsize) + 8px)
 		left 0px
 		right 600px
+
+.is-mobile .statusbarouter
+	.statusbar
+		margin-top 0 
+	// position fixed
+	// top 50 !important
+	// // margin-top 0 !important
+	// left 50px !important
+	// right 50px !important
+
 
 </style>

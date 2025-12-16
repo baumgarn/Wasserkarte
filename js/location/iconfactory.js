@@ -58,10 +58,10 @@ export const IconFactory = {
 		ctx.fill();
 
 		if (obj.short) {
-			ctx.font = '12px Arial';
+			ctx.font = '14px Arial';
 			ctx.fillStyle = '#00000070'
 			ctx.textAlign = "center";
-			ctx.fillText(obj.short, cx, cy*1.3);
+			ctx.fillText(obj.short, cx, cy*1.35);
 
 		}
 
@@ -170,7 +170,7 @@ export const IconFactory = {
 		
 		if (obj.short) {
 			ctx.globalAlpha = 1;
-			ctx.font = '12px Arial';
+			ctx.font = '14px Arial';
 			ctx.fillStyle = '#00000070'
 			ctx.textAlign = "center";
 			ctx.fillText(obj.short, cx, cy * 1.3);

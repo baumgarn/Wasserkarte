@@ -111,6 +111,17 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 		}
 	}
 
+	if (
+		!is_array($telemetryData) ||
+		!isset($telemetryData['data']) ||
+		!is_array($telemetryData['data'])
+	) {
+		$telemetryData = [
+			'schema' => $schema ?? ['ts'],
+			'data'   => []
+		];
+	}
+
 	// Find earliest/latest timestamps
 	$earliest = PHP_INT_MAX;
 	$latest = 0;

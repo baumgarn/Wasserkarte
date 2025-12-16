@@ -1,5 +1,5 @@
 <template>
-	<div class="devices menuwindow" :class="{ open: isOpen, sideview }">
+	<div class="devices menuwindow" :class="{ open: isOpen, sideview }" tabindex="0" @keydown="onKeydown">
 		<div class="menuwindow-header" @click="toggleOpen" v-if="!sideview">
 			<h3>
 				<span>Standorte</span>
@@ -8,9 +8,14 @@
 		</div>
 		<div class="menuwindow-content">
 
-			<div v-for="device in deviceItems" :key="device.name" class="menu-item" 
-				:class="[{selected: selectedDevice === device.name,}]" @click="selectDevice(device)"
-				>
+			<div
+				v-for="(device, index) in deviceItems"
+				:key="device.name"
+				ref="items"
+				class="menu-item"
+				:class="{ selected: selectedIndex === index }"
+				@click="selectDevice(device)"
+			>
 
 				<ColorDot :device />
 
@@ -52,7 +57,8 @@ export default {
 	},
 	data() {
 		return {
-			isOpen: false
+			isOpen: false,
+			selectedIndex: -1
 		}
 	},
 	computed: {
@@ -78,6 +84,10 @@ export default {
 			state[this.stateProperty] = device?.name || null;
 			window.dispatchEvent(new CustomEvent('sidebar:open', { detail: device }));
 			window.dispatchEvent(new CustomEvent('device-selected', { detail: device }));
+			this.$nextTick(() => {
+				const el = this.$refs.items?.[this.selectedIndex];
+				el?.scrollIntoView({ block: 'nearest' });
+			});
 		},
 		setSelectedDevice(device) {
 			state[this.stateProperty] = device?.name || null;
@@ -90,18 +100,57 @@ export default {
 		nfk_color(device) {
 			return dataModel.get_nfk_color(this.nfk(device));
 		},
+		onKeydown(e) {
+			if (!this.deviceItems.length) return;
+
+			switch (e.key) {
+				case 'ArrowDown':
+					e.preventDefault();
+					this.selectedIndex =
+						(this.selectedIndex + 1) % this.deviceItems.length;
+					this.selectDevice(this.deviceItems[this.selectedIndex]);
+					break;
+
+				case 'ArrowUp':
+					e.preventDefault();
+					this.selectedIndex =
+						(this.selectedIndex - 1 + this.deviceItems.length) %
+						this.deviceItems.length;
+					this.selectDevice(this.deviceItems[this.selectedIndex]);
+					break;
+
+				case 'Enter':
+					e.preventDefault();
+					if (this.selectedIndex >= 0) {
+						this.selectDevice(this.deviceItems[this.selectedIndex]);
+					}
+					break;
+			}
+		},
 	},
 	mounted() {
+		this.$el.focus();
 	},
 	beforeUnmount() {
-	}
+	},
+	watch: {
+		selectedDevice: {
+			immediate: true,
+			handler(name) {
+				this.selectedIndex = this.deviceItems.findIndex(
+					d => d.name === name
+				);
+			}
+		}
+	},
 }
 </script>
 
 <style scoped lang="stylus">
 	.menuwindow.devices
 		width 320px
-
+	.menuwindow.devices:focus
+		outline none
 	.sideview
 		flex-grow 0
 		flex-shrink 0

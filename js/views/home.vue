@@ -13,7 +13,7 @@
 
 				<MenuBar />
 				
-				<a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a>
+				<!-- <a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a> -->
 
 				<div v-if="state.isMobile && !state.menuOpen.info" class="infobutton" @click="state.menuOpen.info = true"></div>
 
@@ -48,6 +48,9 @@
 
 
 			<a v-if="!state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten desktop"><img src="/img/klimadaten.png" ></a>
+
+			<a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a>
+
 
 
 			<div class="rightui">
@@ -143,11 +146,12 @@ export default {
 		img
 			height 80%
 
-	.klimadaten.mobile
-		align-self center
-		position relative
-		height 30px
+	// .klimadaten.mobile
+		// height 30px
+		// align-self center
+		// position relative
 		
+	.klimadaten.mobile
 	.klimadaten.desktop
 		position fixed
 		left 0
@@ -155,6 +159,10 @@ export default {
 		bottom var(--timelineheight);
 		height 36px
 		margin 16px
+
+	.klimadaten.mobile
+		height 32px
+		margin 0 8px 48px
 
 	.infobutton
 		margin 6px

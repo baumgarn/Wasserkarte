@@ -6,7 +6,7 @@
 
 		<FilterIcon v-if="type=='menuitem'" :obj :size="22"/>
 		<FilterIcon v-else-if="type=='statusbaritem'" :obj :size="36"/>
-		<FilterIcon v-else :obj :size="30"/>
+		<FilterIcon v-else :obj :size="24"/>
 		
 		<div class="name">
 			{{ obj.name }}
@@ -105,11 +105,11 @@ export default {
 	align-items center
 	justify-content center
 	border-radius 20px
-	height 36px
+	height 30px
 	padding 0
 	border 1px solid #00000011
 	// border-bottom 1px solid #ddd
-	box-shadow 0 1px 2px rgba(0,0,0,.15)
+	box-shadow 0 1px 2px rgba(0,0,0,.1)
 	padding-left 2px
 	font-size 9pt
 	font-weight bold
@@ -193,6 +193,8 @@ export default {
 			opacity 1
 	// &:hover .bg
 		// background transparent
+	&:hover .bg
+		background transparent
 	&.active:hover .bg
 		background var(--activecolorgrey)
 

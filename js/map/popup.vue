@@ -42,6 +42,8 @@
 						<FilterIcon v-if="bewaessertObj" :obj="bewaessertObj" :size="26"/>
 						
 						<FilterIcon v-if="grundwasserObj" :obj="grundwasserObj" :size="26"/>
+
+						<FilterIcon v-if="regenabhängigObj" :obj="regenabhängigObj" :size="26"/>
 						
 						<FilterIcon v-if="soilObj" :obj="soilObj" :size="26"/>
 
@@ -58,6 +60,7 @@
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)">
 								<div class="depth">10 cm</div>
+								<!-- <div class="nfk">{{ formatNumber(lastData.nfk_10cm) }}<span class="unit"> <span class="smaller">nFK</span> %</span></div> -->
 								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_10cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)">
@@ -181,6 +184,11 @@ export default {
 		grundwasserObj() {
 			if (this.device.attributes.Grundwasser) {
 				return dataModel.grundwasser_obj;
+			}
+		},
+		regenabhängigObj() {
+			if (this.device.filterKeywords.indexOf(dataModel.regenabhängig_obj.name)>-1) {
+				return dataModel.regenabhängig_obj;
 			}
 		},
 		lastData() {

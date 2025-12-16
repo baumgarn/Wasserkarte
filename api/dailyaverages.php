@@ -67,11 +67,30 @@ function dailyAverages() {
 		if ($data) {
 			$json = json_encode($data, JSON_PRETTY_PRINT);
 			saveTelemetryCache($deviceId, 'all', '1d', $json);	
-			$alltimeseries[$deviceId] = $data['telemetry'];
+
+
+			$telemetry = $data['telemetry'] ?? null;
+			$rows = $telemetry['data'] ?? null;
+
+			if (!is_array($rows) || empty($rows)) {
+				// Device has no daily data → skip timestamp logic
+				$alltimeseries[$deviceId] = $telemetry;
+				continue;
+			}
+
+			$alltimeseries[$deviceId] = $telemetry;
+
+			// now SAFE
+			$firstts = $rows[0][0];
+			$lastts  = $rows[count($rows) - 1][0];
+			// $alltimeseries[$deviceId] = $data['telemetry'];
 
 			// check earliest and latest timestamp
-			$firstts = $data['telemetry']['data'][0][0];
-			$lastts = end($data['telemetry']['data'])[0];
+			// $firstts = $data['telemetry']['data'][0][0];
+			// $lastts = end($data['telemetry']['data'])[0];
+
+
+
 			if ($earliest > $firstts) {
 				$earliest = $firstts;
 			}
