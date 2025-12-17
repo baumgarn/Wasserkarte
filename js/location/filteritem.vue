@@ -121,7 +121,7 @@ export default {
 		position absolute
 		inset 0
 		z-index 0
-	.name	
+	.name
 		margin-right 8px
 		margin-left 3px
 		z-index 1
@@ -167,7 +167,7 @@ export default {
 		position relative
 		margin 3px
 		margin-right .2em
-		// filter: drop-shadow(0 2px 1px rgba(0,0,0,.15));
+		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.menuitem
 	border none
@@ -184,6 +184,7 @@ export default {
 		margin 0
 		margin-left 1px
 		margin-right 2px
+		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 	&.active
 	&.active:hover
 	&.exclude

@@ -18,8 +18,8 @@
 				<div v-if="state.isMobile && !state.menuOpen.info" class="infobutton" @click="state.menuOpen.info = true"></div>
 
 				<StatusBar />
-
 			</div>
+
 
 			<!-- <Legend v-if="state.showHelp"/> -->
 

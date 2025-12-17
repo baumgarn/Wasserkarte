@@ -200,6 +200,12 @@ export default {
 		left 0px
 		right 600px
 
+@media (min-width: 1650px) 
+	.wrapper:not(.sidebaropen) .topbar .statusbarouter
+		position fixed
+		left 0px
+		right 0px
+
 .is-mobile .statusbarouter
 	.statusbar
 		margin-top 0 

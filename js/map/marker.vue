@@ -281,7 +281,6 @@ export default {
 					isfiltered = false;
 				}
 			});
-			console.log(this.filteredDevices)
 			return isfiltered;
 		},
 		isInactive() { // no current telemetry

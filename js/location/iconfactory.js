@@ -1,5 +1,5 @@
 export const IconFactory = {
-	size: 30 * (window.devicePixelRatio || 1),
+	size: 30,
 	cache: new Map(),
 	textures: {},
 	textureUrls: {
@@ -33,13 +33,16 @@ export const IconFactory = {
 		return Promise.all(promises);
 	},
 
-	async getSoilIcon(obj) {
+	async getSoilIcon(obj, size) {
 		
-		const key = obj.short;
+		if (!size) size = this.size
+		
+		const key = obj.short + '_' + size;
+
 		if (this.cache.has(key)) return this.cache.get(key);
 
 		const dpr = window.devicePixelRatio || 1;
-		const px = this.size; // already multiplied by dpr
+		const px = size * dpr; // already multiplied by dpr
 		const canvas = document.createElement('canvas');
 		canvas.width = px;
 		canvas.height = px;
@@ -58,11 +61,11 @@ export const IconFactory = {
 		ctx.fill();
 
 		if (obj.short) {
-			ctx.font = '14px Arial';
-			ctx.fillStyle = '#00000070'
+			const fontsize = size * 0.45;
+			ctx.font = fontsize+'px Arial';
+			ctx.fillStyle = '#00000066'
 			ctx.textAlign = "center";
 			ctx.fillText(obj.short, cx, cy*1.35);
-
 		}
 
 		const dataUrl = canvas.toDataURL();
@@ -70,80 +73,17 @@ export const IconFactory = {
 		return dataUrl;
 	},
 	
-	// async getSoilIcon(obj) {
-	// 	await this.preloadTextures();
-		
-	// 	const instructions = obj.soilIcon;
-
-	// 	const key = JSON.stringify([instructions]);
-	// 	if (this.cache.has(key)) return this.cache.get(key);
-
-	// 	const dpr = window.devicePixelRatio || 1;
-	// 	const px = this.size; // already multiplied by dpr
-	// 	const canvas = document.createElement('canvas');
-	// 	canvas.width = px;
-	// 	canvas.height = px;
-	// 	const ctx = canvas.getContext('2d');
-
-	// 	ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale canvas to handle DPR
-
-	// 	let maxRadius = 0;
-	// 	const cx = px / (2 * dpr);
-	// 	const cy = px / (2 * dpr);
-
-	// 	// Draw soil circles
-	// 	// instructions.forEach(([type, scale]) => {
-	// 	// 	const radius = (px / 2) * scale / dpr;
-	// 	// 	maxRadius = Math.max(maxRadius, radius);
-	// 	// 	ctx.beginPath();
-	// 	// 	ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-	// 	// 	ctx.fillStyle = this.soilColors[type] || '#ccc';
-	// 	// 	ctx.fill();
-	// 	// });
-
-	// 	const radius = (px / 2) / dpr;
-	// 	ctx.beginPath();
-	// 	ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-	// 	ctx.fillStyle = obj.color || '#ccc';
-	// 	ctx.fill();
-
-	// 	if (obj.short) {
-	// 		ctx.font = '12px Arial';
-	// 		ctx.fillStyle = '#00000077'
-	// 		ctx.textAlign = "center";
-	// 		ctx.fillText(obj.short, cx, cy*1.3);
-
-	// 	}
-
-	// 	// // Overlay repeating texture, clipped
-	// 	// if (this.textures.soil?.complete) {
-	// 	// 	const pattern = ctx.createPattern(this.textures.soil, 'repeat');
-	// 	// 	ctx.save();
-	// 	// 	ctx.beginPath();
-	// 	// 	ctx.arc(cx, cy, maxRadius, 0, Math.PI * 2);
-	// 	// 	ctx.clip();
-
-	// 	// 	ctx.globalAlpha = .25;
-	// 	// 	ctx.fillStyle = pattern;
-	// 	// 	ctx.fill();
-	// 	// 	ctx.globalAlpha = 1;
-	// 	// 	ctx.restore();
-	// 	// }
-
-	// 	const dataUrl = canvas.toDataURL();
-	// 	this.cache.set(key, dataUrl);
-	// 	return dataUrl;
-	// },
-
-	async getHumusIcon(obj) {
+	async getHumusIcon(obj, size) {
 
 		const humuslevel = obj.humusIcon;
 
-		const key = 'humus' + humuslevel;
+		if (!size) size = this.size
+
+		const key = 'humus' + humuslevel + '_' + size;
 		if (this.cache.has(key)) return this.cache.get(key);
 
 		const dpr = window.devicePixelRatio || 1;
-		const px = this.size;
+		const px = size * dpr;
 		const canvas = document.createElement('canvas');
 		canvas.width = px;
 		canvas.height = px;
@@ -170,15 +110,17 @@ export const IconFactory = {
 		
 		if (obj.short) {
 			ctx.globalAlpha = 1;
-			ctx.font = '14px Arial';
-			ctx.fillStyle = '#00000070'
+			const fontsize = size * 0.45;
+			ctx.font = fontsize + 'px Arial';
+			ctx.fillStyle = '#00000066'
 			ctx.textAlign = "center";
-			ctx.fillText(obj.short, cx, cy * 1.3);
+			ctx.fillText(obj.short, cx, cy * 1.35);
 
 		}
 
 		const dataUrl = canvas.toDataURL();
 		this.cache.set(key, dataUrl);
+
 		return dataUrl;
 	},
 
@@ -191,7 +133,7 @@ export const IconFactory = {
 	// 	if (this.cache.has(key)) return this.cache.get(key);
 
 	// 	const dpr = window.devicePixelRatio || 1;
-	// 	const px = this.size;
+	// 	const px = size;
 	// 	const canvas = document.createElement('canvas');
 	// 	canvas.width = px;
 	// 	canvas.height = px;
