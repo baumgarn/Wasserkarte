@@ -37,17 +37,17 @@
 
 					<div class="filtericons">
 
-						<FilterIcon v-if="usageObj" :obj="usageObj" :size="26"/>
+						<FilterIcon v-if="usageObj" :obj="usageObj" :size="24"/>
 						
-						<FilterIcon v-if="bewaessertObj" :obj="bewaessertObj" :size="26"/>
+						<FilterIcon v-if="bewaessertObj" :obj="bewaessertObj" :size="24"/>
 						
-						<FilterIcon v-if="grundwasserObj" :obj="grundwasserObj" :size="26"/>
+						<FilterIcon v-if="grundwasserObj" :obj="grundwasserObj" :size="24"/>
 
-						<FilterIcon v-if="regenabhängigObj" :obj="regenabhängigObj" :size="26"/>
+						<FilterIcon v-if="regenabhängigObj" :obj="regenabhängigObj" :size="24"/>
 						
-						<FilterIcon v-if="soilObj" :obj="soilObj" :size="26"/>
+						<FilterIcon v-if="soilObj" :obj="soilObj" :size="24"/>
 
-						<FilterIcon v-if="humusObj" :obj="humusObj" :size="26"/>
+						<FilterIcon v-if="humusObj" :obj="humusObj" :size="24"/>
 
 					</div>
 
@@ -349,6 +349,7 @@ body.sensor-Bodenfeuchte .popupcontent
 		gap 2px
 		justify-content center
 		margin-bottom 4px
+		// filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 	.dataheader
 		font-size 8pt
 		display flex

@@ -71,6 +71,8 @@ export default {
 		// border 1px solid #00000011
 		border-radius 50%
 		background #e4e4e4
+		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+
 
 	// .warning
 	// .nolocationattributes
