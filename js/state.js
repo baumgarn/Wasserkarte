@@ -21,10 +21,6 @@ export const state = reactive({
 	devices: [],
 	faultyDevices: [],
 	cacheTime: 0,
-	uniqueBoden: [],
-	uniqueHumus: [],
-	uniqueSoilTypes: [],
-	uniqueTelemetryKeys: [],
 	loading: true,
 	telemetryLoaded: false,
 	wsmLayers: [],
@@ -101,3 +97,7 @@ watch(
 	},
 	{ immediate: true, deep: true }
 );
+
+
+
+if (state.markerStyle == 'nutzungsart' || state.markerStyle == 'wasserhaushalt' || state.markerStyle == 'bodenart' || state.markerStyle == 'humusgehalt') { state.markerStyle = 'Bodenfeuchte_Farbkreis' };

@@ -79,11 +79,4 @@ export default {
 	.map-marker.faux
 		pointer-events none
 
-	.map-marker.kreis
-		.schichten
-			border 1px solid #44444477
-			filter none
-			filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
-
-
 </style>

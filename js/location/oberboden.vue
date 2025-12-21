@@ -139,28 +139,6 @@
 			</div>
 
 		</div>
-
-		<div class="soilinfo">
-
-			<span class="filteritems" v-if="device" >
-
-				<FilterItem v-if="usageObj" :obj="usageObj"/>
-				
-				<FilterItem v-if="bewaessertObj" :obj="bewaessertObj"/>
-				
-				<FilterItem v-if="grundwasserObj" :obj="grundwasserObj"/>
-
-				<FilterItem v-if="regenabhängigObj" :obj="regenabhängigObj"/>
-				
-				<FilterItem v-if="soilObj" :obj="soilObj"/>
-
-				<FilterItem v-if="humusObj" :obj="humusObj"/>
-
-			</span>
-
-			<Beschreibung :beschreibung="device.attributes.Beschreibung" />
-
-		</div>
 				
 	</div>
 		
@@ -245,30 +223,6 @@
 			},
 			hasSoilAttributes() {
 				return (this.device.attributes.avg_FK && this.device.attributes.avg_TW)
-			},
-			usageObj() {
-				return dataModel.get_usage_obj(this.device);
-			},
-			soilObj() {
-				return dataModel.get_soil_obj(this.device);
-			},
-			humusObj() {
-				return dataModel.get_humus_obj(this.device);
-			},
-			bewaessertObj() {
-				if (this.device.attributes.Bewässerung) {
-					return dataModel.bewaessert_obj;
-				}
-			},
-			grundwasserObj() {
-				if (this.device.attributes.Grundwasser) {
-					return dataModel.grundwasser_obj;
-				}
-			},
-			regenabhängigObj() {
-				if (this.device.filterKeywords.indexOf(dataModel.regenabhängig_obj.name)>-1) {
-					return dataModel.regenabhängig_obj;
-				}
 			},
 			hoverOrLastData() {
 				return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
@@ -438,20 +392,6 @@
 		color #000000a8
 		font-weight 600
 		letter-spacing .01em
-	.soilinfo
-		margin 1.2em 0 .7em
-		font-size 9pt
-		.description
-		.filteritems
-			margin .2em 0
-			display inline-block
-		.filteritems
-			display flex
-			flex-wrap wrap
-			font-weight bold
-			gap 6px 2px
-			margin 0 -50px 8px -11px
-			// margin 0 -30px 8px -10px
 	@media (max-width 500px)
 		.nfklabel
 			font-size 14pt
@@ -476,10 +416,4 @@
 			flex-grow 1
 
 	
-</style>
-
-<style lang="stylus" >
-	.context-iframe .soilinfo .filteritems
-	.context-single .soilinfo .filteritems
-		margin-right 0
 </style>

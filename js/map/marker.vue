@@ -8,17 +8,19 @@
 		>
 		<div class="marker-outer" :class="{telemetryloaded: telemetryLoaded, filtered: isFiltered}">
 
-			<template v-if="isFiltered">
+			<template v-if="showProperty">
 
-				<div class="map-marker"
+				<div v-if="propertyObj" class="map-marker property"
 						:class="{ mouseover, selected: isSelected }"
 						@mouseenter="onMouseEnter"
 						@mouseleave="onMouseLeave"
 						@click="click"
 						@wheel="wheelForward"
 						>
-					<div class="filtered">
+					<div class="propertyicon">
 						
+						<FilterIcon :obj="propertyObj" :size="36"/>
+
 					</div>	
 				</div>
 				
@@ -121,11 +123,13 @@ import { dataModel } from '@/dataModel.js';
 import dataStore from '@/dataStore.js';
 import {state} from '@/state.js'
 import MapPopup from '@/map/popup.vue';
+import FilterIcon from '@/location/filtericon.vue';
 
 export default {
 	name: 'MapMarker',
 	components: {
-		MapPopup
+		MapPopup,
+		FilterIcon
 	},
 	setup() {
 		return {dataModel, displayutil}
@@ -150,7 +154,6 @@ export default {
 			return this.device.telemetry || {};
 		},
 		hasTelemetry() {
-			// console.log(this.device)
 			return Object.keys(this.device.telemetry).length > 0;
 		},
 		getLastValue() {
@@ -305,6 +308,41 @@ export default {
 			if (this.nfk_avg != null) {
 				return dataModel.get_nfk_color(this.nfk_avg);
 			}
+		},
+		usageObj() {
+			return dataModel.get_usage_obj(this.device);
+		},
+		soilObj() {
+			return dataModel.get_soil_obj(this.device);
+		},
+		humusObj() {
+			return dataModel.get_humus_obj(this.device);
+		},
+		bewaessertObj() {
+			if (this.device.attributes.Bewässerung) {
+				return dataModel.bewaessert_obj;
+			}
+		},
+		grundwasserObj() {
+			if (this.device.attributes.Grundwasser) {
+				return dataModel.grundwasser_obj;
+			}
+		},
+		regenabhängigObj() {
+			if (this.device.filterKeywords.indexOf(dataModel.regenabhängig_obj.name)>-1) {
+				return dataModel.regenabhängig_obj;
+			}
+		},
+		showProperty() {
+			return (this.markerStyle == 'nutzungsart' || this.markerStyle == 'bodenart' || this.markerStyle == 'humusgehalt' || this.markerStyle == 'wasserhaushalt')
+		},
+		propertyObj() {
+			if (this.markerStyle == 'nutzungsart') {return this.usageObj};
+			if (this.markerStyle == 'bodenart') {return this.soilObj};
+			if (this.markerStyle == 'humusgehalt') {return this.humusObj};
+			if (this.markerStyle == 'wasserhaushalt' && this.bewaessertObj) {return this.bewaessertObj};
+			if (this.markerStyle == 'wasserhaushalt' && this.grundwasserObj) {return this.grundwasserObj};
+			if (this.markerStyle == 'wasserhaushalt' && this.regenabhängigObj) {return this.regenabhängigObj};
 		}
 	},
 	methods: {

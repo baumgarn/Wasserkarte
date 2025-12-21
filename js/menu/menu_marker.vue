@@ -2,13 +2,144 @@
 	<div class="marker menuwindow">
 		<div class="menuwindow-header"><h3>Standort Darstellung</h3></div>
 		<div class="menuwindow-content">
+
+			<h4>
+				Bodenfeuchte
+			</h4>
+
 			<div
-				v-for="item in menuItems"
-				:key="item.value"
-				:class="['menu-item', item.value.replace(/\s+/g, '_'), { selected: markerStyle === item.value }]"
-				@click="selectSensor(item.value)"
+				class="menu-item bodenfeuchte Bodenfeuchte_Farbkreis"
+				:class="{ selected: markerStyle === 'Bodenfeuchte_Farbkreis' }"
+				@click="selectSensor('Bodenfeuchte_Farbkreis')"
 			>
-				{{ item.label }}
+				<div class="iconspace">
+
+					<FauxMarker />
+
+				</div>
+				<div class="label">
+
+					Farbkreis Schichten
+
+				</div>
+			</div>
+
+			<div
+				class="menu-item bodenfeuchte Bodenfeuchte_nfk"
+				:class="{ selected: markerStyle === 'Bodenfeuchte_nfk' }"
+				@click="selectSensor('Bodenfeuchte_nfk')"
+			>
+
+				<div class="iconspace">
+
+					<div class="map-marker einzeln">
+						<div class="schicht" :style="'background:'+dataModel.get_nfk_color(70)">
+							<div class="value">nFK<span class="unit">%</span></div>
+						</div>
+					</div>
+
+				</div>
+				<div class="label">
+
+					Pflanzenverfügbar
+
+				</div>
+				
+			</div>
+
+			<div
+				class="menu-item bodenfeuchte Bodenfeuchte_vol"
+				:class="{ selected: markerStyle === 'Bodenfeuchte_vol' }"
+				@click="selectSensor('Bodenfeuchte_vol')"
+			>
+
+				<div class="iconspace">
+
+					<div class="map-marker einzeln">
+						<div class="schicht" :style="'background:'+dataModel.get_nfk_color(120)">
+							<div class="value">Vol<span class="unit">%</span></div>
+						</div>
+					</div>
+
+				</div>
+				<div class="label">
+
+					Volumen
+
+				</div>
+				
+			</div>
+
+			<h4>Eigenschaften</h4>
+
+			<div
+				class="menu-item eigenschaften nutzungsart"
+				:class="{ selected: markerStyle === 'nutzungsart' }"
+				@click="selectSensor('nutzungsart')"
+			>
+
+				<div class="iconspace">
+
+					<FilterIcon :obj="dataModel.usage_table.MW" :size="22" />
+
+				</div>
+				<div class="label">
+
+					Nutzungsart
+
+				</div>
+				
+			</div>
+
+			<div
+				class="menu-item eigenschaften wasserhaushalt"
+				:class="{ selected: markerStyle === 'wasserhaushalt' }"
+				@click="selectSensor('wasserhaushalt')"
+			>
+				<div class="iconspace">
+
+					<FilterIcon :obj="dataModel.bewaessert_obj" :size="22" />
+
+				</div>
+				<div class="label">
+
+					Wasserhaushalt
+
+				</div>
+			</div>
+
+			<div
+				class="menu-item eigenschaften bodenart"
+				:class="{ selected: markerStyle === 'bodenart' }"
+				@click="selectSensor('bodenart')"
+			>
+				<div class="iconspace">
+
+					<FilterIcon :obj="dataModel.soil_table.Ss" :size="22" />
+
+				</div>
+				<div class="label">
+
+					Bodenart
+
+				</div>
+			</div>
+
+			<div
+				class="menu-item eigenschaften humusgehalt"
+				:class="{ selected: markerStyle === 'humusgehalt' }"
+				@click="selectSensor('humusgehalt')"
+			>
+				<div class="iconspace">
+
+					<FilterIcon :obj="dataModel.humus_table.h3" :size="22" />
+
+				</div>
+				<div class="label">
+
+					Humusgehalt
+
+				</div>
 			</div>
 
 		</div>
@@ -16,17 +147,16 @@
 </template>
 
 <script>
-import { displayutil } from '@/displayutil.js'
 import { state } from '@/state.js'
-import { dataModel } from '@/datamodel.js'
-import FilterItem from '@/location/filteritem.vue'
-import ColorSchemeSelect from '@/menu/colorscheme_select.vue'
+import FauxMarker from '@/map/legend_faux_marker.vue';
+import { dataModel } from '@/dataModel.js';
+import FilterIcon from '@/location/filtericon.vue';
 
 export default {
 	name: 'MarkerMenu',
-		components: {
-		ColorSchemeSelect,
-		FilterItem,
+	components: {
+		FauxMarker,
+		FilterIcon
 	},
 	setup() {
 		return {dataModel}
@@ -35,17 +165,6 @@ export default {
 		return {}
 	},
 	computed: {
-		menuItems() {
-			return [
-				{ label: 'Farbkreis Schichten', value: 'Bodenfeuchte_Farbkreis' },
-				{ label: 'Ø Nutzbare Feldkapazität %', value: 'Bodenfeuchte_nfk' },
-				{ label: 'Ø Volumen %', value: 'Bodenfeuchte_vol' },
-				// { label: '10cm Volumen %', value: 'Bodenfeuchte_10cm' },
-				// { label: '30cm Volumen %', value: 'Bodenfeuchte_30cm' },
-				// { label: '60cm Volumen %', value: 'Bodenfeuchte_60cm' },
-				// { label: '80cm Volumen %', value: 'Bodenfeuchte_80cm' }
-			]
-		},
 		markerStyle: {
 			get() {
 				return state.markerStyle
@@ -64,9 +183,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-	// .marker.menuwindow
-	// 	width 314px !important
-
 	.filteritems
 		display flex
 		flex-direction column
@@ -83,5 +199,59 @@ export default {
 		font-size 9.5pt
 		text-transform uppercase
 		border-top 1px solid #488eddaa
+	
+	.menu-item
+		display flex
+		align-items center
+		padding-left 2px
+		.iconspace
+			margin-right 4px
+			flex-basis 24px
+			height 24px
+			flex-grow 0
+			flex-shrink 0
+			display flex
+			align-items center
+			justify-content center
+			position relative
+			.map-marker
+				position relative
+				transform none
+				.schicht
+					padding-left 0
+					padding-right 0
+					width 46px
+					display flex
+					align-items center
+					justify-content center
+				.value
+					transform scale(0.8)
+
+	.menu-item.bodenfeuchte
+		height 28px
+	.menu-item.Bodenfeuchte_Farbkreis 
+		.iconspace
+			margin-left -6px
+			margin-right -2px
+		.map-marker.faux
+			transform scale(0.6)
+	.menu-item.Bodenfeuchte_nfk
+	.menu-item.Bodenfeuchte_vol
+		.iconspace
+			margin-left -3px
+		.map-marker .schicht
+			transform scale(0.8)
+
+	.menu-item.eigenschaften
+		height 28px
+		.iconspace
+			flex-basis 24px
+			filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+
+	// .menu-item.smaller
+	// 	height 30px
+	// 	display flex
+	// 	align-items center
+	// 	.iconspace
 
 </style>

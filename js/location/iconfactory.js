@@ -33,7 +33,7 @@ export const IconFactory = {
 		return Promise.all(promises);
 	},
 
-	async getSoilIcon(obj, size) {
+	async getShortcodeIcon(obj, size) {
 		
 		if (!size) size = this.size
 		
@@ -73,56 +73,6 @@ export const IconFactory = {
 		return dataUrl;
 	},
 	
-	async getHumusIcon(obj, size) {
-
-		const humuslevel = obj.humusIcon;
-
-		if (!size) size = this.size
-
-		const key = 'humus' + humuslevel + '_' + size;
-		if (this.cache.has(key)) return this.cache.get(key);
-
-		const dpr = window.devicePixelRatio || 1;
-		const px = size * dpr;
-		const canvas = document.createElement('canvas');
-		canvas.width = px;
-		canvas.height = px;
-		const ctx = canvas.getContext('2d');
-
-		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-		const cx = px / (2 * dpr);
-		const cy = px / (2 * dpr);
-		const radius = (px / 2) / dpr;
-
-		ctx.beginPath();
-		ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-		ctx.fillStyle = '#ffffff';
-		ctx.fill();
-
-		const alphas = [.05, .05, .2, .4, .7, 1];
-		ctx.globalAlpha = alphas[humuslevel] ?? 1;
-		
-		ctx.beginPath();
-		ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-		ctx.fillStyle = this.humusColor;
-		ctx.fill();
-		
-		if (obj.short) {
-			ctx.globalAlpha = 1;
-			const fontsize = size * 0.45;
-			ctx.font = fontsize + 'px Arial';
-			ctx.fillStyle = '#00000066'
-			ctx.textAlign = "center";
-			ctx.fillText(obj.short, cx, cy * 1.35);
-
-		}
-
-		const dataUrl = canvas.toDataURL();
-		this.cache.set(key, dataUrl);
-
-		return dataUrl;
-	},
 
 	// async getHumusIcon(obj) {
 	// 	await this.preloadTextures();

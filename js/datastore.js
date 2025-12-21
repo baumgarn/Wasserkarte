@@ -58,14 +58,20 @@ const dataStore = {
 
 		for (const key in result.devices) {
 			var device = result.devices[key];
+	
+			if (device.attributes?.Humusgehalt == 'h0-1') device.attributes.Humusgehalt = 'h0';
+			if (device.attributes?.Humusgehalt_10cm == 'h0-1') device.attributes.Humusgehalt_10cm = 'h0';
+			if (device.attributes?.Humusgehalt_20cm == 'h0-1') device.attributes.Humusgehalt_20cm = 'h0';
+			if (device.attributes?.Humusgehalt_30cm == 'h0-1') device.attributes.Humusgehalt_30cm = 'h0';
+			if (device.attributes?.Humusgehalt_40cm == 'h0-1') device.attributes.Humusgehalt_40cm = 'h0';
+
 			dataModel.wasserkapazität_setzen(device);
 			dataStore.addFilterKeywords(device)
+
 			state.devices.push(device);
 		}
 
-		state.uniqueTelemetryKeys = dataStore.extractUniqueTelemetryKeys(result.devices);
-		state.uniqueBoden = dataStore.extractUniqueAttributes(result.devices, 'Bodenart');
-		state.uniqueHumus = dataStore.extractUniqueAttributes(result.devices, 'Humusgehalt');
+
 
 		this.sortFaultyDevices();
 
@@ -255,33 +261,33 @@ const dataStore = {
 		return `${date} ${time} Uhr`;
 	},
 
-	extractUniqueTelemetryKeys(devices) {
-		const uniqueKeys = new Set();
-		devices.forEach(device => {
-			if (device.telemetry) {
-				Object.keys(device.telemetry).forEach(key => {
-					if (config.allowedTelemetryKeys.includes(key)) {
-						uniqueKeys.add(key);
-					}
-				});
-			}
-		});
-		return [...uniqueKeys].sort();
-	},
+	// extractUniqueTelemetryKeys(devices) {
+	// 	const uniqueKeys = new Set();
+	// 	devices.forEach(device => {
+	// 		if (device.telemetry) {
+	// 			Object.keys(device.telemetry).forEach(key => {
+	// 				if (config.allowedTelemetryKeys.includes(key)) {
+	// 					uniqueKeys.add(key);
+	// 				}
+	// 			});
+	// 		}
+	// 	});
+	// 	return [...uniqueKeys].sort();
+	// },
 
-	extractUniqueAttributes(devices, attribute) {
-		const uniqueKeys = new Set();
-		devices.forEach(device => {
-			if (device.attributes) {
-				Object.keys(device.attributes).forEach(key => {
-					if (key.includes(attribute)) {
-						uniqueKeys.add(device.attributes[key]);
-					}
-				});
-			}
-		});
-		return [...uniqueKeys].sort();
-	},
+	// extractUniqueAttributes(devices, attribute) {
+	// 	const uniqueKeys = new Set();
+	// 	devices.forEach(device => {
+	// 		if (device.attributes) {
+	// 			Object.keys(device.attributes).forEach(key => {
+	// 				if (key.includes(attribute)) {
+	// 					uniqueKeys.add(device.attributes[key]);
+	// 				}
+	// 			});
+	// 		}
+	// 	});
+	// 	return [...uniqueKeys].sort();
+	// },
 
 	sortFaultyDevices() {
 		state.faultyDevices = [];

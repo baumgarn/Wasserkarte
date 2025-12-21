@@ -18,8 +18,13 @@
 	import { state } from '@/state.js'
 
 	const props = defineProps({
-		beschreibung: { type: String, default: '' }
+		device: { type: Object, required: true }
 	})
+
+	const beschreibung = computed(() => {
+		return props.device.attributes.Beschreibung;
+	})
+
 
 	const box = ref(null)
 	const hasOverflow = ref(false)
@@ -83,6 +88,8 @@
 		text-overflow ellipsis
 		cursor default
 		min-width 0
+		font-size 9pt
+		margin 8px 0 17px
 
 		&.clickable
 			cursor pointer

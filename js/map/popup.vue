@@ -95,7 +95,7 @@ import { fromLonLat } from 'ol/proj.js';
 import { config } from '../config.js';
 import { state } from '../state.js';
 import { displayutil } from '../displayutil.js';
-import { dataModel } from '../dataModel.js';
+import { dataModel } from '../datamodel.js';
 import FilterIcon from '@/location/filtericon.vue';
 import dataStore from '../dataStore.js';
 
@@ -349,7 +349,7 @@ body.sensor-Bodenfeuchte .popupcontent
 		gap 2px
 		justify-content center
 		margin-bottom 4px
-		// filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 	.dataheader
 		font-size 8pt
 		display flex

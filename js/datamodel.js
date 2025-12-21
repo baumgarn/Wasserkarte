@@ -6,6 +6,8 @@ const soilColors = {
 	lehmigerSand: '#f0e1bc',
 };
 
+
+
 export const dataModel = {
 
 	color_schemes: {
@@ -71,7 +73,6 @@ export const dataModel = {
 			color: soilColors.sand,
 			TW: { "h0-1": 2, "h2": 3, "h3": 4, "h4": 6 },
 			FK: { "h0-1": 13, "h2": 16, "h3": 18, "h4": 23 },
-			soilIcon: [['sand',1]]
 		},
 		"Sl2": {
 			name: "Schwach lehmiger Sand",
@@ -79,7 +80,6 @@ export const dataModel = {
 			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 6, "h2": 7, "h3": 8, "h4": 9 },
 			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 },
-			soilIcon: [['sand', 1],['lehm', .25]]
 		},
 		"Sl3": {
 			name: "Mittel lehmiger Sand",
@@ -87,7 +87,6 @@ export const dataModel = {
 			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 9, "h2": 10, "h3": 10, "h4": 12 },
 			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
-			soilIcon: [['sand', 1], ['lehm', .4]]
 		},
 		// "Ls4": {
 		// 	name: "Sandiger Lehm",
@@ -100,22 +99,13 @@ export const dataModel = {
 	},
 
 	humus_table : {
-		"h0-1": { name: "Nahezu humusfrei", short:'h0', humusIcon: 0 },
-		"h1": { name: "Sehr schwach humos", short:'h1', humusIcon: 1 },
-		"h2": { name: "Schwach humos", short:'h2', humusIcon: 2 },
-		"h3": { name: "Mittel humos", short:'h3', humusIcon: 3 },
-		"h4": { name: "Stark humos", short:'h4', humusIcon: 4 },
+		"h0": { name: "Nahezu humusfrei", short:'h0', color: '#f7f6f6'},
+		"h1": { name: "Sehr schwach humos", short:'h1', color: '#fbf9f8'},
+		"h2": { name: "Schwach humos", short:'h2', color: '#f0e7e4'},
+		"h3": { name: "Mittel humos", short:'h3', color: '#decec9'},
+		"h4": { name: "Stark humos", short:'h4', color: '#c5aba0'},
 		// "org": { name: "Organisch", short:'org', humusIcon: 5 } 
 	},
-	// humus_table : {
-	// 	"h0-1": { name: "Nahezu humusfrei" },
-	// 	"h0": { name: "Nahezu humusfrei" },
-	// 	"h1": { name: "Sehr schwach humos" },
-	// 	"h2": { name: "Schwach humos" },
-	// 	"h3": { name: "Mittel humos" },
-	// 	"h4": { name: "Stark humos", borderColor: soilColors.humus},
-	// 	"org": { name: "Organisch"} 
-	// },
 
 	usage_table : {
 		"G": { name: 'Grünland', img: "Nutzungsart_Gruenland.svg" },

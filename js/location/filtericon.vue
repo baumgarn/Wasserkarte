@@ -56,14 +56,8 @@ export default {
 			}
 
 			try {
-				if (this.obj.humusIcon != null) {
-					const url = await IconFactory.getHumusIcon(this.obj, this.size);
-					if (token === this._loadToken) this.icon = url;
-					return;
-				}
-
-				if (this.obj.soilIcon) {
-					const url = await IconFactory.getSoilIcon(this.obj, this.size);
+				if (this.obj.short != null) {
+					const url = await IconFactory.getShortcodeIcon(this.obj, this.size);
 					if (token === this._loadToken) this.icon = url;
 					return;
 				}

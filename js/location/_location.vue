@@ -7,6 +7,8 @@
 	import * as d3 from 'd3'
 	import HeaderInfo from '@/location/headerinfo.vue';
 	import OberbodenUebersicht from '@/location/oberboden.vue';
+	import Beschreibung from '@/location/beschreibung.vue';
+	import SoilProperties from '@/location/soilproperties.vue';
 	import DebugInfo from '@/location/debuginfo.vue';
 	import ChartHeat from '@/charts/chart_heat.vue';
 	import ChartGraph from '@/charts/chart_graph.vue';
@@ -28,6 +30,8 @@
 		components: {
 			HeaderInfo,
 			OberbodenUebersicht,
+			SoilProperties,
+			Beschreibung,
 			ChartHeat,
 			ChartGraph,
 			ChartSettings,
@@ -377,7 +381,10 @@
 				</h2>
 								
 				<OberbodenUebersicht :device :hoverData />
+				<SoilProperties :device />
+				<Beschreibung :device />
 				
+
 			</div>
 			
 			<div class="right">
@@ -395,7 +402,9 @@
 			</h2>
 						
 			<OberbodenUebersicht :device :hoverData />
-					
+			<SoilProperties :device />
+			<Beschreibung :device />
+
 		</div>
 	
 		<ChartSettings v-if="hasBodenfeuchteSensors" :graphScale :frameWidth :graphPosition :dataPresent @range-update="handleRangeUpdate" :earliestTimestamp :latestTimestamp />

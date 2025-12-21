@@ -314,6 +314,23 @@ menuwidth = 250px
 	// box-shadow 0 1px 2px 2px #00000011
 	margin 0
 	padding 6px 6px
+	h4
+		margin 0 0 .5em
+		font-weight bold
+		padding-top .6em
+		margin-top 2em
+		margin-left 0
+		padding-left 4px
+		display block
+		color #488eddee
+		font-size 80%
+		font-size 9.5pt
+		text-transform uppercase
+		border-top 1px solid #488eddaa
+	h4:first-of-type
+		border-top none
+		margin-top 0
+		padding-top 0
 
 
 // MENU ITEM
@@ -964,7 +981,6 @@ hr
 	height auto
 	// filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 	.schichten
-		border 2px solid #44444433
 		border 2px solid #00000033
 		filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 		// border: 2px solid rgba(68,68,68,.467)
@@ -980,24 +996,32 @@ hr
 			width 100%
 			flex-grow 1
 
+.map-marker.property .propertyicon
+	position relative
+	left -8px
+	top -8px
+	width 36px
+	height 36px
+	filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+	.filtericon
+		border 2px solid #00000033
+		border-radius 50%
+
+
 .map-marker.selected .filtered
 .map-marker.selected .disabled
 .map-marker.selected .schichten
 .map-marker.einzeln.selected .schicht
-	border 2px solid #999
+.map-marker.property.selected .propertyicon .filtericon
+	border 2px solid #888
 	outline 2px solid #ffffffdd
-	// border 2px solid #fff
-	// outline 2px solid #00000044
 	filter: drop-shadow(0 1px 2px rgba(0,0,0,.45));
-	// outline 2px solid #ffffff
 
 .map-marker .disabled
 	width auto
 	height auto
-	// box-shadow 0 1px 2px 2px #00000011
 	width 20px
 	height 20px
-	// margin-left 1px
 	border-radius 50%
 	background #888
 	filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
@@ -1007,8 +1031,7 @@ hr
 	align-items center
 	justify-content center
 	color #000
-	// font-weight bold
-	text-align center
+	text-align centers
 
 .map-marker .disabled.warning
 	background #ea8d8dff

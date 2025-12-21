@@ -259,6 +259,25 @@ button.ol-zoom-out {
   margin: 0;
   padding: 6px 6px;
 }
+.menuwindow-content h4 {
+  margin: 0 0 0.5em;
+  font-weight: bold;
+  padding-top: 0.6em;
+  margin-top: 2em;
+  margin-left: 0;
+  padding-left: 4px;
+  display: block;
+  color: rgba(72,142,221,0.933);
+  font-size: 80%;
+  font-size: 9.5pt;
+  text-transform: uppercase;
+  border-top: 1px solid rgba(72,142,221,0.667);
+}
+.menuwindow-content h4:first-of-type {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
 .menu-item {
   cursor: pointer;
   width: 100%;
@@ -876,7 +895,6 @@ hr {
   height: auto;
 }
 .map-marker.kreis .schichten {
-  border: 2px solid rgba(68,68,68,0.2);
   border: 2px solid rgba(0,0,0,0.2);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
   width: 36px;
@@ -892,11 +910,24 @@ hr {
   width: 100%;
   flex-grow: 1;
 }
+.map-marker.property .propertyicon {
+  position: relative;
+  left: -8px;
+  top: -8px;
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+.map-marker.property .propertyicon .filtericon {
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 50%;
+}
 .map-marker.selected .filtered,
 .map-marker.selected .disabled,
 .map-marker.selected .schichten,
-.map-marker.einzeln.selected .schicht {
-  border: 2px solid #999;
+.map-marker.einzeln.selected .schicht,
+.map-marker.property.selected .propertyicon .filtericon {
+  border: 2px solid #888;
   outline: 2px solid rgba(255,255,255,0.867);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
 }
@@ -914,7 +945,7 @@ hr {
   align-items: center;
   justify-content: center;
   color: #000;
-  text-align: center;
+  text-align: centers;
 }
 .map-marker .disabled.warning {
   background: #ea8d8d;
