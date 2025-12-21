@@ -80,7 +80,7 @@
 
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.usage_table.MW" :size="22" />
+					<FilterIcon :obj="dataModel.usage_table.MW" :size="36" />
 
 				</div>
 				<div class="label">
@@ -98,7 +98,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.bewaessert_obj" :size="22" />
+					<FilterIcon :obj="dataModel.bewaessert_obj" :size="36" />
 
 				</div>
 				<div class="label">
@@ -115,7 +115,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.soil_table.Ss" :size="22" />
+					<FilterIcon :obj="dataModel.soil_table.Ss" :size="36" />
 
 				</div>
 				<div class="label">
@@ -132,7 +132,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.humus_table.h3" :size="22" />
+					<FilterIcon :obj="dataModel.humus_table.h3" :size="36" />
 
 				</div>
 				<div class="label">
@@ -203,11 +203,13 @@ export default {
 	.menu-item
 		display flex
 		align-items center
+		height 40px
+		border-radius 20px
 		padding-left 2px
 		.iconspace
 			margin-right 4px
-			flex-basis 24px
-			height 24px
+			margin-left -2px
+			flex-basis 40px
 			flex-grow 0
 			flex-shrink 0
 			display flex
@@ -227,25 +229,22 @@ export default {
 				.value
 					transform scale(0.8)
 
-	.menu-item.bodenfeuchte
-		height 28px
 	.menu-item.Bodenfeuchte_Farbkreis 
-		.iconspace
-			margin-left -6px
-			margin-right -2px
 		.map-marker.faux
-			transform scale(0.6)
+			transform scale(0.9)
+
 	.menu-item.Bodenfeuchte_nfk
 	.menu-item.Bodenfeuchte_vol
-		.iconspace
-			margin-left -3px
 		.map-marker .schicht
+			margin 0 -4px
+			position relative
+			left 2px
 			transform scale(0.8)
 
 	.menu-item.eigenschaften
-		height 28px
 		.iconspace
-			flex-basis 24px
+			.filtericon
+				transform scale(0.9)
 			filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 	// .menu-item.smaller
