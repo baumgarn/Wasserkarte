@@ -64,7 +64,9 @@ uicardgrau = #eee
 	--menubariconsize 42px
 	--timelineheight 32px
 	--timelinedatebg #33333388
-
+	--menusectionheadercolor #4c88ccff
+	--menuheaderline rgba(71, 111, 208, .4)
+	--menuheaderline #00000022
 
 body.is-mobile
 	--timelineheight 48px
@@ -315,22 +317,21 @@ menuwidth = 250px
 	margin 0
 	padding 6px 6px
 	h4
-		margin 0 0 .5em
 		font-weight bold
-		padding-top .6em
-		margin-top 2em
-		margin-left 0
-		padding-left 4px
+		padding-top 6px
+		margin 2em 4px .5em
+		// margin-left 0
+		// padding-left 4px
 		display block
-		color #488eddee
+		color var(--menusectionheadercolor)
 		font-size 80%
 		font-size 9.5pt
 		text-transform uppercase
-		border-top 1px solid #488eddaa
-	h4:first-of-type
+		border-top var(--thinline)
+	& > h4:first-of-type
 		border-top none
 		margin-top 0
-		padding-top 0
+		padding-top 6px
 
 
 // MENU ITEM

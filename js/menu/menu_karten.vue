@@ -85,8 +85,9 @@ export default {
 	max-width 100%
 
 .attribution
-	margin 5px 5px -20px 5px
+	margin 5px 5px -15px 5px
 	font-size 9.5pt
+	opacity .6
 
 .map-section-header
 	cursor default
@@ -99,10 +100,11 @@ export default {
 		padding-top 6px
 		margin-top 2em
 		display block
-		color #488eddee
+		color var(--menusectionheadercolor)
+		text-transform uppercase
 		font-size 80%
 		font-size 9.5pt
-		border-top 1px solid #488eddaa
+		border-top var(--thinline)
 
 .map-section-header + .map-section-header .title
 	margin-top -.1em
@@ -110,17 +112,17 @@ export default {
 .menu-item
 	margin-right -.25em
 
-.wms-provider h4 {
-	display none
-	border-bottom 1px solid #ccc
-	margin-left -.25em
-	margin-right -.5em
-	margin-bottom 0
-	margin-top 0
-	max-width 100%
-	padding 0
-	font-weight: bold;
-}
+// .wms-provider h4 {
+// 	display none
+// 	border-bottom 1px solid #ccc
+// 	margin-left -.25em
+// 	margin-right -.5em
+// 	margin-bottom 0
+// 	margin-top 0
+// 	max-width 100%
+// 	padding 0
+// 	font-weight: bold;
+// }
 .layer-item label
 	display flex
 	flex-direction row

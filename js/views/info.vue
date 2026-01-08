@@ -45,7 +45,7 @@
 							<div class="icon bodenfeuchte"></div>
 						</div>
 						<div class="legendtext">
-							Optionen für Markerdarstellung auf der Karte
+							Optionen für Standortdarstellung auf der Karte
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('filter', $event )">

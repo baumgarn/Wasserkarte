@@ -4,13 +4,51 @@
 		
 		<div class="bg"></div>
 
-		<FilterIcon v-if="type=='menuitem'" :obj :size="22"/>
-		<FilterIcon v-else-if="type=='statusbaritem'" :obj :size="36"/>
-		<FilterIcon v-else :obj :size="24"/>
+		<template v-if="type=='statusbaritem'">
+			
+			<FilterIcon :obj :size="36"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+			
+		</template>
 		
-		<div class="name">
-			{{ obj.name }}
-		</div>
+		<template v-else-if="type=='small'">
+
+			<FilterIcon :obj :size="22"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+			
+		</template>
+
+		<template v-else-if="type=='menuitem'">
+
+			<FilterIcon :obj :size="22"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+
+			<!-- <div class="count">
+				{{ obj.count ? obj.count : 0 }}
+			</div> -->
+			
+		</template>
+		
+		<template v-else-if="type=='pill'">
+			
+			<FilterIcon :obj :size="24"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+			
+		</template>
+
+		
 		
 	</div>
 </template>
@@ -169,6 +207,41 @@ export default {
 		margin-right .2em
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
+.filteritem.small
+	display flex
+	border none
+	border-radius none
+	box-shadow none
+	font-weight normal
+	justify-content flex-start
+	border none
+	height 20px
+	flex-basis 50%
+	flex-shrink 0
+	flex-grow 0
+	.name
+		flex-grow 1
+		flex-shrink 1
+		font-size 8pt
+		margin 0
+		text-align left
+		opacity .55
+		overflow hidden
+		text-overflow ellipsis
+	.filtericon
+		width 18px
+		height 18px
+		flex-basis 18px
+		flex-shrink 0
+		flex-grow 0
+		margin 0
+		margin-left 1px
+		margin-right 2px
+		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+	&.active
+	&.exclude
+		.bg
+			display none
 .filteritem.menuitem
 	border none
 	border-radius 3px
@@ -185,6 +258,12 @@ export default {
 		margin-left 1px
 		margin-right 2px
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+	.name
+		flex-grow 1
+	.count
+		padding-right 8px
+		font-size 9pt
+		opacity .4
 	&.active
 	&.active:hover
 	&.exclude

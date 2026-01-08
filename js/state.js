@@ -1,4 +1,4 @@
-import { reactive, watch } from 'vue';
+import { reactive, watch, shallowRef } from 'vue';
 import { fromLonLat } from 'ol/proj.js';
 import { config } from '@/config.js';
 
@@ -10,6 +10,7 @@ export const state = reactive({
 	includeFilter: [],
 	excludeFilter: [],
 	filteredDevices: [],
+	activeDevicesData: shallowRef([]),
 	selectedDevice: null,
 	selectedDeviceEmbed: null,
 	devicesMultiselect: [],
@@ -99,5 +100,5 @@ watch(
 );
 
 
-
+// on load, reset attribute marker styles to bodenfeuchte farbkreis
 if (state.markerStyle == 'nutzungsart' || state.markerStyle == 'wasserhaushalt' || state.markerStyle == 'bodenart' || state.markerStyle == 'humusgehalt') { state.markerStyle = 'Bodenfeuchte_Farbkreis' };

@@ -36,6 +36,9 @@
   --menubariconsize: 42px;
   --timelineheight: 32px;
   --timelinedatebg: rgba(51,51,51,0.533);
+  --menusectionheadercolor: #4c88cc;
+  --menuheaderline: rgba(71,111,208,0.4);
+  --menuheaderline: rgba(0,0,0,0.133);
 }
 body.is-mobile {
   --timelineheight: 48px;
@@ -260,23 +263,20 @@ button.ol-zoom-out {
   padding: 6px 6px;
 }
 .menuwindow-content h4 {
-  margin: 0 0 0.5em;
   font-weight: bold;
-  padding-top: 0.6em;
-  margin-top: 2em;
-  margin-left: 0;
-  padding-left: 4px;
+  padding-top: 6px;
+  margin: 2em 4px 0.5em;
   display: block;
-  color: rgba(72,142,221,0.933);
+  color: var(--menusectionheadercolor);
   font-size: 80%;
   font-size: 9.5pt;
   text-transform: uppercase;
-  border-top: 1px solid rgba(72,142,221,0.667);
+  border-top: var(--thinline);
 }
-.menuwindow-content h4:first-of-type {
+.menuwindow-content > h4:first-of-type {
   border-top: none;
   margin-top: 0;
-  padding-top: 0;
+  padding-top: 6px;
 }
 .menu-item {
   cursor: pointer;

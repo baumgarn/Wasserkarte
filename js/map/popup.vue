@@ -24,19 +24,34 @@
 					
 					<template v-else>
 
-						<div class="nfklabel">
+						<!-- <div class="nfklabeltop">
 							<div class="name">
 								{{ nfk_label }}
 							</div>
 							<div class="nameoverlay">
 								{{ nfk_label }}
 							</div>
-						</div>
+						</div> -->
 
 					</template>
 
-					<div class="filtericons">
+					<div class="filteritems">
 
+						<FilterItem v-if="usageObj" :obj="usageObj" type="small"/>
+						
+						<FilterItem v-if="soilObj" :obj="soilObj" type="small"/>
+
+						<FilterItem v-if="bewaessertObj" :obj="bewaessertObj" type="small"/>
+						
+						<FilterItem v-if="grundwasserObj" :obj="grundwasserObj" type="small"/>
+
+						<FilterItem v-if="regenabhängigObj" :obj="regenabhängigObj" type="small"/>
+						
+
+						<FilterItem v-if="humusObj" :obj="humusObj" type="small"/>
+
+
+						<!-- 
 						<FilterIcon v-if="usageObj" :obj="usageObj" :size="24"/>
 						
 						<FilterIcon v-if="bewaessertObj" :obj="bewaessertObj" :size="24"/>
@@ -47,33 +62,36 @@
 						
 						<FilterIcon v-if="soilObj" :obj="soilObj" :size="24"/>
 
-						<FilterIcon v-if="humusObj" :obj="humusObj" :size="24"/>
+						<FilterIcon v-if="humusObj" :obj="humusObj" :size="24"/> -->
 
 					</div>
 
 					<template v-if="!isInactive">
 
 						<div v-if="bodenfeuchteSensors.length > 0">
-							<div class="dataheader">
+							<!-- <div class="dataheader">
 								<div class="left">Tiefe</div>
 								<div class="right">Bodenfeuchte</div>
-							</div>
+							</div> -->
 							<div class="datarow" v-if="lastData.Bodenfeuchte_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)">
 								<div class="depth">10 cm</div>
-								<!-- <div class="nfk">{{ formatNumber(lastData.nfk_10cm) }}<span class="unit"> <span class="smaller">nFK</span> %</span></div> -->
-								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_10cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_10cm) }}</div>
+								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_10cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)">
 								<div class="depth">30 cm</div>
-								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_30cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_30cm) }}</div>
+								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_30cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)">
-								<div class="depth">60 cm</div>
-								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_60cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+									<div class="depth">60 cm</div>
+								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_60cm) }}</div>
+								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_60cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)">
-								<div class="depth">80 cm</div>
-								<div class="value">{{ formatNumber(lastData.Bodenfeuchte_80cm) }}<span class="unit"> <span class="smaller">Vol</span> %</span></div>
+									<div class="depth">80 cm</div>
+								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_80cm) }}</div>
+								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_80cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
 							</div>
 						</div>
 			
@@ -96,12 +114,13 @@ import { config } from '../config.js';
 import { state } from '../state.js';
 import { displayutil } from '../displayutil.js';
 import { dataModel } from '../datamodel.js';
-import FilterIcon from '@/location/filtericon.vue';
 import dataStore from '../dataStore.js';
+import FilterIcon from '@/location/filtericon.vue';
+import FilterItem from '@/location/filteritem.vue';
 
 export default {
 	name: "MapPopup",
-	components: {FilterIcon},
+	components: {FilterIcon, FilterItem},
 	setup() {
 		return {state};
 	},
@@ -224,6 +243,9 @@ export default {
 		formatNumber(floatString) {
 			return parseFloat(floatString).toFixed(1).replace('.', ',');
 		},
+		formatInteger(floatString) {
+			return Math.max(0,parseFloat(floatString).toFixed(0));
+		},
 		updatePopupPosition() {
 			const overlayEl = this.$refs.overlay?.$el;
 			if (!overlayEl) return;
@@ -312,15 +334,15 @@ body.sensor-Bodenfeuchte .popupcontent
 	border-radius: 12px;
 	background #fff
 	overflow hidden
-	width 190px
+	width 220px
 	border 2px solid white
 	padding 0 0
 	text-align center
+	font-size 8pt
 	.popupheader
-		margin 0
+		margin 0 0 4px
 		font-weight bold
 		font-size 100%
-		font-size 9pt
 	.notelemetry
 		font-size 8pt
 		margin 6px 0 8px
@@ -328,9 +350,9 @@ body.sensor-Bodenfeuchte .popupcontent
 		opacity .75
 		text-transform uppercase
 		color var(--warningred)
-	.nfklabel
+	.nfklabeltop
 		font-weight bold
-		font-size 9pt
+		font-size 8pt
 		margin 2px 8px 8px
 		letter-spacing 0.03em;
 		position relative
@@ -344,9 +366,11 @@ body.sensor-Bodenfeuchte .popupcontent
 			top 0
 			right 0
 			opacity .15
-	.filtericons
+	.filteritems
 		display flex
-		gap 2px
+		flex-direction row
+		flex-wrap wrap
+		gap 3px 0
 		justify-content center
 		margin-bottom 4px
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
@@ -375,13 +399,29 @@ body.sensor-Bodenfeuchte .popupcontent
 		align-items center
 		justify-content space-between
 		width 100%
+		font-size 8pt
 		.depth
 			text-align left
-			flex-basis 50%
-			font-size 8pt
 			opacity .55
+		.nfklabel
+			white-space nowrap
+			text-overflow ellipsis
+			overflow hidden
+			text-align center
+			opacity .55
+			flex-grow 1
+		.nfk
+			flex-basis 60px
+			flex-shrink 0
+			flex-grow 0
+			white-space nowrap
+			text-align right
+		.depth
+			flex-basis 60px
+			flex-shrink 0
+			flex-grow 0
+			// background red
 		.value
-			flex-basis 50%
 			text-align right
 			font-weight bold
 			font-size 10pt

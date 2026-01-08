@@ -66,7 +66,7 @@ const dataStore = {
 			if (device.attributes?.Humusgehalt_40cm == 'h0-1') device.attributes.Humusgehalt_40cm = 'h0';
 
 			dataModel.wasserkapazität_setzen(device);
-			dataStore.addFilterKeywords(device)
+			dataStore.processFilterKeywords(device)
 
 			state.devices.push(device);
 		}
@@ -81,20 +81,38 @@ const dataStore = {
 	},
 
 
-	addFilterKeywords(device) {
-			device.filterKeywords = [];
-			const nutzung = dataModel.get_usage_name(device);
-			const boden = dataModel.get_soil_name(device);
-			const humus = dataModel.get_humus_name(device);
-			if (nutzung) device.filterKeywords.push(nutzung);
-			if (boden) device.filterKeywords.push(boden);
-			if (humus) device.filterKeywords.push(humus);
+	processFilterKeywords(device) {
+		device.filterKeywords = [];
+		const nutzung = dataModel.get_usage_obj(device);
+		const boden = dataModel.get_soil_obj(device);
+		const humus = dataModel.get_humus_obj(device);
+		if (nutzung) {
+			device.filterKeywords.push(nutzung.name);
+			if (!nutzung.count) nutzung.count = 0;
+			nutzung.count ++;
+		}
+		if (boden) {
+			device.filterKeywords.push(boden.name);
+			if (!boden.count) boden.count = 0;
+			boden.count++;
+		}
+		if (humus) {
+			device.filterKeywords.push(humus.name);
+			if (!humus.count) humus.count = 0;
+			humus.count++;
+		}
 		if (device?.attributes?.Bewässerung) { 
 			device.filterKeywords.push(dataModel.bewaessert_obj.name);
+			if (!dataModel.bewaessert_obj.count) dataModel.bewaessert_obj.count = 0;
+			dataModel.bewaessert_obj.count++;
 		} else if (device?.attributes?.Grundwasser) { 
 			device.filterKeywords.push(dataModel.grundwasser_obj.name);
+			if (!dataModel.grundwasser_obj.count) dataModel.grundwasser_obj.count = 0;
+			dataModel.grundwasser_obj.count++;
 		} else {
 			device.filterKeywords.push(dataModel.regenabhängig_obj.name);
+			if (!dataModel.regenabhängig_obj.count) dataModel.regenabhängig_obj.count = 0;
+			dataModel.regenabhängig_obj.count++;
 		}
 	},
 

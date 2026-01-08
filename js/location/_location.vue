@@ -208,7 +208,9 @@
 					xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1
 				};
 
-				state.timelineDate = closestTs;
+				if (this.hoverPosition >= 0) {
+					state.timelineDate = closestTs;
+				}
 
 				const colIndex = Object.fromEntries(this.sensorData.schema.map((k, i) => [k, i]));
 
@@ -503,7 +505,6 @@
 			Alle Standorte auf der Wasserkarte ansehen
 		</div>
 	</div>
-
 	
 	<div class="additional" v-if="context=='sidebar' && debugAttributes">
 		<DebugInfo :device="device" :showTitle="false"></DebugInfo>

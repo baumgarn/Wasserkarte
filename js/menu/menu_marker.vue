@@ -188,17 +188,17 @@ export default {
 		flex-direction column
 		gap 0
 		margin 0
-	h4
-		margin 0 0 .5em
-		font-weight bold
-		padding-top .6em
-		margin-top 2em
-		display block
-		color #488eddee
-		font-size 80%
-		font-size 9.5pt
-		text-transform uppercase
-		border-top 1px solid #488eddaa
+	// h4
+	// 	margin 0 0 .5em
+	// 	font-weight bold
+	// 	padding-top .6em
+	// 	margin-top 2em
+	// 	display block
+	// 	// color #488eddee
+	// 	font-size 80%
+	// 	font-size 9.5pt
+	// 	text-transform uppercase
+		// border-top 1px solid #488eddaa
 	
 	.menu-item
 		display flex

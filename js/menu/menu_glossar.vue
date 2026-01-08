@@ -169,12 +169,19 @@ export default {
 
 .glossar-item
 	margin 0 0 16px
-	padding 4px 6px
+	padding 4px 4px
 	font-size 12px
 
 .glossar-item-header
-	font-size 14px
+	font-size 9.5pt
 	margin 0 0 8px
+	padding 6px 0 0
+
+.glossar-item:first-of-type .glossar-item-header
+	border-top none
+	margin-top 0
+.glossar-item:first-of-type
+	padding-top 0
 
 table
 	border-spacing 0
@@ -187,6 +194,7 @@ table
 		padding 3px 0
 		margin 0
 		padding-right 24px
+		padding-right 12px
 
 
 	

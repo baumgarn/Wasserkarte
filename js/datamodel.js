@@ -44,10 +44,6 @@ export const dataModel = {
 		
 	},
 
-	
-	// lehm: '#c2a67b',
-
-
 
 	nfk_labels : [
 		{ value: 0, name: 'Kein Wasser verfügbar'}, 	//  < 0
@@ -57,14 +53,6 @@ export const dataModel = {
 		{ value: 110, name: 'Nass'},					// 90 - 110
 		{ value: 120, name: 'Sehr nass'},				// > 110
 	],
-
-	// nfk_labels : [
-	// 	{ value: 10, name: 'Sehr trocken'}, //  0 - 10
-	// 	{ value: 30, name: 'Trocken'},		// 10 - 30
-	// 	{ value: 80, name: 'Optimal'},		// 30 - 80
-	// 	{ value: 100, name: 'Nass'},		// 80 - 100
-	// 	{ value: 120, name: 'Sehr nass'},	// 100 +
-	// ],
 
 	soil_table : {
 		"Ss": {
@@ -104,7 +92,7 @@ export const dataModel = {
 		"h2": { name: "Schwach humos", short:'h2', color: '#f0e7e4'},
 		"h3": { name: "Mittel humos", short:'h3', color: '#decec9'},
 		"h4": { name: "Stark humos", short:'h4', color: '#c5aba0'},
-		// "org": { name: "Organisch", short:'org', humusIcon: 5 } 
+		// "org": { name: "Organisch", short:'org' } 
 	},
 
 	usage_table : {
