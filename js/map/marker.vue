@@ -297,7 +297,7 @@ export default {
 		},
 		displayData() {
 			if (state.timelineDate && this.telemetryData){
-				const data = dataStore.getDataAtTimestamp(this.device.id, state.timelineDate);
+				const data = dataStore.getDataAtTimestamp(this.device.index, state.timelineDate);
 				if (data) {
 					return data;
 				}

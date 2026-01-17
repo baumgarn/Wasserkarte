@@ -72,7 +72,7 @@ export default {
 			if (this.hoverPosition > -1) {
 				const fraction = this.hoverPosition / this.timelineWidth;
 				ts = this.earliestTimestamp + fraction * this.timelineSpan;
-				state.timelineDate = ts;
+				state.timelineDate = this.floorToMidnight(ts);
 				return ts;
 			} else if (state.timelineDate && this.hoverPosition < 0 ) {
 				return state.timelineDate;
@@ -132,16 +132,16 @@ export default {
 				// draw each row from its ts to the next ts (or +1 day for the last)
 				let x = 0; // running x, but we'll compute directly from time to avoid drift
 				for (let i = 0; i < rows.length; i++) {
-				const [ts, nfk] = rows[i];
-				const nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
+					const [ts, nfk] = rows[i];
+					const nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
 
-				const startRel = ts - this.earliestTimestamp;      // ms from start
-				const endRel = nextTs - this.earliestTimestamp;    // ms from start
-				const segX = startRel * this.dayWidth;
-				const segW = (endRel - startRel) * this.dayWidth + 1;
+					const startRel = ts - this.earliestTimestamp;      // ms from start
+					const endRel = nextTs - this.earliestTimestamp;    // ms from start
+					const segX = startRel * this.dayWidth;
+					const segW = (endRel - startRel) * this.dayWidth + 1;
 
-				ctx.fillStyle = dataModel.get_nfk_color(nfk);
-				ctx.fillRect(segX, 0, segW, 1);
+					ctx.fillStyle = dataModel.get_nfk_color(nfk);
+					ctx.fillRect(segX, 0, segW, 1);
 				}
 
 				// optional thin top line for definition
@@ -165,7 +165,11 @@ export default {
 		toTimelineX(ts) {
 			if (!this.timelineWidth || !this.timelineSpan) return 0;
 			return ((ts - this.earliestTimestamp) / this.timelineSpan) * this.timelineWidth;
-		}
+		},
+		floorToMidnight(timestamp) {
+			const msPerDay = 24 * 60 * 60 * 1000;
+			return Math.floor(timestamp / msPerDay) * msPerDay;
+		},
 	},
 	watch: {
 		telemetryLoaded() {

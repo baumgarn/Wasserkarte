@@ -76,22 +76,22 @@
 							<div class="datarow" v-if="lastData.Bodenfeuchte_10cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_10cm)">
 								<div class="depth">10 cm</div>
 								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_10cm) }}</div>
-								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_10cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
+								<div class="vol"><span class="value">{{ formatNumber(lastData.Bodenfeuchte_10cm) }}</span><span class="unit"> <span class="smaller">Vol</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_30cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_30cm)">
 								<div class="depth">30 cm</div>
 								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_30cm) }}</div>
-								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_30cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
+								<div class="vol"><span class="value">{{ formatNumber(lastData.Bodenfeuchte_30cm) }}</span><span class="unit"> <span class="smaller">Vol</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_60cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_60cm)">
 									<div class="depth">60 cm</div>
 								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_60cm) }}</div>
-								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_60cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
+								<div class="vol"><span class="value">{{ formatNumber(lastData.Bodenfeuchte_60cm) }}</span><span class="unit"> <span class="smaller">Vol</span> %</span></div>
 							</div>
 							<div class="datarow" v-if="lastData.Bodenfeuchte_80cm != undefined" :style="'background:'+dataModel.get_nfk_color(lastData.nfk_80cm)">
 									<div class="depth">80 cm</div>
 								<div class="nfklabel">{{ dataModel.get_nfk_label(lastData.nfk_80cm) }}</div>
-								<div class="nfk"><span class="value">{{ formatInteger(lastData.nfk_80cm) }}</span><span class="unit"> <span class="smaller">nFK</span> %</span></div>
+								<div class="vol"><span class="value">{{ formatNumber(lastData.Bodenfeuchte_80cm) }}</span><span class="unit"> <span class="smaller">Vol</span> %</span></div>
 							</div>
 						</div>
 			
@@ -410,6 +410,7 @@ body.sensor-Bodenfeuchte .popupcontent
 			text-align center
 			opacity .55
 			flex-grow 1
+		.vol
 		.nfk
 			flex-basis 60px
 			flex-shrink 0
@@ -417,7 +418,7 @@ body.sensor-Bodenfeuchte .popupcontent
 			white-space nowrap
 			text-align right
 		.depth
-			flex-basis 60px
+			flex-basis 50px
 			flex-shrink 0
 			flex-grow 0
 			// background red

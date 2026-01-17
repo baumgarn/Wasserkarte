@@ -55,6 +55,10 @@ export default {
 
 		<div class="datagroup">
 			<div class="datarow">
+				<div class="label">label</div>
+				<div class="value">{{ device.label }}</div>
+			</div>
+			<div class="datarow">
 				<div class="label">name</div>
 				<div class="value">{{ device.name }}</div>
 			</div>
@@ -63,8 +67,8 @@ export default {
 				<div class="value">{{ device.id }}</div>
 			</div>
 			<div class="datarow">
-				<div class="label">label</div>
-				<div class="value">{{ device.label }}</div>
+				<div class="label">index</div>
+				<div class="value">{{ device.index }}</div>
 			</div>
 		</div>
 

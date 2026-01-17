@@ -15,7 +15,7 @@ const dataStore = {
 	async fetchDevicesData() {
 		try {
 			// Fetch device data file and all telemetry file 
-			const devicesPromise = fetch(cacheddevicesurl + '?' + dataStore.getTimestamp())
+			const devicesPromise = fetch(cacheddevicesurl + '?' + dataStore.getTimestampForApiRequest())
 				.then(res => res.arrayBuffer())
 				.then(buf => {
 					const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
@@ -26,7 +26,7 @@ const dataStore = {
 					return data; //
 				});
 
-			const telemetryPromise = fetch(alltelemetryurl + '?' + dataStore.getTimestamp())
+			const telemetryPromise = fetch(alltelemetryurl + '?' + dataStore.getTimestampForApiRequest())
 				.then(res => res.arrayBuffer())
 				.then(buf => {
 
@@ -55,23 +55,23 @@ const dataStore = {
 	processDevices(result) {
 		state.devices = [];
 		state.cacheTime = result.telemetryCacheTimestamp;
-
+		let index = 0;
+		
 		for (const key in result.devices) {
 			var device = result.devices[key];
-	
+			device.index = index;
+			
 			if (device.attributes?.Humusgehalt == 'h0-1') device.attributes.Humusgehalt = 'h0';
 			if (device.attributes?.Humusgehalt_10cm == 'h0-1') device.attributes.Humusgehalt_10cm = 'h0';
 			if (device.attributes?.Humusgehalt_20cm == 'h0-1') device.attributes.Humusgehalt_20cm = 'h0';
 			if (device.attributes?.Humusgehalt_30cm == 'h0-1') device.attributes.Humusgehalt_30cm = 'h0';
 			if (device.attributes?.Humusgehalt_40cm == 'h0-1') device.attributes.Humusgehalt_40cm = 'h0';
-
-			dataModel.wasserkapazität_setzen(device);
+			
 			dataStore.processFilterKeywords(device)
-
-			state.devices.push(device);
+			
+			state.devices[index] = device;
+			index++;
 		}
-
-
 
 		this.sortFaultyDevices();
 
@@ -122,7 +122,7 @@ const dataStore = {
 
 		for (const [deviceId, deviceTelemetry] of Object.entries(result.devices)) {
 			
-			const device = this.getDevice(deviceId);
+			const device = this.getDeviceById(deviceId);
 			let telemetry = deviceTelemetry;
 			
 			// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
@@ -168,7 +168,7 @@ const dataStore = {
 		
 				// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
 				// if (aggregation === "1d") { 
-				// 	const device = this.getDevice(deviceId);
+				// 	const device = this.getDeviceById(deviceId);
 				// 	const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
 				// 	json.telemetry.data.push(lastTelemetryData);
 				// }
@@ -222,6 +222,19 @@ const dataStore = {
 		return `/api/?deviceId=${deviceId}&time=${timerange}&agg=${aggregation}`;
 	},
 
+	// timestamp used to prevend already cached json request
+	getTimestampForApiRequest() {
+
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+		const hour = String(now.getHours()).padStart(2, '0');
+
+		return `${year}${month}${day}${hour}`;
+	},
+
+
 	hoursSinceLastTelemetry(deviceId) {
 
 		if (this.dataCache[deviceId]) {
@@ -230,7 +243,7 @@ const dataStore = {
 			return hours
 		}
 
-		const device = this.getDevice(deviceId);
+		const device = this.getDeviceById(deviceId);
 
 		let latestTimestamp = 0;
 
@@ -253,7 +266,7 @@ const dataStore = {
 	},
 
 	lastTelemetry(deviceId) {
-		const device = this.getDevice(deviceId);
+		const device = this.getDeviceById(deviceId);
 		if (!device || !device.telemetry || !device.telemetry.received_at) {
 			return '-';
 		}
@@ -278,34 +291,6 @@ const dataStore = {
 		});
 		return `${date} ${time} Uhr`;
 	},
-
-	// extractUniqueTelemetryKeys(devices) {
-	// 	const uniqueKeys = new Set();
-	// 	devices.forEach(device => {
-	// 		if (device.telemetry) {
-	// 			Object.keys(device.telemetry).forEach(key => {
-	// 				if (config.allowedTelemetryKeys.includes(key)) {
-	// 					uniqueKeys.add(key);
-	// 				}
-	// 			});
-	// 		}
-	// 	});
-	// 	return [...uniqueKeys].sort();
-	// },
-
-	// extractUniqueAttributes(devices, attribute) {
-	// 	const uniqueKeys = new Set();
-	// 	devices.forEach(device => {
-	// 		if (device.attributes) {
-	// 			Object.keys(device.attributes).forEach(key => {
-	// 				if (key.includes(attribute)) {
-	// 					uniqueKeys.add(device.attributes[key]);
-	// 				}
-	// 			});
-	// 		}
-	// 	});
-	// 	return [...uniqueKeys].sort();
-	// },
 
 	sortFaultyDevices() {
 		state.faultyDevices = [];
@@ -337,7 +322,11 @@ const dataStore = {
 		return state.faultyDevices;
 	},
 
-	getDevice(deviceId) {
+	getDeviceByIndex(index) {
+		return state.devices[index];
+	},
+
+	getDeviceById(deviceId) {
 		return state.devices.find(device => device.id === deviceId);
 	},
 	
@@ -346,26 +335,47 @@ const dataStore = {
 		return state.devices.find(device => device.name === deviceName);
 	},
 
-	getTimestamp() {
+	
+	// getDataAtTimestamp(deviceId, timestamp) {
+	// 	const data = this.fetchTelemetryCache(deviceId)?.data;
+	// 	const index = this.get_telemetry_index_binary(data, timestamp);
+	// 	if (index > -1) {
+	// 		return data[index];
+	// 	}
+	// },
 
-		const now = new Date();
-		const year = now.getFullYear();
-		const month = String(now.getMonth() + 1).padStart(2, '0');
-		const day = String(now.getDate()).padStart(2, '0');
-		const hour = String(now.getHours()).padStart(2, '0');
+	getDataAtTimestamp(deviceIndex, timestamp) {
 
-		return `${year}${month}${day}${hour}`;
-	},
-
-	getDataAtTimestamp(deviceId, timestamp) {
-		const data = this.fetchTelemetryCache(deviceId)?.data;
-		const index = this.get_index_binary(data, timestamp);
-		if (index > -1) {
-			return data[index];
+		const telemetryRows = dataStore.getTelemetryForDay(timestamp);
+		// For a device:
+		const row = telemetryRows[deviceIndex];
+		if (row) {
+			return row;
 		}
 	},
 
-	get_index_binary(data, timestamp) { // binary search timestamp
+	// Gets all telemetry rows for a given day and caches them 
+	getTelemetryForDay(timestamp) {
+		if (!this.dayCache) this.dayCache = {};
+
+		// Return cached if available
+		if (this.dayCache[timestamp]) return this.dayCache[timestamp];
+		
+		// Build cache for this day
+		const rows = state.devices.map(device => {
+			const telemetry = this.fetchTelemetryCache(device.id)?.data;
+			if (!telemetry?.length) return null;
+
+			const idx = this.get_telemetry_index_binary(telemetry, timestamp);
+			return idx >= 0 ? telemetry[idx] : null;
+		});
+
+		this.dayCache[timestamp] = rows;
+		return rows;
+	},
+
+	// Binary search timestamp in telemetry rows
+	get_telemetry_index_binary(data, timestamp) { 
 		const n = data.length;
 		if (n < 2) return -1;
 		let lo = 0, hi = n; // search in [0, n)

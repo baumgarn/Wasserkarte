@@ -174,7 +174,7 @@ function floorToLocalMidnightMs(int $tsMs, string $tzId = 'Europe/Berlin'): int
 	$dt->setTime(0, 0, 0);                          // snap to local midnight
 	return $dt->getTimestamp() * 1000;              // back to UTC ms
 }
-function ceilToLocalMidnightPlusOneMinuteMs(int $tsMs, string $tzId = 'Europe/Berlin'): int
+function ceilToLocalMidnight(int $tsMs, string $tzId = 'Europe/Berlin'): int
 {
 	$tz = new DateTimeZone($tzId);
 	$dt = new DateTime('@' . intdiv($tsMs, 1000)); // interpret as UTC instant
@@ -218,8 +218,8 @@ function buildSchemaData(array $telemetryData, array $schema, $aggregation)
 				continue; // skip malformed entry
 			}
 
-			if ($aggregation == '1d') { // if daily aggregation, floor all timestamps to 00:00
-				$entry['ts'] = ceilToLocalMidnightPlusOneMinuteMs($entry['ts']);
+			if ($aggregation == '1d') { // if daily aggregation, ceil all timestamps to 00:00
+				$entry['ts'] = ceilToLocalMidnight($entry['ts']);
 			}
 
 			$ts = (int)$entry['ts'];
