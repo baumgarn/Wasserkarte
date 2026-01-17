@@ -72,7 +72,7 @@ export default {
 			if (this.hoverPosition > -1) {
 				const fraction = this.hoverPosition / this.timelineWidth;
 				ts = this.earliestTimestamp + fraction * this.timelineSpan;
-				state.timelineDate = this.floorToMidnight(ts);
+				state.timelineDate = dataStore.floorToMidnight(ts);
 				return ts;
 			} else if (state.timelineDate && this.hoverPosition < 0 ) {
 				return state.timelineDate;
@@ -165,10 +165,6 @@ export default {
 		toTimelineX(ts) {
 			if (!this.timelineWidth || !this.timelineSpan) return 0;
 			return ((ts - this.earliestTimestamp) / this.timelineSpan) * this.timelineWidth;
-		},
-		floorToMidnight(timestamp) {
-			const msPerDay = 24 * 60 * 60 * 1000;
-			return Math.floor(timestamp / msPerDay) * msPerDay;
 		},
 	},
 	watch: {

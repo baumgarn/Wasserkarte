@@ -3,6 +3,7 @@ import { toRaw } from 'vue';
 import { state } from './state.js';
 import { dataModel } from './datamodel.js';
 import { config } from './config.js';
+import { displayutil } from './displayutil.js';
 import pako from 'pako';
 
 const cacheddevicesurl = '/api/cache/devices.json.gz'
@@ -119,7 +120,9 @@ const dataStore = {
 	processAllTelemetry(result) {
 
 		this.nfk_daily_averages = result.nfk_daily_averages;
-
+		this.earliestTimestamp = result.earliestTimestamp;
+		this.latestTimestamp = result.latestTimestamp;
+		
 		for (const [deviceId, deviceTelemetry] of Object.entries(result.devices)) {
 			
 			const device = this.getDeviceById(deviceId);
@@ -139,6 +142,10 @@ const dataStore = {
 			this.dataCache[cacheKey] = telemetry;
 			state.telemetryLoaded = true; 
 		}
+
+		this.buildTimelineCache()
+
+
 	},
 
 	fetchTelemetryCache(deviceId) {
@@ -335,17 +342,12 @@ const dataStore = {
 		return state.devices.find(device => device.name === deviceName);
 	},
 
-	
-	// getDataAtTimestamp(deviceId, timestamp) {
-	// 	const data = this.fetchTelemetryCache(deviceId)?.data;
-	// 	const index = this.get_telemetry_index_binary(data, timestamp);
-	// 	if (index > -1) {
-	// 		return data[index];
-	// 	}
-	// },
+	floorToMidnight(timestamp) {
+		const msPerDay = 24 * 60 * 60 * 1000;
+		return Math.floor(timestamp / msPerDay) * msPerDay;
+	},
 
 	getDataAtTimestamp(deviceIndex, timestamp) {
-
 		const telemetryRows = dataStore.getTelemetryForDay(timestamp);
 		// For a device:
 		const row = telemetryRows[deviceIndex];
@@ -354,8 +356,35 @@ const dataStore = {
 		}
 	},
 
+	buildTimelineCache() {
+		const startTime = performance.now();
+
+		// Clear day cache
+		this.dayCache = {};
+
+		const msPerDay = 24 * 60 * 60 * 1000;
+
+		// Floor earliest timestamp to midnight
+		let dayTs = this.floorToMidnight(this.earliestTimestamp);
+		const lastDayTs = this.latestTimestamp / msPerDay;
+
+		let numDays = 0;
+
+		while (dayTs <= this.latestTimestamp) {
+			// Populate day cache for this day
+			this.getTelemetryForDay(dayTs);
+			dayTs += msPerDay;
+			numDays++;
+		}
+
+		const endTime = performance.now();
+		console.log(`Timeline cached for ${numDays} days in ${(endTime - startTime).toFixed(2)} ms`);
+	},
+
 	// Gets all telemetry rows for a given day and caches them 
 	getTelemetryForDay(timestamp) {
+		timestamp = this.floorToMidnight(timestamp)
+
 		if (!this.dayCache) this.dayCache = {};
 
 		// Return cached if available
