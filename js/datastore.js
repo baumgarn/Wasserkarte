@@ -24,7 +24,7 @@ const dataStore = {
 					if (data?.devices) {
 						dataStore.processDevices(data);
 					}
-					return data; //
+					return data;
 				});
 
 			const telemetryPromise = fetch(alltelemetryurl + '?' + dataStore.getTimestampForApiRequest())
@@ -69,7 +69,8 @@ const dataStore = {
 			if (device.attributes?.Humusgehalt_40cm == 'h0-1') device.attributes.Humusgehalt_40cm = 'h0';
 			
 			dataStore.processFilterKeywords(device)
-			
+			dataModel.wasserkapazität_setzen(device);
+
 			state.devices[index] = device;
 			index++;
 		}
@@ -119,7 +120,7 @@ const dataStore = {
 
 	processAllTelemetry(result) {
 
-		this.nfk_daily_averages = result.nfk_daily_averages;
+		// this.nfk_daily_averages = result.nfk_daily_averages;
 		this.earliestTimestamp = result.earliestTimestamp;
 		this.latestTimestamp = result.latestTimestamp;
 		
@@ -142,10 +143,81 @@ const dataStore = {
 			this.dataCache[cacheKey] = telemetry;
 			state.telemetryLoaded = true; 
 		}
-
+		this.createDeviceSchemaIndex();
 		this.buildTimelineCache()
 
 
+	},
+
+	// The data rows for each device have a different schema. 
+	// This creates an array map for all devices and their telemetry row indices
+	//
+	// datastore.deviceSchemaIndex[device.index] {
+	//		Bodenfeuchte_10cm: 1,
+	//		Bodenfeuchte_30cm: 2,
+	//		Bodenfeuchte_60cm: 3,
+	//		Bodenfeuchte_80cm: 4,
+	//		nfk_10cm: 5,
+	//		nfk_30cm: 6,
+	//		nfk_60cm: 7,
+	//		nfk_80cm: 8,
+	//​		 nfk_avg: 9,
+	//		ts: 0,
+	//​		 vol_avg: 10,
+	// }
+
+
+	extractUniqueTelemetryKeys(devices) {
+		const uniqueKeys = new Set();
+		devices.forEach(device => {
+			if (device.telemetry) {
+				Object.keys(device.telemetry).forEach(key => {
+					if (config.allowedTelemetryKeys.includes(key)) {
+						uniqueKeys.add(key);
+					}
+				});
+			}
+		});
+		return [...uniqueKeys].sort();
+	},
+
+	extractUniqueAttributes(devices, attribute) {
+		const uniqueKeys = new Set();
+		devices.forEach(device => {
+			if (device.attributes) {
+				Object.keys(device.attributes).forEach(key => {
+					if (key.includes(attribute)) {
+						uniqueKeys.add(device.attributes[key]);
+					}
+				});
+			}
+		});
+		return [...uniqueKeys].sort();
+	},
+
+	
+	createDeviceSchemaIndex() {
+		const index = [];
+
+		for (const device of state.devices) {
+			const schema = device.telemetrySchema?.schema;
+
+			if (!Array.isArray(schema)) {
+				index[device.index] = null;
+				continue;
+			}
+
+			const map = Object.create(null);
+
+			for (let i = 0; i < schema.length; i++) {
+				map[schema[i]] = i;
+			}
+
+			index[device.index] = map;
+			device.schemaIndex = map;
+		}
+
+		this.deviceSchemaIndex = index;
 	},
 
 	fetchTelemetryCache(deviceId) {
@@ -347,6 +419,11 @@ const dataStore = {
 		return Math.floor(timestamp / msPerDay) * msPerDay;
 	},
 
+	ceilToMidnight(timestamp) {
+		const msPerDay = 24 * 60 * 60 * 1000;
+		return Math.floor(timestamp / msPerDay) * msPerDay + msPerDay;
+	},
+
 	getDataAtTimestamp(deviceIndex, timestamp) {
 		const telemetryRows = dataStore.getTelemetryForDay(timestamp);
 		// For a device:
@@ -365,7 +442,7 @@ const dataStore = {
 		const msPerDay = 24 * 60 * 60 * 1000;
 
 		// Floor earliest timestamp to midnight
-		let dayTs = this.floorToMidnight(this.earliestTimestamp);
+		let dayTs = this.ceilToMidnight(this.earliestTimestamp);
 		const lastDayTs = this.latestTimestamp / msPerDay;
 
 		let numDays = 0;
@@ -410,7 +487,7 @@ const dataStore = {
 		let lo = 0, hi = n; // search in [0, n)
 		while (lo < hi) {
 			const mid = (lo + hi) >>> 1;
-			if (this.tsAt(data, mid) <= timestamp) lo = mid + 1;
+			if (data[mid][0] <= timestamp) lo = mid + 1;
 			else hi = mid;
 		}
 		const i = lo - 1; // rightmost <= T
@@ -418,9 +495,52 @@ const dataStore = {
 		return i;
 	},
 
-	tsAt(data, i) {
-		return data[i][0];
-	},
+	getNfkDailyAverages() {
+		const startTime = performance.now();
+
+		const dayCache = this.dayCache;
+
+		const timestamps = Object.keys(dayCache)
+			.map(Number)
+			.sort((a, b) => a - b);
+
+		const result = [];
+
+		for (const ts of timestamps) {
+			const rowsForDay = dayCache[ts];
+
+			let sum = 0;
+			let count = 0;
+
+			for (let i = 0; i < rowsForDay.length; i++) {
+				const row = rowsForDay[i];
+				if (!row) continue;
+
+				const device = state.devices[i];
+				const idx = device.schemaIndex?.nfk_avg;
+				if (idx == null) continue;
+
+				if ((state.includeFilter.length > 0 || state.excludeFilter.length > 0) && state.filteredDevices.indexOf(device) == -1) continue;
+
+				const v = row[idx];
+				if (typeof v !== 'number') continue;
+
+				sum += v;
+				count++;
+			}
+
+			result.push({
+				ts,
+				nfk_avg: count ? sum / count : null,
+				count: count
+			});
+		}
+
+		const endTime = performance.now();
+		console.log(`nFK daily averages calculated in ${(endTime - startTime).toFixed(2)} ms`);
+
+		return result;
+	}
 
 };
 

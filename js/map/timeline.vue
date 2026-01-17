@@ -64,6 +64,9 @@ export default {
 		colorScheme() {
 			return state.colorScheme;
 		},
+		filteredDevices() {
+			return state.filteredDevices;
+		},
 		numberOfDays() {
 			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
 		},		
@@ -98,7 +101,7 @@ export default {
 		},
 		formattedHoverDate() {
 			return displayutil.formatDateAggregated(this.timelineDate);
-		}
+		},
 	},
 	methods: {
 		drawHeatmap() {
@@ -118,30 +121,33 @@ export default {
 				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 				ctx.clearRect(0, 0, this.timelineWidth, 1);
 
-				if (!this.telemetryLoaded) return;
-
-				const rows = dataStore.nfk_daily_averages;
+				const rows = this.dailyAverages;
 				const msPerDay = 24 * 60 * 60 * 1000;
 
 				// time span is from first timestamp to (last timestamp + 1 day)
-				this.earliestTimestamp = rows[0][0];
-				this.latestTimestamp = rows[rows.length - 1][0] + msPerDay;
+				this.earliestTimestamp = rows[0].ts;
+				this.latestTimestamp = rows[rows.length - 1].ts + msPerDay;
 				this.timelineSpan = Math.max(1, this.latestTimestamp - this.earliestTimestamp);
 				this.dayWidth = this.timelineWidth / this.timelineSpan;
 
 				// draw each row from its ts to the next ts (or +1 day for the last)
 				let x = 0; // running x, but we'll compute directly from time to avoid drift
 				for (let i = 0; i < rows.length; i++) {
-					const [ts, nfk] = rows[i];
-					const nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
+					const row = rows[i];
+					const ts = row.ts;
+					const nfk = row.nfk_avg;
+					const nextTs = (i < rows.length - 1) ? rows[i + 1].ts : ts + msPerDay;
 
 					const startRel = ts - this.earliestTimestamp;      // ms from start
 					const endRel = nextTs - this.earliestTimestamp;    // ms from start
 					const segX = startRel * this.dayWidth;
 					const segW = (endRel - startRel) * this.dayWidth + 1;
 
-					ctx.fillStyle = dataModel.get_nfk_color(nfk);
-					ctx.fillRect(segX, 0, segW, 1);
+					if (nfk != null) {
+
+						ctx.fillStyle = dataModel.get_nfk_color(nfk);
+						ctx.fillRect(segX, 0, segW, 1);
+					}
 				}
 
 				// optional thin top line for definition
@@ -149,6 +155,9 @@ export default {
 				ctx.fillRect(0, 0, this.timelineWidth, 1);
 
 			}
+		},
+		getNfkDailyAverages() {
+			this.dailyAverages = dataStore.getNfkDailyAverages();
 		},
 		hover(event) {
 			const rect = this.$refs.timeline.getBoundingClientRect();
@@ -166,10 +175,16 @@ export default {
 			if (!this.timelineWidth || !this.timelineSpan) return 0;
 			return ((ts - this.earliestTimestamp) / this.timelineSpan) * this.timelineWidth;
 		},
+
 	},
 	watch: {
 		telemetryLoaded() {
-			this.drawHeatmap()
+			this.getNfkDailyAverages()
+			this.drawHeatmap();
+		},
+		filteredDevices() {
+			this.getNfkDailyAverages()
+			this.drawHeatmap();
 		},
 		fullWidth() {
 			nextTick(()=>{
@@ -226,6 +241,7 @@ export default {
 			width 100%
 			height var(--timelineheight);
 			filter drop-shadow(2px -2px 2px #00000033)
+			background #ddd
 		canvas
 			height 100%
 		&.sidebaropen

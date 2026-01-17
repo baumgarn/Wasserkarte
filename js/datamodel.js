@@ -54,6 +54,7 @@ export const dataModel = {
 		{ value: 120, name: 'Sehr nass'},				// > 110
 	],
 
+	
 	soil_table : {
 		"Ss": {
 			name: "Sandiger Sand",
