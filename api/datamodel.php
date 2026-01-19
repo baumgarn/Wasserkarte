@@ -42,7 +42,7 @@ function expandSchema($schema) {
 		$schema[] = 'nfk_80cm';
 	}
 	
-	if ($c > 2) {
+	if ($c > 1) {
 		$schema[] = 'nfk_avg';
 		$schema[] = 'vol_avg';
 	}
@@ -237,11 +237,6 @@ function setAvgTWFK($deviceInfo) {
 
 function avg_value($v10,$v30,$v60,$v80)
 {
-
-	// var_dump($v10);
-	// var_dump($v30);
-	// var_dump($v60);
-	// var_dump($v80);
   
     // Interpolate 60 from 30 & 80 if 60 missing but 10 & 30 & 80 available
     if (isset($v10) && isset($v30) && !isset($v60) && isset($v80)) {
@@ -267,6 +262,10 @@ function avg_value($v10,$v30,$v60,$v80)
     // 30,60 (no 10)
     elseif (!isset($v10) && isset($v30) && isset($v60)) {
         $result = $v30 * 4.0 + $v60 * 2.0;
+    }
+    // 10
+    elseif (isset($v10) && !isset($v30) && !isset($v60) && !isset($v80)) {
+        $result = $v10 * 6.0;
     }
 
     return round($result / 6, 2);

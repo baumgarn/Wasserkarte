@@ -2,7 +2,9 @@
 
 // Updates all daily aggregated telemetry for all devices.
 // Should run through a cronjob right after midnight. Add to crontab -e:
-// 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php >> $HOME/wasserkarte.log 2>&1
+// 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php >> $HOME/wasserkarte.log
+
+set_time_limit(600); // 10 minutes in seconds
 
 $nfk_labels = [
     [ "value" => 10,  "name" => "Sehr trocken" ], // 0–10
@@ -80,16 +82,8 @@ function dailyAverages() {
 
 			$alltimeseries[$deviceId] = $telemetry;
 
-			// now SAFE
 			$firstts = $rows[0][0];
 			$lastts  = $rows[count($rows) - 1][0];
-			// $alltimeseries[$deviceId] = $data['telemetry'];
-
-			// check earliest and latest timestamp
-			// $firstts = $data['telemetry']['data'][0][0];
-			// $lastts = end($data['telemetry']['data'])[0];
-
-
 
 			if ($earliest > $firstts) {
 				$earliest = $firstts;

@@ -66,10 +66,10 @@ export default {
 				<div class="label">id</div>
 				<div class="value">{{ device.id }}</div>
 			</div>
-			<div class="datarow">
+			<!-- <div class="datarow">
 				<div class="label">index</div>
 				<div class="value">{{ device.index }}</div>
-			</div>
+			</div> -->
 		</div>
 
 		<h3>Telemetrie</h3>

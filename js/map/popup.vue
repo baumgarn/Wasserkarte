@@ -24,14 +24,14 @@
 					
 					<template v-else>
 
-						<!-- <div class="nfklabeltop">
+						<div class="nfklabeltop">
 							<div class="name">
 								{{ nfk_label }}
 							</div>
 							<div class="nameoverlay">
 								{{ nfk_label }}
 							</div>
-						</div> -->
+						</div>
 
 					</template>
 
@@ -122,12 +122,10 @@ export default {
 	name: "MapPopup",
 	components: {FilterIcon, FilterItem},
 	setup() {
-		return {state};
+		return {state, dataModel, displayutil};
 	},
 	data() {
 		return {
-			displayutil,
-			dataModel,
 			popupBelow: false,
 		}
 	},
@@ -353,7 +351,7 @@ body.sensor-Bodenfeuchte .popupcontent
 	.nfklabeltop
 		font-weight bold
 		font-size 8pt
-		margin 2px 8px 8px
+		margin -2px 8px 4px
 		letter-spacing 0.03em;
 		position relative
 		text-transform uppercase

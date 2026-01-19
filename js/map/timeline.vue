@@ -4,8 +4,8 @@
 		<div class="timelineinner">
 			<canvas ref="heatmap"></canvas>
 			<div class="hoverline" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition ) + 'px' }"></div>
-			<div class="timelinehovertriangle" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition - 1 ) + 'px' }"></div>
-			<div class="hoverdate" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverDatePosition ) + 'px', width: hoverDateWidth + 'px' }">
+			<div class="timelinehovertriangle" v-if="showDate" :style="{ left: (hoverLinePosition - 1 ) + 'px' }"></div>
+			<div class="hoverdate" v-if="showDate" :style="{ left: (hoverDatePosition ) + 'px', width: hoverDateWidth + 'px' }">
 				{{ formattedHoverDate }}
 			</div>
 			<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
@@ -69,15 +69,18 @@ export default {
 		},
 		numberOfDays() {
 			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
-		},		
+		},	
+		showDate() {
+			return (this.hoverPosition > -1 && this.hoverLinePosition > 0)
+		},
 		timelineDate() {
 			let ts = null;
 			if (this.hoverPosition > -1) {
-				const fraction = this.hoverPosition / this.timelineWidth;
+				const fraction = this.hoverPosition / (this.timelineWidth - 1);
 				ts = this.earliestTimestamp + fraction * this.timelineSpan;
 				state.timelineDate = dataStore.floorToMidnight(ts);
-				return ts;
-			} else if (state.timelineDate && this.hoverPosition < 0 ) {
+				return state.timelineDate;
+			} else if (state.timelineDate && this.hoverPosition < 0) {
 				return state.timelineDate;
 			}
 		},
@@ -278,6 +281,6 @@ export default {
 			z-index 102
 			display none
 		.chart-time
-			top 50%
+			top 55%
 			transform translate(0,-65%)
 </style>

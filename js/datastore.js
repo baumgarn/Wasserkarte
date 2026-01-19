@@ -120,7 +120,6 @@ const dataStore = {
 
 	processAllTelemetry(result) {
 
-		// this.nfk_daily_averages = result.nfk_daily_averages;
 		this.earliestTimestamp = result.earliestTimestamp;
 		this.latestTimestamp = result.latestTimestamp;
 		
@@ -146,56 +145,10 @@ const dataStore = {
 		this.createDeviceSchemaIndex();
 		this.buildTimelineCache()
 
-
 	},
 
 	// The data rows for each device have a different schema. 
 	// This creates an array map for all devices and their telemetry row indices
-	//
-	// datastore.deviceSchemaIndex[device.index] {
-	//		Bodenfeuchte_10cm: 1,
-	//		Bodenfeuchte_30cm: 2,
-	//		Bodenfeuchte_60cm: 3,
-	//		Bodenfeuchte_80cm: 4,
-	//		nfk_10cm: 5,
-	//		nfk_30cm: 6,
-	//		nfk_60cm: 7,
-	//		nfk_80cm: 8,
-	//​		 nfk_avg: 9,
-	//		ts: 0,
-	//​		 vol_avg: 10,
-	// }
-
-
-	extractUniqueTelemetryKeys(devices) {
-		const uniqueKeys = new Set();
-		devices.forEach(device => {
-			if (device.telemetry) {
-				Object.keys(device.telemetry).forEach(key => {
-					if (config.allowedTelemetryKeys.includes(key)) {
-						uniqueKeys.add(key);
-					}
-				});
-			}
-		});
-		return [...uniqueKeys].sort();
-	},
-
-	extractUniqueAttributes(devices, attribute) {
-		const uniqueKeys = new Set();
-		devices.forEach(device => {
-			if (device.attributes) {
-				Object.keys(device.attributes).forEach(key => {
-					if (key.includes(attribute)) {
-						uniqueKeys.add(device.attributes[key]);
-					}
-				});
-			}
-		});
-		return [...uniqueKeys].sort();
-	},
-
-	
 	createDeviceSchemaIndex() {
 		const index = [];
 
@@ -228,6 +181,7 @@ const dataStore = {
 		}
 	},
 
+	// request telemetry from backend, used to retrieve raw data for single locations now, as all aggregated daily telemetry is already loaded initially
 	async fetchTelemetryData(deviceId, timerange, aggregation) {
 		const cacheKey = `${deviceId}_${timerange}_${aggregation}`;
 
@@ -244,13 +198,6 @@ const dataStore = {
 				const response = await fetch(url);
 				if (!response.ok) throw new Error(`HTTP ${response.status}`);
 				json = await response.json();
-		
-				// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
-				// if (aggregation === "1d") { 
-				// 	const device = this.getDeviceById(deviceId);
-				// 	const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
-				// 	json.telemetry.data.push(lastTelemetryData);
-				// }
 
 				if (state.filterFaultyValues) {
 					json.telemetry = this.filterTelemetry(json.telemetry, -5, 100);
@@ -273,6 +220,7 @@ const dataStore = {
 		}
 	},
 
+	// only include valid Bodenfeuchte telemetry rows withing range
 	filterTelemetry(telemetry, min = -5, max = 100) {
 		if (!telemetry || !Array.isArray(telemetry.schema) || !Array.isArray(telemetry.data)) {
 			return telemetry;
@@ -301,7 +249,7 @@ const dataStore = {
 		return `/api/?deviceId=${deviceId}&time=${timerange}&agg=${aggregation}`;
 	},
 
-	// timestamp used to prevend already cached json request
+	// timestamp for json request cache busting
 	getTimestampForApiRequest() {
 
 		const now = new Date();
@@ -312,7 +260,6 @@ const dataStore = {
 
 		return `${year}${month}${day}${hour}`;
 	},
-
 
 	hoursSinceLastTelemetry(deviceId) {
 
@@ -433,17 +380,18 @@ const dataStore = {
 		}
 	},
 
+	// BUILD TIMELINE CACHE all timestamps and references to data rows for all devices
+
 	buildTimelineCache() {
 		const startTime = performance.now();
 
 		// Clear day cache
-		this.dayCache = {};
+		this.timelineCache = {};
 
 		const msPerDay = 24 * 60 * 60 * 1000;
 
 		// Floor earliest timestamp to midnight
 		let dayTs = this.ceilToMidnight(this.earliestTimestamp);
-		const lastDayTs = this.latestTimestamp / msPerDay;
 
 		let numDays = 0;
 
@@ -458,14 +406,14 @@ const dataStore = {
 		console.log(`Timeline cached for ${numDays} days in ${(endTime - startTime).toFixed(2)} ms`);
 	},
 
-	// Gets all telemetry rows for a given day and caches them 
+	// timeline telemetry cache for single day
 	getTelemetryForDay(timestamp) {
 		timestamp = this.floorToMidnight(timestamp)
 
-		if (!this.dayCache) this.dayCache = {};
+		if (!this.timelineCache) this.timelineCache = {};
 
 		// Return cached if available
-		if (this.dayCache[timestamp]) return this.dayCache[timestamp];
+		if (this.timelineCache[timestamp]) return this.timelineCache[timestamp];
 		
 		// Build cache for this day
 		const rows = state.devices.map(device => {
@@ -476,11 +424,12 @@ const dataStore = {
 			return idx >= 0 ? telemetry[idx] : null;
 		});
 
-		this.dayCache[timestamp] = rows;
+		this.timelineCache[timestamp] = rows;
 		return rows;
 	},
 
-	// Binary search timestamp in telemetry rows
+	// TELEMETRY ROWS TIMESTAMP BINARY SEARCH
+
 	get_telemetry_index_binary(data, timestamp) { 
 		const n = data.length;
 		if (n < 2) return -1;
@@ -495,52 +444,113 @@ const dataStore = {
 		return i;
 	},
 
+	// NFK DAILY AVERAGES CALCULATIONS
+
 	getNfkDailyAverages() {
 		const startTime = performance.now();
+		const timelineCache = this.timelineCache;
 
-		const dayCache = this.dayCache;
+		// cache sorted timestamps
+		if (!this._sortedDayTimestamps) {
+			this._sortedDayTimestamps = Object.keys(timelineCache)
+				.map(Number)
+				.sort((a, b) => a - b);
+		}
+		const timestamps = this._sortedDayTimestamps;
 
-		const timestamps = Object.keys(dayCache)
-			.map(Number)
-			.sort((a, b) => a - b);
+		// build fast filter lookup
+		const useFilter = state.includeFilter.length > 0 || state.excludeFilter.length > 0;
+		const deviceAllowed = new Uint8Array(state.devices.length);
+		if (useFilter) {
+			for (const d of state.filteredDevices) {
+				deviceAllowed[d.index] = 1;
+			}
+		} else {
+			deviceAllowed.fill(1);
+		}
 
 		const result = [];
 
-		for (const ts of timestamps) {
-			const rowsForDay = dayCache[ts];
-
-			let sum = 0;
-			let count = 0;
-
-			for (let i = 0; i < rowsForDay.length; i++) {
-				const row = rowsForDay[i];
-				if (!row) continue;
-
-				const device = state.devices[i];
-				const idx = device.schemaIndex?.nfk_avg;
-				if (idx == null) continue;
-
-				if ((state.includeFilter.length > 0 || state.excludeFilter.length > 0) && state.filteredDevices.indexOf(device) == -1) continue;
-
-				const v = row[idx];
-				if (typeof v !== 'number') continue;
-
-				sum += v;
-				count++;
-			}
-
-			result.push({
-				ts,
-				nfk_avg: count ? sum / count : null,
-				count: count
-			});
+		for (let t = 0; t < timestamps.length; t++) {
+			const ts = timestamps[t];
+			const rowsForDay = timelineCache[ts];
+			result.push(this.getNfkAveragesForDay(ts, rowsForDay, deviceAllowed));
 		}
 
-		const endTime = performance.now();
-		console.log(`nFK daily averages calculated in ${(endTime - startTime).toFixed(2)} ms`);
+		console.log(
+			`nFK daily averages calculated in ${(performance.now() - startTime).toFixed(2)} ms`
+		);
+		return result;
+	},
+
+	getNfkAveragesForLastTelemetry() {
+
+		const useFilter = state.includeFilter.length > 0 || state.excludeFilter.length > 0;
+		const deviceAllowed = new Uint8Array(state.devices.length);
+		if (useFilter) {
+			for (const d of state.filteredDevices) {
+				deviceAllowed[d.index] = 1;
+			}
+		} else {
+			deviceAllowed.fill(1);
+		}
+
+		let telemetryRows = [];
+
+		let ts = 0;
+
+		for (let i = 0; i < state.devices.length; i++) {
+			const data = state.devices[i].telemetrySchema.data[0];
+			if (data[0] > ts) ts = data[0];
+			if (data[0] > this.latestTimestamp - config.timelineHoverCutoff) {
+				telemetryRows[i] = data; 
+			} else {
+				telemetryRows[i] = null; 
+			}
+		}
+		const result = this.getNfkAveragesForDay(ts, telemetryRows, deviceAllowed);
 
 		return result;
-	}
+	},
+
+
+	// Calculate averages data for a single day
+	getNfkAveragesForDay(ts, rowsForDay, deviceAllowed) {
+		let sum = 0;
+		let count = 0;
+		const nfk_level = [0, 0, 0, 0, 0, 0]; // how many devices fall into each nfk category on a given day
+		let trockenstress = 0; // how many devices are nfk < 30% on a given day
+
+		for (let i = 0; i < state.devices.length; i++) {
+			if (!deviceAllowed[i]) continue;
+			const row = rowsForDay[i];
+			if (!row) continue;
+			const idx = state.devices[i].schemaIndex.nfk_avg;
+			const v = row[idx];
+			if (!(v >= 0 || v < 0)) continue;
+
+			sum += v;
+			count++;
+
+			if (v < 50) trockenstress++;
+
+			// categorize value
+			if (v < 0) nfk_level[0]++;
+			else if (v < 30) nfk_level[1]++;
+			else if (v < 50) nfk_level[2]++;
+			else if (v < 90) nfk_level[3]++;
+			else if (v < 110) nfk_level[4]++;
+			else nfk_level[5]++;
+		}
+
+		return {
+			ts,
+			nfk_avg: count ? sum / count : null,
+			count,
+			nfk_level,
+			trockenstress
+		};
+	},
 
 };
 
