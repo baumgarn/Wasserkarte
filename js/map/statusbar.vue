@@ -53,11 +53,12 @@ export default {
 	flex-shrink 1
 	flex-wrap wrap
 	margin-top 8px
-	pointer-events all
 	font-size 9pt
 	border-top none
 	padding 0 6px
 	filter drop-shadow(2px 3px 2px #00000022)
+	> *
+		pointer-events all
 
 </style>
 

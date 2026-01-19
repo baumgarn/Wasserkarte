@@ -45,7 +45,7 @@ export default {
 			earliestTimestamp: 0,
 			latestTimestamp: 0,
 			hoverPosition: -1,
-			hoverDateWidth: 85,
+			hoverDateWidth: 75,
 			timelineWidth: 0
 		};
 	},
@@ -71,6 +71,7 @@ export default {
 			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
 		},	
 		showDate() {
+			// return (this.hoverLinePosition > 0)
 			return (this.hoverPosition > -1 && this.hoverLinePosition > 0)
 		},
 		timelineDate() {
@@ -244,6 +245,7 @@ export default {
 			width 100%
 			height var(--timelineheight);
 			filter drop-shadow(2px -2px 2px #00000033)
+			filter drop-shadow(2px 0 4px #00000033)
 			background #ddd
 		canvas
 			height 100%
@@ -255,7 +257,7 @@ export default {
 		.hoverdate
 			position absolute
 			bottom calc(100% + 8px)
-			font-size 9pt
+			font-size 8pt
 			opacity 1
 			pointer-events none
 			background var(--timelinedatebg)
@@ -264,6 +266,8 @@ export default {
 			padding 4px 0
 			white-space nowrap
 			border-radius 4px
+			// background #fff
+			// color black
 		.timelinehovertriangle
 			margin-left -4.5px
 			top -8px
@@ -271,6 +275,9 @@ export default {
 			border-top 8px solid var(--timelinedatebg)
 			border-left 6px solid transparent
 			border-right 6px solid transparent
+			// border-top 8px solid #fff
+			// border-left 5px solid transparent
+			// border-right 5px solid transparent
 			opacity 1
 			z-index 101
 		.selectedDeviceArea

@@ -771,6 +771,7 @@ export default {
 			overflow hidden
 			font-size 8pt
 			opacity .7
+			margin-left 1.5em
 		.bodenfeuchteNFK
 			padding-right 4px
 			margin-left 8px

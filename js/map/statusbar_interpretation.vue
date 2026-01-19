@@ -1,11 +1,15 @@
 <template>
 	
-	<div class="interpretation" v-if="averages">
+	<div class="interpretation" v-if="averages" :class="{ 'filteractive': filterActive }">
 		<!-- :style="'background:'+dataModel.get_nfk_color(averages.nfk_avg)" -->
-		<div class="date">{{displayDate}}</div>
-		<div class="count">{{ averages.count }} <div class="pinicon"></div></div>
-		<div class="trockenstress" v-if="!isNaN(trockenstress)">
-			<span class="value">{{ trockenstress }}</span><span class="unit">%</span><span class="label">&nbsp;Trocken</span>
+		 <div class="inforow">
+
+			 <div class="date">{{displayDate}}</div>
+			 <div class="count">{{ averages.count }} 
+				<div class="pinicon"></div></div>
+			 <div class="trockenstress" v-if="!isNaN(trockenstress)">
+				 <span class="value">{{ trockenstress }}</span><span class="unit">%</span><span class="label">&nbsp;Trocken</span>
+				</div>
 		</div>
 	</div>
 
@@ -42,6 +46,9 @@ export default {
 		},
 		filteredDevices() {
 			return state.filteredDevices;
+		},
+		filterActive() {
+			return (state.includeFilter.length > 0 || state.excludeFilter.length > 0)
 		},
 		averages() {
 			if (this.timelineDate) {
@@ -101,9 +108,10 @@ export default {
 
 <style lang="stylus" scoped>
 
+
+
 	
 .interpretation
-	height 28px
 	position relative
 	padding 0
 	min-width 220px
@@ -112,21 +120,43 @@ export default {
 	// background: var(--infobg);
 	// background: #555555aa
 	// color #fff
-	outline 1px solid #00000011
-	display inline-flex
+	// outline 1px solid #00000011
+	display flex
+	flex-direction column
 	align-items center
 	justify-content flex-start
 	margin 0
 	font-size 9pt
 	// font-weight bold
-	// color #00000088
+	color #00000088
 	// border-radius 4px
+.interpretation.filteractive:after
+	content ''
+	position absolute
+	left 0
+	top 0
+	right 0
+	height 6px
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0))
+	border-top 1px solid #00000018
+.inforow
+	height 28px
+	border-left 4px solid #eee
+	border-right 4px solid #eee
+	display flex
+	width 100%
+	align-items center
+	justify-content flex-start
+
+.interpretation.filteractive .inforow
+	height 26px
+	padding-bottom 2px
 
 .date
-	flex-basis 35%
+	flex-basis 36%
 	text-align right
 .count
-	flex-basis 21%
+	flex-basis 19.5%
 	text-align right
 	.pinicon
 		display inline-block
@@ -136,11 +166,14 @@ export default {
 		background-position center
 		background-repeat no-repeat
 		background-image url(/img/sensor.png)
+		opacity .6
+		top .145em
 		// background-image url(/img/pin_fill.png)
-		opacity .7
+		// opacity .3
+		// top .125em
+		// margin-left -.05em
 		filter grayscale(1)
 		position relative
-		top .15em
 
 .trockenstress
 	flex-grow 1
@@ -151,10 +184,11 @@ export default {
 		width 2em
 		text-align right
 		opacity .8
+		color #000
 		// font-weight normal
 		// font-size 10pt
 	.unit
-		opacity .6
+		// opacity .6
 	.label
 		opacity 1
 		// opacity .9
@@ -162,7 +196,7 @@ export default {
 	// .label
 		// font-size 9pt
 	.info
-		font-size 8pt
+		// font-size 8pt
 		display inline-block
 		opacity .55
 		flex-grow 1
