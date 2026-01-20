@@ -56,7 +56,7 @@ export default {
 	font-size 9pt
 	border-top none
 	padding 0 6px
-	filter drop-shadow(2px 3px 2px #00000022)
+	filter drop-shadow(0 3px 2px #00000022)
 	> *
 		pointer-events all
 

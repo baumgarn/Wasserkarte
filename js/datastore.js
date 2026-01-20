@@ -532,7 +532,7 @@ const dataStore = {
 			sum += v;
 			count++;
 
-			if (v < 50) trockenstress++;
+			if (v < 30) trockenstress++;
 
 			// categorize value
 			if (v < 0) nfk_level[0]++;

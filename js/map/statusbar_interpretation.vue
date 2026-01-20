@@ -1,16 +1,32 @@
 <template>
 	
-	<div class="interpretation" v-if="averages" :class="{ 'filteractive': filterActive }">
+	<div class="interpretation" v-if="averages && averages.nfk_avg != null" :class="{ 'filteractive': filterActive }">
 		<!-- :style="'background:'+dataModel.get_nfk_color(averages.nfk_avg)" -->
 		 <div class="inforow">
 
-			 <div class="date">{{displayDate}}</div>
-			 <div class="count">{{ averages.count }} 
-				<div class="pinicon"></div></div>
-			 <div class="trockenstress" v-if="!isNaN(trockenstress)">
-				 <span class="value">{{ trockenstress }}</span><span class="unit">%</span><span class="label">&nbsp;Trocken</span>
+			 <div class="trocken" v-if="!isNaN(trockenstress)">
+				 <span class="value">{{ trockenstress }}</span>
+				 <span class="unit">%</span>
+				 <span class="label">&nbsp;Trockenstress</span>
 				</div>
+			 <div class="date">{{displayDate}}</div>
+			 <!-- <div class="count">{{ averages.count }} 
+				<div class="pinicon"></div></div> -->
 		</div>
+
+		<div class="nfklevel" v-if="levelPercentages && levelPercentages.length">
+		<template v-for="(percentage, index) in levelPercentages" :key="index">
+			<div
+			v-if="percentage > 0"
+			class="segment"
+			:style="{
+				flexBasis: percentage + '%',
+				backgroundColor: levelColors[index]
+			}"
+			/>
+		</template>
+		</div>
+
 	</div>
 
 </template>
@@ -50,12 +66,40 @@ export default {
 		filterActive() {
 			return (state.includeFilter.length > 0 || state.excludeFilter.length > 0)
 		},
+		levelPercentages() {
+			if (this.averages && this.averages.nfk_level) {
+				const total = this.averages?.nfk_level.reduce((sum, v) => sum + v, 0);
+				const percentages = this.averages?.nfk_level.map(v => total === 0 ? 0 : (v / total) * 100);
+				return percentages;
+			} else {
+				return null;
+			}
+		},
+		levelColors() {
+			const labels = dataModel.nfk_labels;
+
+			return labels.map((label, index) => {
+				// first entry stays at 0
+				if (index === 0) {
+				return dataModel.get_nfk_color(0);
+				}
+
+				const prevValue = labels[index - 1].value;
+				const midpoint = prevValue + (label.value - prevValue) / 2;
+
+				return dataModel.get_nfk_color(midpoint);
+			});
+		},
+		// levelColors() {
+  		// 	return dataModel.nfk_labels.map(label => dataModel.get_nfk_color(label.value));
+		// },
 		averages() {
 			if (this.timelineDate) {
 				const index = this.get_telemetry_index_binary(this.dailyAverages, this.timelineDate);
 				const avg = this.dailyAverages[index];
 				if (avg) return avg;
 			} else {
+				console.log(this.lastAverages)
 				return this.lastAverages;
 			}
 		},
@@ -114,22 +158,30 @@ export default {
 .interpretation
 	position relative
 	padding 0
-	min-width 220px
-	// background var(--menuinactivebg)
+	min-width 210px
 	background #fff
-	// background: var(--infobg);
-	// background: #555555aa
-	// color #fff
-	// outline 1px solid #00000011
+	background #e8e8e8
+	background #efefef
+	background #f8f8f8
+	// border-left 1px solid rgba(0,0,0,.2)
+	// border-right 1px solid rgba(0,0,0,.2)
 	display flex
 	flex-direction column
 	align-items center
 	justify-content flex-start
 	margin 0
 	font-size 9pt
-	// font-weight bold
 	color #00000088
-	// border-radius 4px
+
+.nfklevel
+	display flex
+	width 100%
+	.segment
+		height 8px
+		transition width linear .1s
+	.segment:last-of-type
+		flex-grow 1
+
 .interpretation.filteractive:after
 	content ''
 	position absolute
@@ -137,24 +189,21 @@ export default {
 	top 0
 	right 0
 	height 6px
-	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0))
-	border-top 1px solid #00000018
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0))
+
 .inforow
-	height 28px
-	border-left 4px solid #eee
-	border-right 4px solid #eee
+	height 30px
 	display flex
 	width 100%
-	align-items center
+	padding-top 6px
+	align-items baseline
 	justify-content flex-start
+	user-select none
 
 .interpretation.filteractive .inforow
-	height 26px
-	padding-bottom 2px
+	height 27px
+	padding-top 4px
 
-.date
-	flex-basis 36%
-	text-align right
 .count
 	flex-basis 19.5%
 	text-align right
@@ -167,46 +216,38 @@ export default {
 		background-repeat no-repeat
 		background-image url(/img/sensor.png)
 		opacity .6
-		top .145em
-		// background-image url(/img/pin_fill.png)
-		// opacity .3
-		// top .125em
-		// margin-left -.05em
+		top .125em
+		margin-left -.05em
 		filter grayscale(1)
 		position relative
 
-.trockenstress
-	flex-grow 1
+.trocken
+	flex-basis 50px
 	text-align right
 	padding-right .8em
+	// color var(--warningred)
+	// color #c26969
+	// opacity .9
 	.value
 		display inline-block
 		width 2em
 		text-align right
-		opacity .8
+		opacity 1
+		font-size 10.5pt
 		color #000
-		// font-weight normal
-		// font-size 10pt
 	.unit
-		// opacity .6
+		margin-left .2em
 	.label
 		opacity 1
-		// opacity .9
-		// font-size 10pt
-	// .label
-		// font-size 9pt
-	.info
-		// font-size 8pt
-		display inline-block
-		opacity .55
-		flex-grow 1
-		margin-right 1em
-		text-align right
-	// .label
-		// text-transform uppercase
+		font-size 8.5pt
+		margin-left .09em
 		// font-weight bold
-		// opacity .6
-		// letter-spacing 0.03em;
+
+.date
+	flex-grow 1
+	margin-right 1em
+	font-size 8pt
+	text-align right
 
 
 </style>

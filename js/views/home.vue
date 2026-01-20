@@ -158,6 +158,7 @@ export default {
 		bottom 0
 		bottom var(--timelineheight);
 		height 36px
+		height 32px
 		margin 16px
 
 	.klimadaten.mobile

@@ -227,7 +227,8 @@ export default {
 					align-items center
 					justify-content center
 				.value
-					transform scale(0.8)
+					transform scale(.85)
+					// opacity .9
 
 	.menu-item.Bodenfeuchte_Farbkreis 
 		.map-marker.faux
