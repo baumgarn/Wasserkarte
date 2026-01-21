@@ -1,6 +1,6 @@
 <template>
 	
-	<div class="interpretation" v-if="averages && averages.nfk_avg != null" :class="{ 'filteractive': filterActive }">
+	<div class="interpretation" v-if="averages && averages.nfk_avg != null" :class="{ 'filteractive': filterActive, 'full':fullView }" @click="toggleFull">
 		<!-- :style="'background:'+dataModel.get_nfk_color(averages.nfk_avg)" -->
 		 <div class="inforow">
 
@@ -8,24 +8,55 @@
 				 <span class="value">{{ trockenstress }}</span>
 				 <span class="unit">%</span>
 				 <span class="label">&nbsp;Trockenstress</span>
-				</div>
+			</div>
 			 <div class="date">{{displayDate}}</div>
 			 <!-- <div class="count">{{ averages.count }} 
 				<div class="pinicon"></div></div> -->
 		</div>
 
-		<div class="nfklevel" v-if="levelPercentages && levelPercentages.length">
-		<template v-for="(percentage, index) in levelPercentages" :key="index">
-			<div
-			v-if="percentage > 0"
-			class="segment"
-			:style="{
-				flexBasis: percentage + '%',
-				backgroundColor: levelColors[index]
-			}"
-			/>
+		<template v-if="fullView">
+		
+			<div class="nfktable" v-if="levelPercentages && levelPercentages.length">
+				<template v-for="(percentage, index) in levelPercentages" :key="index">
+					<div class="row" >
+						<div
+						class="bar"
+						:style="{
+							width: percentage + '%',
+							backgroundColor: levelColors[index]
+						}">
+						</div>
+						
+						<div class="textoverlay">
+							<span class="label">&nbsp;{{nfkLabels[index].name}}</span>
+							<span class="count">
+								{{ averages.nfk_level[index] }}
+							</span>
+						</div>
+						
+
+					</div>
+				</template>
+			</div>
+
 		</template>
-		</div>
+		
+		<template v-else>
+			
+			<div class="nfkbar" v-if="levelPercentages && levelPercentages.length">
+				<template v-for="(percentage, index) in levelPercentages" :key="index">
+					<div
+					v-if="percentage > 0"
+					class="segment"
+					:style="{
+						flexBasis: percentage + '%',
+						backgroundColor: levelColors[index]
+					}">
+					</div>
+				</template>
+			</div>
+
+		</template>
 
 	</div>
 
@@ -46,7 +77,7 @@ export default {
 		return {
 			dailyAverages: [],
 			lastAverages: [],
-			trockencolor: [{ value: 0, color: '#666666'},{ value: 100, color: '#ff0000'}],
+			fullView: false,
 		};
 	},
 	components: {
@@ -75,6 +106,9 @@ export default {
 				return null;
 			}
 		},
+		nfkLabels() {
+			return dataModel.nfk_labels;
+		},
 		levelColors() {
 			const labels = dataModel.nfk_labels;
 
@@ -83,7 +117,7 @@ export default {
 				if (index === 0) {
 				return dataModel.get_nfk_color(0);
 				}
-
+				// other entry midway between nfk level bounds
 				const prevValue = labels[index - 1].value;
 				const midpoint = prevValue + (label.value - prevValue) / 2;
 
@@ -136,6 +170,9 @@ export default {
 			if (i < 0) return -1;  // Only check lower bound
 			return i;
 		},
+		toggleFull() {
+			this.fullView = !this.fullView;
+		},
 	},
 	mounted() {
 	},
@@ -161,10 +198,7 @@ export default {
 	min-width 210px
 	background #fff
 	background #e8e8e8
-	background #efefef
 	background #f8f8f8
-	// border-left 1px solid rgba(0,0,0,.2)
-	// border-right 1px solid rgba(0,0,0,.2)
 	display flex
 	flex-direction column
 	align-items center
@@ -172,13 +206,56 @@ export default {
 	margin 0
 	font-size 9pt
 	color #00000088
+	cursor pointer
+	transition background linear .05s
+	&:hover
+		background #f0f0f0
 
-.nfklevel
+.nfktable
+	display flex
+	flex-direction column-reverse
+	width 100%
+	background #00000011
+	border-bottom 1px solid #00000022
+	.row
+		height 17px
+		position relative
+		.bar
+			position absolute
+			right 0
+			top 1px
+			bottom 0
+			transition width linear .05s
+		.textoverlay
+			position absolute
+			left 0
+			top 0
+			right 0
+			bottom 0
+			border-top 1px solid #00000018
+			display flex
+			font-size 8pt
+			padding-top 1px
+			padding-right 6px
+			padding-left 4px
+		.value
+			display inline-block
+			width 2.7em
+			font-weight normal
+			text-align right
+		.unit
+			margin-left .2em
+		.label
+			margin-left .09em
+			text-align left
+			flex-grow 1
+
+
+.nfkbar
 	display flex
 	width 100%
 	.segment
 		height 8px
-		transition width linear .1s
 	.segment:last-of-type
 		flex-grow 1
 
@@ -225,9 +302,6 @@ export default {
 	flex-basis 50px
 	text-align right
 	padding-right .8em
-	// color var(--warningred)
-	// color #c26969
-	// opacity .9
 	.value
 		display inline-block
 		width 2em
@@ -245,7 +319,7 @@ export default {
 
 .date
 	flex-grow 1
-	margin-right 1em
+	margin-right 1.1em
 	font-size 8pt
 	text-align right
 

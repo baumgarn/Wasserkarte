@@ -64,9 +64,19 @@ function dailyAverages() {
 	
 	foreach ($deviceData['devices'] as $device) {
 		$deviceId = $device['id'];
-		$data = getTimeseriesForDevice($token, $deviceId, null, 'all', '1d');
+		$deviceStart = microtime(true);
 		
-		if ($data) {
+		try {
+			$data = getTimeseriesForDevice($token, $deviceId, null, 'all', '1d');
+			$deviceTime = microtime(true) - $deviceStart;
+
+			if ($data === null) {
+				error_log("⚠️  FAILED: {$device['name']} ({$deviceId}) - returned null after {$deviceTime}s");
+				continue;
+			}
+
+			error_log("✓ SUCCESS: {$device['name']} ({$deviceId}) in {$deviceTime}s");
+		
 			$json = json_encode($data, JSON_PRETTY_PRINT);
 			saveTelemetryCache($deviceId, 'all', '1d', $json);	
 
@@ -95,29 +105,34 @@ function dailyAverages() {
 			// collect nfk_avg values from previous last day on, to calculate daily average of all devices
 			// exclude locations with groundwater attribute
 			// if (!isset($device['attributes']['Grundwasser'])) {
-				$nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
-				if ($nfk_avg_index !== false) {
-					$rows = $data['telemetry']['data'];
-					for ($i = count($rows) - 1; $i >= 0; $i--) {
-						$row = $rows[$i];
-						$ts = $row[0];
+				// $nfk_avg_index = array_search('nfk_avg', $data['telemetry']['schema']);
+				// if ($nfk_avg_index !== false) {
+				// 	$rows = $data['telemetry']['data'];
+				// 	for ($i = count($rows) - 1; $i >= 0; $i--) {
+				// 		$row = $rows[$i];
+				// 		$ts = $row[0];
 						
 						
-						if ($ts > $previousLatest) { // until previous last day
-							if (isRowValid($row, $data['telemetry']['schema'])) {
-								$nfk_avg = $rows[$i][$nfk_avg_index];
-								if (! isset($new_nfk_values[$ts])) {
-									$new_nfk_values[$ts] = [];
-								}
-								$new_nfk_values[$ts][] = $nfk_avg;
-							}
-						} else {
-							break;
-						}
-					}
-				}
+				// 		if ($ts > $previousLatest) { // until previous last day
+				// 			if (isRowValid($row, $data['telemetry']['schema'])) {
+				// 				$nfk_avg = $rows[$i][$nfk_avg_index];
+				// 				if (! isset($new_nfk_values[$ts])) {
+				// 					$new_nfk_values[$ts] = [];
+				// 				}
+				// 				$new_nfk_values[$ts][] = $nfk_avg;
+				// 			}
+				// 		} else {
+				// 			break;
+				// 		}
+				// 	}
+				// }
 			// }
+		} catch (Exception $e) {
+			$deviceTime = microtime(true) - $deviceStart;
+			error_log("❌ ERROR: {$device['name']} ({$deviceId}) after {$deviceTime}s - " . $e->getMessage());
+			continue;
 		}
+
 	}
 
 	// calculate nfk_averages

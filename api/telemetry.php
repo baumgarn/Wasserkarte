@@ -72,7 +72,8 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 		}
 
 		if ($shouldFetch) {
-			$chunkSize = 1000 * 60 * 60 * 24 * 365 * 1; // 1 year in ms
+			// $chunkSize = 1000 * 60 * 60 * 24 * 365 * 1; // 1 year in ms
+			$chunkSize = 1000 * 60 * 60 * 24 * 90; // 90 days
 
 			for ($chunkStart = $startTs; $chunkStart < $endTs; $chunkStart += $chunkSize) {
 				$chunkEnd = min($chunkStart + $chunkSize - 1, $endTs);
@@ -363,6 +364,9 @@ function fetchTelemetryChunk($token, $deviceId, $sensorKeys, $startTs, $endTs, $
 		CURLOPT_RETURNTRANSFER => true,
 		CURLOPT_HTTPHEADER => $headers,
 		CURLOPT_FAILONERROR => false,
+		CURLOPT_TIMEOUT => 300,
+		CURLOPT_CONNECTTIMEOUT => 30,
+
 	]);
 
 	$result = curl_exec($ch);

@@ -103,7 +103,19 @@
 				</h4>
 
 				<div class="glossar-item-content">
-					besagt wie viel Wasser im Boden die Pflanzen wirklich aufnehmen und nutzen können. Ein Teil des Wassers ist nicht für die Wurzeln der Pflanzen zu erreichen. Wie viel das ist, hängt stark von Bodenart und Humusgehalt ab. Der pflanzenverfügbare Wasseranteil des Bodens wird als Nutzbare Feldkapazität bezeichnet.
+					besagt wie viel Wasser im Boden die Pflanzen wirklich aufnehmen und nutzen können. Ein Teil des Wassers ist nicht für die Wurzeln der Pflanzen zu erreichen. Wie viel das ist, hängt stark von Bodenart und Humusgehalt ab. Der pflanzenverfügbare Wasseranteil des Bodens wird als nutzbare Feldkapazität bezeichnet.
+				</div>
+
+			</div>
+
+			<div class="glossar-item">
+
+				<h4 class="glossar-item-header">
+					Trockenstress
+				</h4>
+
+				<div class="glossar-item-content">
+					Standorte mit einer nutzbaren Feldkapazität von unter 30% werden in der Statusanzeige der Wasserkarte als Trockenstress einbezogen. 
 				</div>
 
 			</div>
