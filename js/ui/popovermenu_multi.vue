@@ -123,9 +123,9 @@ export default {
 	right -4px
 	bottom -12px
 
-.item
-	padding 8px 12px
-	cursor pointer
+// .item
+	// padding 8px 12px
+	// cursor pointer
 
 // .item.action
 	// font-weight 500

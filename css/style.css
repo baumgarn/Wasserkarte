@@ -35,9 +35,8 @@
   --infobgopaque: #888;
   --menubariconsize: 42px;
   --timelineheight: 42px;
-  --timelineheightmobile: 48px;
-  --timelinedatebg: rgba(51,51,51,0.533);
-  --timelinedatebg: rgba(51,51,51,0.467);
+  --timelineheightmobile: 54px;
+  --timelinedatebg: rgba(68,68,68,0.6);
   --menusectionheadercolor: #4c88cc;
   --menuheaderline: rgba(71,111,208,0.4);
   --menuheaderline: rgba(0,0,0,0.133);
@@ -720,13 +719,14 @@ input[type=radio] {
   padding-top: 4px;
 }
 .popover-menu .divider {
-  height: 1px;
   padding: 0;
   margin: 0;
-  border-top: 2px solid rgba(0,0,0,0.067);
+  border-top: 1px solid rgba(0,0,0,0.2);
+  margin-top: -1px;
 }
 .popover-menu .second-group {
   border-top: 1px solid rgba(0,0,0,0.2);
+  margin-top: -1px;
 }
 .separator {
   display: inline-block;

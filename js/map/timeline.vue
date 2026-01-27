@@ -21,6 +21,7 @@
 		:startTimestamp="startTimestamp"
 		:numberOfDays
 		:insideTimeline="true"
+		:firstItemPadding
 		></DateAxis>
 
 		<div v-if="label" class="label">{{ label }}</div>
@@ -72,6 +73,7 @@ export default {
 		startTimestamp: Number,
 		endTimestamp: Number,
 		dateAxis: {type: Boolean, default: true},
+		firstItemPadding: {type: Boolean, default: false},
 		dateAxisBelow: {type: Boolean, default: false},
 		label: {type: String, default: ''},
 	},
@@ -398,10 +400,9 @@ export default {
 			align-items center
 			font-size 10px
 			font-size 11px
-			font-size 11px
 			font-weight bold
 			color #000000aa
-			opacity .7
+			opacity .6
 			color #000
 		.chart-time
 			top 60%

@@ -19,11 +19,11 @@
 				:startTimestamp="oneYearAgo"
 				:endTimestamp="latestTimestamp"
 				/>
-
+				
 			</template>
-		
+			
 			<template v-else-if="timelineRange == 'all'">
-
+				
 				<Timeline
 				:dailyAverages
 				:startTimestamp="earliestTimestamp"
@@ -54,9 +54,11 @@
 						:dailyAverages
 						:startTimestamp="year.firstts"
 						:endTimestamp="year.lastts"
-						:dateAxisBelow="true"
 						:label="year.year"
+						:dateAxis="true"
+						:firstItemPadding="true"
 						/>
+						<!-- :dateAxisBelow="true" -->
 
 					</template>
 
@@ -129,7 +131,7 @@ export default {
 			let menu = [];
 			if (this.years.length > 1 && this.numberOfDays > 365) {
 				menu.push(
-					{type:'header', label:'Zeitachse'},
+					// {type:'header', label:'Zeitachse'},
 					{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'timelineRange'},
 					{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'timelineRange'},
 					{type:'select', label:'Jahresvergleich', value:'years', group:'timerange', stateProp:'timelineRange'},
@@ -137,7 +139,7 @@ export default {
 			}
 			menu.push(
 				{type:'divider'},
-				{type:'header', label:'Visualisierung'},
+				// {type:'header', label:'Visualisierung'},
 				{type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'style', stateProp:'timelineStyle'},
 				{type:'select', label:'Trockenheitsstufen', value:'levels', group:'style', stateProp:'timelineStyle'},
 			);
