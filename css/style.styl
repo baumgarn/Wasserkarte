@@ -42,7 +42,7 @@ uicardgrau = #eee
 	--activecolordarker #9bb9dd
 	--activecolor #b9d0eb
 	--activecolordarker #899cb399
-	--activecolorgrey #5275a044
+	--activecolorgrey #5275a055
 	--activecolorgreybrighter #5275a022
 	--activecolorbrighter #d4e7f7cc
 	--activecolorbrightest #d4e7f777
@@ -62,8 +62,8 @@ uicardgrau = #eee
 	--infobg #44444499
 	--infobgopaque #888
 	--menubariconsize 42px
-	--timelineheight 36px
-	// --timelineheight 32px
+	--timelineheight 42px
+	--timelineheightmobile 48px
 	--timelinedatebg #33333388
 	--timelinedatebg #33333377
 	--menusectionheadercolor #4c88ccff
@@ -71,11 +71,10 @@ uicardgrau = #eee
 	--menuheaderline #00000022
 
 body.is-mobile
-	--timelineheight 48px
+	--timelineheight var(--timelineheightmobile)
 
 *
 	box-sizing border-box
-	// color: #2a7b82
 
 html, body
 	margin: 0;
@@ -94,49 +93,12 @@ a
 
 h1, h2, h3, h4, h5 
 	font-family: "Ubuntu", sans-serif;
-	// font-family: "Noto Sans", sans-serif;
-	// font-family sans-serif
-
-
-//
-
-.wrapper
-	position fixed
-	left 0
-	top 0
-	right 0
-	bottom 0
 
 .app-container
 	position absolute
 	right 0
 	top 0
 	bottom 0
-
-
-
-// LOADING 
-.loading:after
-	position absolute
-	content ''
-	top calc(45% - 1.25em)
-	left calc(50% - 1.25em)
-	width 2.5em
-	height 2.5em
-	background transparent
-	border 4px solid #00000022
-	border-top 4px solid transparent
-	border-bottom 4px solid transparent
-	z-index 20000
-	border-radius 50%
-	animation rotate-spinner 1.5s linear infinite
-	pointer-events none
-
-@keyframes rotate-spinner
-	from
-		transform rotate(0deg)
-	to
-		transform rotate(360deg)
 
 #ui
 #app
@@ -149,13 +111,11 @@ body.loaded
 /////
 
 #map
-	position: fixed;
+	position: absolute;
 	top: 0;
-	bottom: 44px;
+	bottom: 0;
 	left: 0;
-	width: 100%;
-
-// .map .ol-viewport { background: #00000044; }
+	right: 0;
 
 .ol-zoom
 	right: 12px !important
@@ -169,38 +129,28 @@ body.loaded
 .sidebaropen .ol-zoom
 	right 612px !important
 
-// 	bottom: 24px;
-// 	display none
-	
 .ol-attribution
 	font-family sans-serif
-	opacity .7
+	opacity .8
 	z-index 102
-	bottom var(--timelineheight) !important
 	top unset !important
-	// top 0 !important
-	// bottom unset !important
 	transform translate(100%, 0) rotate(-90deg)
 	transform-origin 0 100%
 	border-top-right-radius 6px !important
 	border-top-left-radius 0 !important
-	// border-bottom-left-radius 4px !important
 	ul li
-		font-size 8pt
+		font-size 7.5pt
 		color #333
 		a
 			color #333
 			&:hover
 				text-decoration underline
+
 .minimap .ol-attribution
 	top unset !important
 	bottom 0 !important
 	border-top-left-radius 4px !important
 	border-bottom-left-radius 0 !important
-
-.sidebaropen .ol-attribution
-	right 600px !important
-
 
 button.ol-zoom-in
 button.ol-zoom-out
@@ -221,10 +171,32 @@ menuwidth = 250px
 	> *
 		pointer-events all
 
+.wrapper
+	position fixed
+	left 0
+	top 0
+	right 0
+	bottom 0
+	display flex
+	flex-direction column
+
+.mapareawrapper
+	flex-grow 1
+	z-index 0
+	position relative
+
+.timelinewrapper
+	flex-grow 0
+	z-index 1
+	width 100%
+
+.sidebaropen .mapareawrapper
+.sidebaropen .timelinewrapper
+	width calc( 100% - 600px )
+
 #mapcontainer
 .fullview
 	pointer-events all
-
 
 .topbar
 	position fixed
@@ -242,18 +214,16 @@ menuwidth = 250px
 	flex-wrap wrap
 
 .leftui
-	position fixed
+	position absolute
 	left 0
 	top var(--menubariconsize)
 	margin-top 1px
-	// bottom 0
-	bottom var(--timelineheight);
+	bottom 0
 	pointer-events none
 	display flex
 	flex-direction column
 	z-index 2
 	filter drop-shadow(2px 3px 2px #00000022)
-	// filter var(--dropshadowfilterdarker)
 	> *
 		pointer-events all
 
@@ -261,13 +231,6 @@ menuwidth = 250px
 	bottom 0
 	z-index 11
 
-
-.bottombar
-	flex-shrink 0
-	flex-grow 0
-	flex-basis 44px
-	display none
-	align-self stretch
 
 
 
@@ -289,9 +252,7 @@ menuwidth = 250px
 	background #fff
 	padding 0
 	min-width 250px
-	// border-top-right-radius 9px
-	// border-bottom-right-radius 9px
-	// border-bottom-left-radius 9px
+
 .is-mobile .menuwindow
 	max-width 80vw !important
 	
@@ -315,15 +276,12 @@ menuwidth = 250px
 	overflow-y auto
 	background #fff
 	overflow auto
-	// box-shadow 0 1px 2px 2px #00000011
 	margin 0
 	padding 6px 6px
 	h4
 		font-weight bold
 		padding-top 6px
 		margin 2em 4px .5em
-		// margin-left 0
-		// padding-left 4px
 		display block
 		color var(--menusectionheadercolor)
 		font-size 80%
@@ -337,7 +295,6 @@ menuwidth = 250px
 
 
 // MENU ITEM
-
 
 .menu-item
 	cursor pointer
@@ -633,7 +590,6 @@ input[type=radio]
 
 .sidebar.fullwidth
 	width 100vw
-	z-index 300
 
 @media (max-width: 900px) // mobile full width sidebar
 	.sidebar
@@ -795,6 +751,16 @@ input[type=radio]
 			color #000000
 			background: var(--activecolorgrey)
 			pointer-events none
+	.item.header
+		pointer-events none
+		font-weight bold
+		padding-bottom 4px
+		padding-top 4px
+	.divider
+		height 1px
+		padding 0
+		margin 0
+		border-top 2px solid #00000011
 	.second-group
 		border-top 1px solid #00000033
 
@@ -1027,7 +993,8 @@ hr
 	width 20px
 	height 20px
 	border-radius 50%
-	background #888
+	background #aaa
+	border 1.5px solid #00000022
 	filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
 	pointer-events none
 	font-size 12pt

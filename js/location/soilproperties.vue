@@ -78,17 +78,18 @@
 
 <style lang="stylus" scoped>
 
-		.filteritems
-			display flex
-			flex-wrap wrap
-			font-weight bold
-			gap 6px 2px
-			margin 15px -50px 8px -11px
-	
+	.filteritems
+		display flex
+		flex-wrap wrap
+		font-weight bold
+		gap 6px 2px
+		margin 15px -50px 8px -11px
+
 </style>
 
 <style lang="stylus" >
-	.context-iframe .soilinfo .filteritems
-	.context-single .soilinfo .filteritems
+	.context-iframe .location .filteritems
+	.context-single .location .filteritems
+	.is-mobile .location .filteritems
 		margin-right 0
 </style>

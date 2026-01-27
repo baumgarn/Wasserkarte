@@ -305,12 +305,24 @@ export const displayutil = {
 		return `${dayOfMonth}. ${month} ${year}`;
 	},
 	formatDateAggregated: function (timestamp) {
-		// we are subtracting one day here since we have our aggregated data timestamp at midnight the end of the day, but don't want to display as next day 
 		const date = new Date(timestamp);
-		date.setDate(date.getDate() - 1);
-		const dayOfMonth = date.getDate();
-		const month = date.toLocaleString('de-DE', { month: 'short' });
-		const year = date.toLocaleString('de-DE', { year: 'numeric' });
+		const dayOfMonth = date.getUTCDate();
+		const month = date.toLocaleString('de-DE', { month: 'short', timeZone: 'UTC' });
+		const year = date.toLocaleString('de-DE', { year: 'numeric', timeZone: 'UTC' });
+		return `${dayOfMonth}. ${month} ${year}`;
+	},
+	formatDateAggregatedLocal: function (timestamp) {
+		const date = new Date(timestamp);
+		const dayOfMonth = date.toLocaleString('de-DE', { day: 'numeric', timeZone: 'Europe/Berlin' });
+		const month = date.toLocaleString('de-DE', { month: 'short', timeZone: 'Europe/Berlin' });
+		const year = date.toLocaleString('de-DE', { year: 'numeric', timeZone: 'Europe/Berlin' });
+		return `${dayOfMonth}. ${month} ${year}`;
+	},
+	formatDateAggregatedUTC: function (timestamp) {
+		const date = new Date(timestamp);
+		const dayOfMonth = date.getUTCDate();
+		const month = date.toLocaleString('de-DE', { month: 'short', timeZone: 'UTC' });
+		const year = date.toLocaleString('de-DE', { year: 'numeric', timeZone: 'UTC' });
 		return `${dayOfMonth}. ${month} ${year}`;
 	},
 	formatDateTime: function (timestamp) {

@@ -133,7 +133,6 @@ export default {
 				const avg = this.dailyAverages[index];
 				if (avg) return avg;
 			} else {
-				console.log(this.lastAverages)
 				return this.lastAverages;
 			}
 		},
@@ -205,7 +204,7 @@ export default {
 	justify-content flex-start
 	margin 0
 	font-size 9pt
-	color #00000088
+	color rgba(0,0,0,0.7)
 	cursor pointer
 	transition background linear .05s
 	&:hover
@@ -217,6 +216,7 @@ export default {
 	width 100%
 	background #00000011
 	border-bottom 1px solid #00000022
+	color rgba(0,0,0,0.55)
 	.row
 		height 17px
 		position relative

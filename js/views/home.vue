@@ -3,78 +3,75 @@
 
 	<div class="wrapper" :class="{ showtooltips: state.tooltips, sidebaropen: state.sidebarOpen }" >
 
-		<Map />
+		<div class="mapareawrapper">
 
-		<Timeline />
-		
-		<div class="ui">
+			<Map />
 			
-			<div class="topbar" :style="state.sidebarOpen ? { right: '600px' } : {}">
-
-				<MenuBar />
+			<div class="ui">
 				
-				<!-- <a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a> -->
+				<div class="topbar" :style="state.sidebarOpen ? { right: '600px' } : {}">
 
-				<div v-if="state.isMobile && !state.menuOpen.info" class="infobutton" @click="state.menuOpen.info = true"></div>
+					<MenuBar />
+					
+					<!-- <a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a> -->
 
-				<StatusBar />
-			</div>
+					<div v-if="state.isMobile && !state.menuOpen.info" class="infobutton" @click="state.menuOpen.info = true"></div>
 
-
-			<!-- <Legend v-if="state.showHelp"/> -->
-
-			<div class="leftui">
-
-
-				<div class="menuwindows">	
-
-					<GeraeteMenu v-if="state.menuOpen.orte"/>
-					<ErrorMenu v-if="state.menuOpen.error"/>
-					<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
-					<FilterMenu v-if="state.menuOpen.filter"/>
-					<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
-					<GlossarMenu v-if="state.menuOpen.glossar"/>
-					<SettingsMenu v-if="state.menuOpen.einstellungen"/>
-					<KartenMenu v-if="state.menuOpen.karten"/>
+					<StatusBar />
 				</div>
-				
-				<div class="bottombar">
-					<!-- <ColorschemeGradient style="width:100%" class="gradient" :colorScheme="dataModel.color_schemes.nfk[state.colorScheme]" :width="1200" :height="44"/> -->
+
+
+				<!-- <Legend v-if="state.showHelp"/> -->
+
+				<div class="leftui">
+
+					<div class="menuwindows">	
+
+						<GeraeteMenu v-if="state.menuOpen.orte"/>
+						<ErrorMenu v-if="state.menuOpen.error"/>
+						<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
+						<FilterMenu v-if="state.menuOpen.filter"/>
+						<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
+						<GlossarMenu v-if="state.menuOpen.glossar"/>
+						<SettingsMenu v-if="state.menuOpen.einstellungen"/>
+						<KartenMenu v-if="state.menuOpen.karten"/>
+					</div>
 
 				</div>
 
-			</div>
 
 
+				<a v-if="!state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten desktop"><img src="/img/klimadaten.png" ></a>
 
-			<a v-if="!state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten desktop"><img src="/img/klimadaten.png" ></a>
-
-			<a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a>
-
-
-
-			<div class="rightui">
-
-				<Info v-if="state.menuOpen.info"/>
+				<a v-else-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a>
 				
-				<Sidebar />
-				
-				<LayerLegends />
-
 			</div>
 
-			<div class="loadingoverlay" v-if="!telemetryLoaded">
-
-			</div>
-			
 		</div>
+
+		<TimelineWrapper />
 		
+	</div>
+
+	<div class="rightui">
+
+		<Info v-if="state.menuOpen.info"/>
+		
+		<Sidebar />
+		
+		<LayerLegends />
+
+	</div>
+
+	<div class="loadingoverlay" v-if="!loaded">
+
 	</div>
 
 </template>
 
 <script>
 import { ref, computed } from 'vue';
+import { nextTick } from 'vue';
 import Sidebar from '@/views/sidebar.vue';
 import Info from '@/views/info.vue';
 import MenuBar from '@/menu/menu_bar.vue';
@@ -95,12 +92,17 @@ import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
 import { config } from '@/config.js';
 import Map from '@/map/map.vue';
-import Timeline from '@/map/timeline.vue';
+import TimelineWrapper from '@/map/timeline_wrapper.vue';
 
 export default {
 	setup() {
 		return {state, dataModel}
 	},
+	data(){
+		return {
+			loaded: false
+		}
+	}, 
 	components: {
 		Sidebar,
 		KartenMenu,
@@ -116,7 +118,7 @@ export default {
 		ColorschemeMenu,
 		ColorschemeGradient,
 		SoilMenu,
-		Timeline,
+		TimelineWrapper,
 		StatusBar,
 		Map,
 		Info
@@ -126,6 +128,13 @@ export default {
 			return state.telemetryLoaded;
 		},
 	},
+	watch: {
+		telemetryLoaded() {
+			window.setTimeout(()=>{
+				this.loaded = true;
+			},10)	
+		},
+	}
 };
 </script>
 
@@ -153,11 +162,9 @@ export default {
 		
 	.klimadaten.mobile
 	.klimadaten.desktop
-		position fixed
+		position absolute
 		left 0
 		bottom 0
-		bottom var(--timelineheight);
-		height 36px
 		height 32px
 		margin 16px
 

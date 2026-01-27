@@ -366,14 +366,13 @@ const dataStore = {
 		return Math.floor(timestamp / msPerDay) * msPerDay;
 	},
 
-	ceilToMidnight(timestamp) {
-		const msPerDay = 24 * 60 * 60 * 1000;
-		return Math.floor(timestamp / msPerDay) * msPerDay + msPerDay;
-	},
+	// ceilToMidnight(timestamp) {
+	// 	const msPerDay = 24 * 60 * 60 * 1000;
+	// 	return Math.floor(timestamp / msPerDay) * msPerDay + msPerDay;
+	// },
 
 	getDataAtTimestamp(deviceIndex, timestamp) {
 		const telemetryRows = dataStore.getTelemetryForDay(timestamp);
-		// For a device:
 		const row = telemetryRows[deviceIndex];
 		if (row) {
 			return row;
@@ -391,7 +390,8 @@ const dataStore = {
 		const msPerDay = 24 * 60 * 60 * 1000;
 
 		// Floor earliest timestamp to midnight
-		let dayTs = this.ceilToMidnight(this.earliestTimestamp);
+		// let dayTs = this.ceilToMidnight(this.earliestTimestamp);
+		let dayTs = this.floorToMidnight(this.earliestTimestamp);
 
 		let numDays = 0;
 
@@ -414,7 +414,7 @@ const dataStore = {
 
 		// Return cached if available
 		if (this.timelineCache[timestamp]) return this.timelineCache[timestamp];
-		
+
 		// Build cache for this day
 		const rows = state.devices.map(device => {
 			const telemetry = this.fetchTelemetryCache(device.id)?.data;
@@ -430,22 +430,32 @@ const dataStore = {
 
 	// TELEMETRY ROWS TIMESTAMP BINARY SEARCH
 
-	get_telemetry_index_binary(data, timestamp) { 
+	get_telemetry_index_binary(data, timestamp) {
 		const n = data.length;
-		if (n < 2) return -1;
-		let lo = 0, hi = n; // search in [0, n)
+		if (n < 1) return -1;
+
+		const msPerDay = 24 * 60 * 60 * 1000;
+		const dayEnd = timestamp + msPerDay;
+
+		// Binary search for first entry >= timestamp
+		let lo = 0, hi = n;
 		while (lo < hi) {
 			const mid = (lo + hi) >>> 1;
-			if (data[mid][0] <= timestamp) lo = mid + 1;
+			if (data[mid][0] < timestamp) lo = mid + 1;
 			else hi = mid;
 		}
-		const i = lo - 1; // rightmost <= T
-		if (i < 0 || i >= n - 1) return -1;
-		return i;
+
+		// Return index if entry is within the day range [timestamp, timestamp + 24h)
+		if (lo < n && data[lo][0] < dayEnd) {
+			return lo;
+		}
+
+		return -1;
 	},
 
 	// NFK DAILY AVERAGES CALCULATIONS
 
+	// calculates nfk daily averages for all locations and days
 	getNfkDailyAverages() {
 		const startTime = performance.now();
 		const timelineCache = this.timelineCache;
@@ -477,12 +487,15 @@ const dataStore = {
 			result.push(this.getNfkAveragesForDay(ts, rowsForDay, deviceAllowed));
 		}
 
+		result.push(this.getNfkAveragesForLastTelemetry());
+
 		console.log(
 			`nFK daily averages calculated in ${(performance.now() - startTime).toFixed(2)} ms`
 		);
 		return result;
 	},
 
+	// calculates nfk averages for current day because daily aggregates do not yet exist
 	getNfkAveragesForLastTelemetry() {
 
 		const useFilter = state.includeFilter.length > 0 || state.excludeFilter.length > 0;
@@ -502,7 +515,7 @@ const dataStore = {
 		for (let i = 0; i < state.devices.length; i++) {
 			const data = state.devices[i].telemetrySchema.data[0];
 			if (data[0] > ts) ts = data[0];
-			if (data[0] > this.latestTimestamp - config.timelineHoverCutoff) {
+			if (data[0] > this.latestTimestamp - config.timelineHoverCutoff && this.isRowValid(data, state.devices[i].schemaIndex)) {
 				telemetryRows[i] = data; 
 			} else {
 				telemetryRows[i] = null; 
@@ -513,6 +526,15 @@ const dataStore = {
 		return result;
 	},
 
+	// locations in nfk averages for current day will only be considered if all soil moisture values are betwen -10 and 100
+	// past daily averages are already sanitized in the api cache
+	isRowValid(row, schemaIndex) {
+		return (
+			(!schemaIndex.Bodenfeuchte_10cm || (row[schemaIndex.Bodenfeuchte_10cm] > -10 && row[schemaIndex.Bodenfeuchte_10cm] < 100) ) &&
+			(!schemaIndex.Bodenfeuchte_30cm || (row[schemaIndex.Bodenfeuchte_30cm] > -10 && row[schemaIndex.Bodenfeuchte_30cm] < 100) ) &&
+			(!schemaIndex.Bodenfeuchte_60cm || (row[schemaIndex.Bodenfeuchte_60cm] > -10 && row[schemaIndex.Bodenfeuchte_60cm] < 100) ) &&
+			(!schemaIndex.Bodenfeuchte_80cm || (row[schemaIndex.Bodenfeuchte_80cm] > -10 && row[schemaIndex.Bodenfeuchte_80cm] < 100) ) )
+	},
 
 	// Calculate averages data for a single day
 	getNfkAveragesForDay(ts, rowsForDay, deviceAllowed) {

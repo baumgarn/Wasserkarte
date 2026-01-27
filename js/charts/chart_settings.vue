@@ -6,7 +6,7 @@
 			:items="chartStyles" 
 			:stateProperty="'chartStyle'" 
 			/>
-			<div v-if="dataPresent" ref="openTimeRangeRef" class="daterange" v-on:click="openTimeRanges()" >
+			<div v-if="dataPresent" ref="openTimeRangeRef" class="daterange" @click="openTimeRanges" >
 
 				<template v-if="!isPopoverOpen">
 					{{ selectedTimeRange }}

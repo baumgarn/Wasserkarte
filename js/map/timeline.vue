@@ -1,22 +1,42 @@
 <template>
-	
-	<div class="timeline" ref="timeline" :class="{'sidebaropen': state.sidebarOpen, 'telemetryloaded': telemetryLoaded}" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
-		<div class="timelineinner">
-			<canvas ref="heatmap"></canvas>
-			<div class="hoverline" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition ) + 'px' }"></div>
-			<div class="timelinehovertriangle" v-if="showDate" :style="{ left: (hoverLinePosition - 1 ) + 'px' }"></div>
-			<div class="hoverdate" v-if="showDate" :style="{ left: (hoverDatePosition ) + 'px', width: hoverDateWidth + 'px' }">
-				{{ formattedHoverDate }}
-			</div>
-			<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
-			<DateAxis
-				:chartWidth="timelineWidth"
-				:frameWidth="timelineWidth"
-				:startTimestamp="earliestTimestamp"
-				:numberOfDays
-				:insideTimeline="true"
-			></DateAxis>
+
+	<div class="timeline" ref="timeline" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
+
+		<canvas ref="heatmap"></canvas>
+
+		<div class="hoverline" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition ) + 'px' }"></div>
+
+		<div class="timelinehovertriangle" v-if="showDate" :style="{ left: (hoverLinePosition - 1 ) + 'px' }"></div>
+
+		<div class="hoverdate" v-if="showDate" :style="{ left: (hoverDatePosition ) + 'px', width: hoverDateWidth + 'px' }">
+			{{ formattedHoverDate }}
 		</div>
+
+		<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
+
+		<DateAxis
+		v-if="dateAxis && !dateAxisBelow"
+		:chartWidth="timelineWidth"
+		:frameWidth="timelineWidth"
+		:startTimestamp="startTimestamp"
+		:numberOfDays
+		:insideTimeline="true"
+		></DateAxis>
+
+		<div v-if="label" class="label">{{ label }}</div>
+
+	</div>
+
+	<div v-if="dateAxisBelow" class="dateaxisbelowcontainer">
+		<DateAxis
+		v-if="dateAxis && dateAxisBelow"
+		:chartWidth="timelineWidth"
+		:frameWidth="timelineWidth"
+		:startTimestamp="startTimestamp"
+		:numberOfDays
+		:insideTimeline="true"
+		:firstItemPadding="true"
+		></DateAxis>
 	</div>
 
 </template>
@@ -32,7 +52,7 @@ import DateAxis from '@/charts/dateaxis.vue'
 
 
 export default {
-	name: 'MapInfoArrow',
+	name: 'TimelineInner',
 	components: {DateAxis},
 	setup() {
 		return {
@@ -42,14 +62,18 @@ export default {
 	data() {
 		return {
 			selectedDeviceTelemetry: null,
-			earliestTimestamp: 0,
-			latestTimestamp: 0,
 			hoverPosition: -1,
-			hoverDateWidth: 75,
+			hoverDateWidth: 70,
 			timelineWidth: 0
 		};
 	},
 	props: {
+		dailyAverages: Object,
+		startTimestamp: Number,
+		endTimestamp: Number,
+		dateAxis: {type: Boolean, default: true},
+		dateAxisBelow: {type: Boolean, default: false},
+		label: {type: String, default: ''},
 	},
 	computed: {
 		device() {
@@ -68,29 +92,42 @@ export default {
 			return state.filteredDevices;
 		},
 		numberOfDays() {
-			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
+			return (this.endTimestamp - this.startTimestamp) / (1000 * 60 * 60 * 24);
 		},	
 		showDate() {
-			// return (this.hoverLinePosition > 0)
 			return (this.hoverPosition > -1 && this.hoverLinePosition > 0)
 		},
 		timelineDate() {
 			let ts = null;
 			if (this.hoverPosition > -1) {
 				const fraction = this.hoverPosition / (this.timelineWidth - 1);
-				ts = this.earliestTimestamp + fraction * this.timelineSpan;
-				state.timelineDate = dataStore.floorToMidnight(ts);
+				ts = this.startTimestamp + fraction * this.timelineSpan;
+				ts = dataStore.floorToMidnight(ts);
+				if (ts < this.earliestTimestamp) ts = this.earliestTimestamp;
+				if (ts > this.latestTimestamp) ts = this.latestTimestamp;
+				if (ts > this.endTimestamp) ts = this.endTimestamp;
+
+				state.timelineDate = ts;
 				return state.timelineDate;
 			} else if (state.timelineDate && this.hoverPosition < 0) {
 				return state.timelineDate;
 			}
+			return null;
 		},
 		hoverLinePosition() {
 			let pos;
 			if (this.hoverPosition > -1) {
 				pos = this.hoverPosition;
-			} else if (state.timelineDate && this.hoverPosition < 0 ) {
-				const fraction = (state.timelineDate - this.earliestTimestamp) / this.timelineSpan;
+				// Snap to data range boundaries
+				if (this.earliestTimestamp && this.latestTimestamp) {
+					const msPerDay = 24 * 60 * 60 * 1000;
+					const earliestX = ((this.earliestTimestamp - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+					const latestX = ((this.latestTimestamp + msPerDay - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+					if (pos < earliestX) pos = earliestX;
+					if (pos > latestX) pos = latestX;
+				}
+			} else if (state.timelineDate && this.hoverPosition < 0 && state.timelineDate > this.startTimestamp && state.timelineDate < this.endTimestamp) {
+				const fraction = (state.timelineDate - this.startTimestamp) / this.timelineSpan;
 				pos = fraction * this.timelineWidth;
 			} else {
 				pos = -1;
@@ -115,53 +152,102 @@ export default {
 					this.timelineWidth = timeline.getBoundingClientRect().width;
 				}
 				const canvas = this.$refs.heatmap;
-				
+
 				const dpr = window.devicePixelRatio || 1;
 				canvas.style.width = this.timelineWidth + 'px';
 				canvas.width = Math.max(1, Math.floor(this.timelineWidth * dpr));
-				canvas.height = 1;
-
-				const ctx = canvas.getContext('2d');
-				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-				ctx.clearRect(0, 0, this.timelineWidth, 1);
 
 				const rows = this.dailyAverages;
+				this.latestTimestamp = this.dailyAverages[this.dailyAverages.length-1].ts;
+				this.earliestTimestamp = this.dailyAverages[0].ts;
+
 				const msPerDay = 24 * 60 * 60 * 1000;
 
-				// time span is from first timestamp to (last timestamp + 1 day)
-				this.earliestTimestamp = rows[0].ts;
-				this.latestTimestamp = rows[rows.length - 1].ts + msPerDay;
-				this.timelineSpan = Math.max(1, this.latestTimestamp - this.earliestTimestamp);
+				this.timelineSpan = Math.max(1, this.endTimestamp - this.startTimestamp);
 				this.dayWidth = this.timelineWidth / this.timelineSpan;
 
-				// draw each row from its ts to the next ts (or +1 day for the last)
-				let x = 0; // running x, but we'll compute directly from time to avoid drift
-				for (let i = 0; i < rows.length; i++) {
-					const row = rows[i];
-					const ts = row.ts;
-					const nfk = row.nfk_avg;
-					const nextTs = (i < rows.length - 1) ? rows[i + 1].ts : ts + msPerDay;
+				const ctx = canvas.getContext('2d');
 
-					const startRel = ts - this.earliestTimestamp;      // ms from start
-					const endRel = nextTs - this.earliestTimestamp;    // ms from start
-					const segX = startRel * this.dayWidth;
-					const segW = (endRel - startRel) * this.dayWidth + 1;
+				// Check if we should draw levels or regular heatmap
+				if (state.timelineStyle === 'levels') {
+					// Draw vertical bars showing level distribution per day
+					const canvasHeight = timeline.getBoundingClientRect().height;
+					canvas.height = Math.max(1, Math.floor(canvasHeight * dpr));
+					canvas.style.height = canvasHeight + 'px';
 
-					if (nfk != null) {
+					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+					ctx.clearRect(0, 0, this.timelineWidth, canvasHeight);
 
-						ctx.fillStyle = dataModel.get_nfk_color(nfk);
-						ctx.fillRect(segX, 0, segW, 1);
+					const labels = dataModel.nfk_labels;
+					const levelColors = labels.map((label, index) => {
+						if (index === 0) {
+							return dataModel.get_nfk_color(0);
+						}
+						const prevValue = labels[index - 1].value;
+						const midpoint = prevValue + (label.value - prevValue) / 2;
+						return dataModel.get_nfk_color(midpoint);
+					});
+
+					for (let i = 0; i < rows.length; i++) {
+						const row = rows[i];
+						const ts = row.ts;
+						const nfk_level = row.nfk_level;
+						const nextTs = (i < rows.length - 1) ? rows[i + 1].ts : ts + msPerDay;
+
+						const startRel = ts - this.startTimestamp;
+						const endRel = nextTs - this.startTimestamp;
+						const segX = startRel * this.dayWidth;
+						const segW = (endRel - startRel) * this.dayWidth + 1;
+
+						if (nfk_level && nfk_level.length) {
+							const total = nfk_level.reduce((sum, v) => sum + v, 0);
+
+							if (total > 0) {
+								let currentY = canvasHeight;
+
+								// Draw from bottom to top
+								for (let levelIndex = 0; levelIndex < nfk_level.length; levelIndex++) {
+									const count = nfk_level[levelIndex];
+									if (count > 0) {
+										const percentage = (count / total);
+										const segmentHeight = percentage * canvasHeight;
+
+										ctx.fillStyle = levelColors[levelIndex];
+										ctx.fillRect(segX, currentY - segmentHeight, segW, segmentHeight);
+
+										currentY -= segmentHeight;
+									}
+								}
+							}
+						}
+					}
+				} else {
+					// Draw regular heatmap (single line)
+					canvas.height = 1;
+					canvas.style.height = '';
+
+					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+					ctx.clearRect(0, 0, this.timelineWidth, 1);
+
+					for (let i = 0; i < rows.length; i++) {
+						const row = rows[i];
+						const ts = row.ts;
+						const nfk = row.nfk_avg;
+						const nextTs = (i < rows.length - 1) ? rows[i + 1].ts : ts + msPerDay;
+
+						const startRel = ts - this.startTimestamp;
+						const endRel = nextTs - this.startTimestamp;
+						const segX = startRel * this.dayWidth;
+						const segW = (endRel - startRel) * this.dayWidth + 1;
+
+						if (nfk != null) {
+							ctx.fillStyle = dataModel.get_nfk_color(nfk);
+							ctx.fillRect(segX, 0, segW, 1);
+						}
 					}
 				}
 
-				// optional thin top line for definition
-				ctx.fillStyle = 'rgba(0,0,0,0.06)';
-				ctx.fillRect(0, 0, this.timelineWidth, 1);
-
 			}
-		},
-		getNfkDailyAverages() {
-			this.dailyAverages = dataStore.getNfkDailyAverages();
 		},
 		hover(event) {
 			const rect = this.$refs.timeline.getBoundingClientRect();
@@ -177,17 +263,17 @@ export default {
 		},
 		toTimelineX(ts) {
 			if (!this.timelineWidth || !this.timelineSpan) return 0;
-			return ((ts - this.earliestTimestamp) / this.timelineSpan) * this.timelineWidth;
+			return ((ts - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
 		},
 
 	},
 	watch: {
+		dailyAverages() {
+		},
 		telemetryLoaded() {
-			this.getNfkDailyAverages()
 			this.drawHeatmap();
 		},
 		filteredDevices() {
-			this.getNfkDailyAverages()
 			this.drawHeatmap();
 		},
 		fullWidth() {
@@ -201,7 +287,12 @@ export default {
 		timelineWidth() {
 			nextTick(()=>{
 				this.drawHeatmap()
-			})	
+			})
+		},
+		'state.timelineStyle'() {
+			nextTick(()=>{
+				this.drawHeatmap()
+			})
 		},
 		device() {
 			this.$nextTick(async () => {
@@ -232,25 +323,15 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+	
 	.timeline
-		position fixed
-		left 0
-		bottom 0
-		right 0
-		z-index 10
-		background transparent
-		padding-top 16px
-		.timelineinner
-			display block
-			width 100%
-			height var(--timelineheight);
-			filter drop-shadow(2px -2px 2px #00000033)
-			filter drop-shadow(2px 0 4px #00000033)
-			background #ddd
+		position relative
+		display block
+		width 100%
+		height var(--timelineheight);
 		canvas
 			height 100%
-		&.sidebaropen
-			right 600px !important
+			background #fff
 		.hoverline
 			border-left 1px dotted #000000
 			top -1px
@@ -263,11 +344,11 @@ export default {
 			background var(--timelinedatebg)
 			color #fff
 			text-align center
-			padding 4px 0
+			padding 3px 0 2px
 			white-space nowrap
 			border-radius 4px
-			// background #fff
-			// color black
+			z-index 100
+			overflow visible
 		.timelinehovertriangle
 			margin-left -4.5px
 			top -8px
@@ -275,19 +356,48 @@ export default {
 			border-top 8px solid var(--timelinedatebg)
 			border-left 6px solid transparent
 			border-right 6px solid transparent
-			// border-top 8px solid #fff
-			// border-left 5px solid transparent
-			// border-right 5px solid transparent
 			opacity 1
 			z-index 101
-		.selectedDeviceArea
+		// .selectedDeviceArea
+		// 	position absolute
+		// 	bottom 0
+		// 	height 4px
+		// 	// background #00000044
+		// 	z-index 102
+		// 	display none
+		.label
 			position absolute
-			bottom 0
-			height 4px
-			background #00000044
-			z-index 102
-			display none
+			left 0.5vw
+			top 0
+			bottom 40%
+			display flex
+			align-items center
+			font-size 10px
+			font-size 11px
+			font-size 11px
+			font-weight bold
+			color #000000aa
+			opacity .7
+			color #000
 		.chart-time
-			top 55%
-			transform translate(0,-65%)
+			top 60%
+			transform translate(0,-10px)
+
+	.dateaxisbelowcontainer
+		position relative
+		width 100%
+		height 24px
+		.chart-time
+			top 0
+			transform translate(0,-3px)
+
+	.dateaxisbelowcontainer
+	.timeline
+		&:after
+			content ''
+			position absolute
+			left 0
+			top 0
+			right 0
+			border-top 1px solid #00000022
 </style>

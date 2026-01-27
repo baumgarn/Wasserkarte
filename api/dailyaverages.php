@@ -71,15 +71,12 @@ function dailyAverages() {
 			$deviceTime = microtime(true) - $deviceStart;
 
 			if ($data === null) {
-				error_log("⚠️  FAILED: {$device['name']} ({$deviceId}) - returned null after {$deviceTime}s");
+				error_log("FAILED: {$device['name']} ({$deviceId}) - returned null after {$deviceTime}s");
 				continue;
 			}
 
-			error_log("✓ SUCCESS: {$device['name']} ({$deviceId}) in {$deviceTime}s");
-		
 			$json = json_encode($data, JSON_PRETTY_PRINT);
 			saveTelemetryCache($deviceId, 'all', '1d', $json);	
-
 
 			$telemetry = $data['telemetry'] ?? null;
 			$rows = $telemetry['data'] ?? null;
@@ -127,9 +124,10 @@ function dailyAverages() {
 				// 	}
 				// }
 			// }
+			
 		} catch (Exception $e) {
 			$deviceTime = microtime(true) - $deviceStart;
-			error_log("❌ ERROR: {$device['name']} ({$deviceId}) after {$deviceTime}s - " . $e->getMessage());
+			error_log("ERROR: {$device['name']} ({$deviceId}) after {$deviceTime}s - " . $e->getMessage());
 			continue;
 		}
 

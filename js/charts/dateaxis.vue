@@ -1,5 +1,5 @@
 <template>
-	<div class="scrollview chart-time" :class="{ insideGraph, insideTimeline }">
+	<div class="scrollview chart-time" :class="{ insideGraph, insideTimeline, firstItemPadding }">
 		<div class="scrollframe" :style="{ width: frameWidth + 'px'}">
 			<div class="scrollinner" :style="{ width: chartWidth + 'px', marginLeft: -scrollLeft + 'px' }">
 				<template v-if="dayWidth > 80">
@@ -68,14 +68,16 @@ export default {
 		},
 		insideGraph: {
 			type: Boolean,
-			required: false,
 			default: false
 		},
 		insideTimeline: {
 			type: Boolean,
-			required: false,
 			default: false
-		}
+		},
+		firstItemPadding: {
+			type: Boolean,
+			default: false
+		},
 	},
 	computed: {
 		days() {
@@ -139,6 +141,8 @@ export default {
 
 <style lang="stylus" scoped>
 
+
+
 .chart-time.insideTimeline
 .chart-time.insideGraph
 	position absolute
@@ -162,7 +166,6 @@ export default {
 .scrollframe {	
 	position: relative;
 	overflow: hidden;
-	height: 16px
 	height: 24px
 	background transparent
 	border-radius calc(var(--barheight) / 2)
@@ -182,16 +185,19 @@ export default {
 	position: absolute;
 	left: 0;
 	top 13px;
-	bottom: 4px;
+	top 4px;
 	width 0;
 	display: flex;
 	align-items: center;
 	justify-content: left;
 	white-space: nowrap;
 	overflow: visible;
-	// padding-left: 0.5em;
 	font-size 9px
 	color #000000cc
+
+.firstItemPadding .day:first-of-type
+	padding-left 0.5vw
+
 	
 .chart-time.insideTimeline .day
 	top 10px

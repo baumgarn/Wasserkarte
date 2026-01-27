@@ -1,3 +1,4 @@
+
 <template>
 	<div v-if="isOpen" class="popover-menu" :style="{ top: `${position.top}px`, right: `${position.right}px` }">
 		<div class="items">

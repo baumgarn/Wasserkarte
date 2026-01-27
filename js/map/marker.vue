@@ -260,7 +260,7 @@ export default {
 			if (!this.timelineDate && this.hoursSinceLastTelemetry < config.noTelemetryCutoff ) {
 				return true;
 			} 
-			if (this.timelineDate && this.timelineDate > this.firstDate && this.timelineDate < this.lastDate + config.timeDisplayCutoff) {
+			if (this.timelineDate && this.timelineDate >= this.firstDate && this.timelineDate < this.lastDate + config.timeDisplayCutoff) {
 				return true;
 			}
 		},
@@ -298,10 +298,8 @@ export default {
 		displayData() {
 			if (state.timelineDate && this.telemetryData){
 				const data = dataStore.getDataAtTimestamp(this.device.index, state.timelineDate);
-				if (data) {
-					return data;
-				}
-			} 
+				if (data) {return data;}
+			}
 			return this.lastData;
 		},
 		nfk_color() {

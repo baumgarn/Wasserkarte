@@ -106,6 +106,9 @@ export default {
 				state.excludeFilter = state.excludeFilter.filter(item => item.name !== this.obj.name);
 				state.hoverFilter = null;
 			}
+			if (state.isMobile) {
+				state.selectedDevice = null;
+			}
 		},
 	},
 	computed: {

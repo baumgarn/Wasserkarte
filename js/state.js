@@ -38,11 +38,14 @@ export const state = reactive({
 	isMobile: false,
 	tooltips: true,
 	markerClicked: false,
+	timelineDate: null,
 });
 
 localStorageState('markerStyle', 'Bodenfeuchte_Farbkreis');
 localStorageState('focusMode', false);
 localStorageState('chartStyle', 'schichten');
+localStorageState('timelineRange', '365d');
+localStorageState('timelineStyle', 'nfk_avg');
 localStorageState('showHelp', true);
 localStorageState('showInfoOnStart', true);
 localStorageState('showErrors', false);

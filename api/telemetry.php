@@ -165,6 +165,13 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 	// echo $json;
 }
 
+// normalize timestamp to UTC midnight 
+function floorToUTCMidnightMs(int $tsMs): int
+{
+    $dt = new DateTime('@' . intdiv($tsMs, 1000), new DateTimeZone('UTC'));
+    $dt->setTime(0, 0, 0);
+    return $dt->getTimestamp() * 1000;
+}
 
 // Normalize our timestamps to midnight to aggregate our data starting and ending at midnight for a full day 
 function floorToLocalMidnightMs(int $tsMs, string $tzId = 'Europe/Berlin'): int
@@ -175,14 +182,14 @@ function floorToLocalMidnightMs(int $tsMs, string $tzId = 'Europe/Berlin'): int
 	$dt->setTime(0, 0, 0);                          // snap to local midnight
 	return $dt->getTimestamp() * 1000;              // back to UTC ms
 }
-function ceilToLocalMidnight(int $tsMs, string $tzId = 'Europe/Berlin'): int
-{
-	$tz = new DateTimeZone($tzId);
-	$dt = new DateTime('@' . intdiv($tsMs, 1000)); // interpret as UTC instant
-	$dt->setTimezone($tz);                          // view in local time
-	$dt->setTime(24,0,0);                          // snap to local midnight
-	return $dt->getTimestamp() * 1000;              // back to UTC ms
-}
+// function ceilToLocalMidnight(int $tsMs, string $tzId = 'Europe/Berlin'): int
+// {
+// 	$tz = new DateTimeZone($tzId);
+// 	$dt = new DateTime('@' . intdiv($tsMs, 1000)); // interpret as UTC instant
+// 	$dt->setTimezone($tz);                          // view in local time
+// 	$dt->setTime(24,0,0);                          // snap to local midnight
+// 	return $dt->getTimestamp() * 1000;              // back to UTC ms
+// }
 
 // We need to format the data received from Thingsboard in a more compact way to reduce bandwidth.
 function buildSchemaData(array $telemetryData, array $schema, $aggregation)
@@ -219,8 +226,9 @@ function buildSchemaData(array $telemetryData, array $schema, $aggregation)
 				continue; // skip malformed entry
 			}
 
-			if ($aggregation == '1d') { // if daily aggregation, ceil all timestamps to 00:00
-				$entry['ts'] = ceilToLocalMidnight($entry['ts']);
+			if ($aggregation == '1d') { // if daily aggregation, floor all timestamps to 00:00 UTC
+				$entry['ts'] = floorToUTCMidnightMs($entry['ts']);
+				// $entry['ts'] = floorToLocalMidnightMs($entry['ts']);
 			}
 
 			$ts = (int)$entry['ts'];

@@ -1,6 +1,7 @@
 <template>
 
 	<div v-if="isOpen" class="popover-menu doubleselect">
+		
 		<div class="items">
 			<div
 				v-for="item in items"
@@ -10,6 +11,7 @@
 				v-html="item.label"
 			></div>
 		</div>
+
 		<div v-if="secondItems.length" class="items second-group">
 			<div
 				v-for="item in secondItems"
@@ -19,6 +21,7 @@
 				v-html="item.label"
 			></div>
 		</div>
+		
 	</div>
 
 </template>

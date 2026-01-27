@@ -14,7 +14,7 @@
   --activecolordarker: #9bb9dd;
   --activecolor: #b9d0eb;
   --activecolordarker: rgba(137,156,179,0.6);
-  --activecolorgrey: rgba(82,117,160,0.267);
+  --activecolorgrey: rgba(82,117,160,0.333);
   --activecolorgreybrighter: rgba(82,117,160,0.133);
   --activecolorbrighter: rgba(212,231,247,0.8);
   --activecolorbrightest: rgba(212,231,247,0.467);
@@ -34,7 +34,8 @@
   --infobg: rgba(68,68,68,0.6);
   --infobgopaque: #888;
   --menubariconsize: 42px;
-  --timelineheight: 36px;
+  --timelineheight: 42px;
+  --timelineheightmobile: 48px;
   --timelinedatebg: rgba(51,51,51,0.533);
   --timelinedatebg: rgba(51,51,51,0.467);
   --menusectionheadercolor: #4c88cc;
@@ -42,7 +43,7 @@
   --menuheaderline: rgba(0,0,0,0.133);
 }
 body.is-mobile {
-  --timelineheight: 48px;
+  --timelineheight: var(--timelineheightmobile);
 }
 * {
   box-sizing: border-box;
@@ -70,34 +71,11 @@ h4,
 h5 {
   font-family: "Ubuntu", sans-serif;
 }
-.wrapper {
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-}
 .app-container {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-}
-.loading:after {
-  position: absolute;
-  content: '';
-  top: calc(45% - 1.25em);
-  left: calc(50% - 1.25em);
-  width: 2.5em;
-  height: 2.5em;
-  background: transparent;
-  border: 4px solid rgba(0,0,0,0.133);
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
-  z-index: 20000;
-  border-radius: 50%;
-  animation: rotate-spinner 1.5s linear infinite;
-  pointer-events: none;
 }
 #ui,
 #app {
@@ -108,11 +86,11 @@ body.loaded #app {
   visibility: visible;
 }
 #map {
-  position: fixed;
+  position: absolute;
   top: 0;
-  bottom: 44px;
+  bottom: 0;
   left: 0;
-  width: 100%;
+  right: 0;
 }
 .ol-zoom {
   right: 12px !important;
@@ -129,9 +107,8 @@ body.loaded #app {
 }
 .ol-attribution {
   font-family: sans-serif;
-  opacity: 0.7;
+  opacity: 0.8;
   z-index: 102;
-  bottom: var(--timelineheight) !important;
   top: unset !important;
   transform: translate(100%, 0) rotate(-90deg);
   transform-origin: 0 100%;
@@ -139,7 +116,7 @@ body.loaded #app {
   border-top-left-radius: 0 !important;
 }
 .ol-attribution ul li {
-  font-size: 8pt;
+  font-size: 7.5pt;
   color: #333;
 }
 .ol-attribution ul li a {
@@ -153,9 +130,6 @@ body.loaded #app {
   bottom: 0 !important;
   border-top-left-radius: 4px !important;
   border-bottom-left-radius: 0 !important;
-}
-.sidebaropen .ol-attribution {
-  right: 600px !important;
 }
 button.ol-zoom-in,
 button.ol-zoom-out {
@@ -173,6 +147,29 @@ button.ol-zoom-out {
 #app > *,
 #ui > * {
   pointer-events: all;
+}
+.wrapper {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+.mapareawrapper {
+  flex-grow: 1;
+  z-index: 0;
+  position: relative;
+}
+.timelinewrapper {
+  flex-grow: 0;
+  z-index: 1;
+  width: 100%;
+}
+.sidebaropen .mapareawrapper,
+.sidebaropen .timelinewrapper {
+  width: calc(100% - 600px);
 }
 #mapcontainer,
 .fullview {
@@ -195,11 +192,11 @@ button.ol-zoom-out {
   flex-wrap: wrap;
 }
 .leftui {
-  position: fixed;
+  position: absolute;
   left: 0;
   top: var(--menubariconsize);
   margin-top: 1px;
-  bottom: var(--timelineheight);
+  bottom: 0;
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -212,13 +209,6 @@ button.ol-zoom-out {
 .is-mobile .leftui {
   bottom: 0;
   z-index: 11;
-}
-.bottombar {
-  flex-shrink: 0;
-  flex-grow: 0;
-  flex-basis: 44px;
-  display: none;
-  align-self: stretch;
 }
 .menuwindows {
   pointer-events: none;
@@ -559,7 +549,6 @@ input[type=radio] {
 }
 .sidebar.fullwidth {
   width: 100vw;
-  z-index: 300;
 }
 @media (max-width: 900px) {
   .sidebar {
@@ -723,6 +712,18 @@ input[type=radio] {
   color: #000;
   background: var(--activecolorgrey);
   pointer-events: none;
+}
+.popover-menu .item.header {
+  pointer-events: none;
+  font-weight: bold;
+  padding-bottom: 4px;
+  padding-top: 4px;
+}
+.popover-menu .divider {
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  border-top: 2px solid rgba(0,0,0,0.067);
 }
 .popover-menu .second-group {
   border-top: 1px solid rgba(0,0,0,0.2);
@@ -939,7 +940,8 @@ hr {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #888;
+  background: #aaa;
+  border: 1.5px solid rgba(0,0,0,0.133);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
   pointer-events: none;
   font-size: 12pt;
@@ -1023,36 +1025,4 @@ hr {
   background-size: 70% 70%;
   background-color: rgba(238,238,238,0.933);
   border-radius: 50%;
-}
-@-moz-keyframes rotate-spinner {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-@-webkit-keyframes rotate-spinner {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-@-o-keyframes rotate-spinner {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes rotate-spinner {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

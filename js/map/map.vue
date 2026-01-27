@@ -79,7 +79,8 @@ export default {
 	data() {
 		return {
 			hasFitRun: false,
-			state
+			state,
+			topLeftAnchor: null
 		};
 	},
 	props: {
@@ -129,14 +130,19 @@ export default {
 			this.zoom = view.getZoom();
 		},
 		click() {
-			state.selectedDevice = null;
-			for (const key in state.menuOpen) {
-				if (Object.prototype.hasOwnProperty.call(state.menuOpen, key)) {
-					state.menuOpen[key] = false;
+			if (! state.popupMenuOpen) {
+
+
+				state.selectedDevice = null;
+				for (const key in state.menuOpen) {
+					if (Object.prototype.hasOwnProperty.call(state.menuOpen, key)) {
+						state.menuOpen[key] = false;
+					}
 				}
+				state.wsmlegends = false;
+				state.mobilemenuOpen = false;
+
 			}
-			state.wsmlegends = false;
-			state.mobilemenuOpen = false;
 		},
 		offsetCenter() {
 			const mapComponent = this.$refs.olMap;
@@ -157,6 +163,34 @@ export default {
 			} else {
 				console.warn('Map not ready');
 			}
+		},
+		// saveTopLeftAnchor and restoreTopLeftAnchor help keep the map in position when parent container dimensions change
+		saveTopLeftAnchor() { 
+			const map = this.$refs.olMap?.map;
+			if (!map) return;
+			this.topLeftAnchor = map.getCoordinateFromPixel([0, 0]);
+		},
+		restoreTopLeftAnchor() {
+			const map = this.$refs.olMap?.map;
+			if (!map || !this.topLeftAnchor) return;
+
+			map.updateSize();
+
+			const view = map.getView();
+			const size = map.getSize();
+			const resolution = view.getResolution();
+
+			if (!size || !resolution) return;
+
+			const dx = (size[0] / 2) * resolution;
+			const dy = (size[1] / 2) * resolution;
+
+			const newCenter = [
+				this.topLeftAnchor[0] + dx,
+				this.topLeftAnchor[1] - dy
+			];
+
+			view.setCenter(newCenter);
 		},
 		fitMarkers() {
 			const mapComponent = this.$refs.olMap;
@@ -188,9 +222,7 @@ export default {
 				const extent = boundingExtent(points);
 	
 				var padding = [70, 30, 70, 30];
-				if (state.menuOpen.info) {
-					padding = [70, 625, 70, 30];
-				}
+			
 				view.fit(extent, {
 					size: size,
 					padding: padding
@@ -220,12 +252,20 @@ export default {
 	
 	},
 	watch: {
+		'state.sidebarOpen'() {
+			this.saveTopLeftAnchor();
+			this.$nextTick(this.restoreTopLeftAnchor);
+		},
+		'state.timelineRange'() {
+			this.saveTopLeftAnchor();
+			this.$nextTick(this.restoreTopLeftAnchor);
+		},
 		devices(val) {
 			if (!this.hasFitRun && val?.length) {
 				this.fitMarkers();
 				this.hasFitRun = true;
 			}
-		}
+		},
 	},
 	mounted() {
 		window.addEventListener('panToDevice', this.panToDevice);
