@@ -188,35 +188,59 @@ export default {
 						return dataModel.get_nfk_color(midpoint);
 					});
 
+					// Helper to calculate percentages for a row
+					const getPercentages = (row) => {
+						if (!row.nfk_level || !row.nfk_level.length) return null;
+						const total = row.nfk_level.reduce((sum, v) => sum + v, 0);
+						if (total === 0) return null;
+						return row.nfk_level.map(count => count / total);
+					};
+
+					// Pre-calculate percentages for all rows
+					const rowPercentages = rows.map(getPercentages);
+
+					// Iterate through rows and draw interpolated segments between them
 					for (let i = 0; i < rows.length; i++) {
 						const row = rows[i];
 						const ts = row.ts;
-						const nfk_level = row.nfk_level;
-						const nextTs = (i < rows.length - 1) ? rows[i + 1].ts : ts + msPerDay;
+						const nextRow = i < rows.length - 1 ? rows[i + 1] : null;
+						const nextTs = nextRow ? nextRow.ts : ts + msPerDay;
 
+						const leftPerc = rowPercentages[i];
+						const rightPerc = nextRow ? rowPercentages[i + 1] : leftPerc;
+
+						if (!leftPerc) continue;
+
+						// Calculate pixel range for this segment
 						const startRel = ts - this.startTimestamp;
 						const endRel = nextTs - this.startTimestamp;
-						const segX = startRel * this.dayWidth;
-						const segW = (endRel - startRel) * this.dayWidth + 1;
+						const startX = Math.floor((startRel / this.timelineSpan) * this.timelineWidth);
+						const endX = Math.ceil((endRel / this.timelineSpan) * this.timelineWidth);
 
-						if (nfk_level && nfk_level.length) {
-							const total = nfk_level.reduce((sum, v) => sum + v, 0);
+						// Draw each pixel in this segment
+						for (let x = startX; x < endX; x++) {
+							if (x < 0 || x >= this.timelineWidth) continue;
 
-							if (total > 0) {
-								let currentY = canvasHeight;
+							// Calculate interpolation factor
+							const t = rightPerc ? (x - startX) / (endX - startX) : 0;
 
-								// Draw from bottom to top
-								for (let levelIndex = 0; levelIndex < nfk_level.length; levelIndex++) {
-									const count = nfk_level[levelIndex];
-									if (count > 0) {
-										const percentage = (count / total);
-										const segmentHeight = percentage * canvasHeight;
+							// Interpolate percentages
+							let percentages;
+							if (rightPerc && rightPerc !== leftPerc) {
+								percentages = leftPerc.map((v1, idx) => v1 * (1 - t) + rightPerc[idx] * t);
+							} else {
+								percentages = leftPerc;
+							}
 
-										ctx.fillStyle = levelColors[levelIndex];
-										ctx.fillRect(segX, currentY - segmentHeight, segW, segmentHeight);
-
-										currentY -= segmentHeight;
-									}
+							// Draw the column
+							let currentY = canvasHeight;
+							for (let levelIndex = 0; levelIndex < percentages.length; levelIndex++) {
+								const percentage = percentages[levelIndex];
+								if (percentage > 0) {
+									const segmentHeight = percentage * canvasHeight;
+									ctx.fillStyle = levelColors[levelIndex];
+									ctx.fillRect(x, currentY - segmentHeight, 1, segmentHeight);
+									currentY -= segmentHeight;
 								}
 							}
 						}
