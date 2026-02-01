@@ -11,7 +11,6 @@
 				v-html="item.label"
 			></div>
 		</div>
-
 		<div v-if="secondItems.length" class="items second-group">
 			<div
 				v-for="item in secondItems"

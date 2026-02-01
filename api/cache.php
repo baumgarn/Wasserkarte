@@ -64,6 +64,9 @@ function saveCache(array $data): void
 	$json = json_encode($data, JSON_PRETTY_PRINT);
     atomicWrite(CACHE_FILE_DEVICES, $json);
 	$gzData = gzencode($json, 9);
+	if ($gzData === false) {
+		throw new RuntimeException('gzencode failed');
+	}
     $gzPath = CACHE_FILE_DEVICES . '.gz';
     atomicWrite($gzPath, $gzData);
 }

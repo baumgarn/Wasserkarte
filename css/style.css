@@ -34,8 +34,8 @@
   --infobg: rgba(68,68,68,0.6);
   --infobgopaque: #888;
   --menubariconsize: 42px;
-  --timelineheight: 42px;
-  --timelineheightmobile: 54px;
+  --timelineheight: min( max( 4vh, 42px), 64px );
+  --timelineheightmobile: max( 4vh, 64px);
   --timelinedatebg: rgba(68,68,68,0.6);
   --menusectionheadercolor: #4c88cc;
   --menuheaderline: rgba(71,111,208,0.4);

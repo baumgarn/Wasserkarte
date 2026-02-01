@@ -265,17 +265,19 @@ function fetchLastTelemetryForCachedDevices($token, $cache)
 
 	$allTelemetry = getBatchLastTelemetry($token, $deviceIds);
 
-	foreach ($cachedDevices as $device) {
+	foreach ($cachedDevices as &$device) {
 		$deviceId = $device['id'];
 		$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
 		$device['telemetrySchema'] = $allTelemetry[$deviceId]['schema'] ?? [];
 		$device['telemetrySchema'] = expandSensorDataWithCalculations($device['telemetrySchema'], $device);
 	}
+	unset($device);
 
 	$endTime = microtime(true);
 	$queryTime = $endTime - $startTime;
 
 	$t = time();
+	$cache['devices'] = $cachedDevices;
 	$cache['cacheTime'] = date('Y-m-d H:i:s', $t + CACHE_TELEMETRY_ALL_DURATION);
 	$cache['queryTime'] = $queryTime;
 	$cache['telemetryCacheTimestamp'] = $t;

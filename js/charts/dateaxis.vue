@@ -2,17 +2,17 @@
 	<div class="scrollview chart-time" :class="{ insideGraph, insideTimeline, firstItemPadding }">
 		<div class="scrollframe" :style="{ width: frameWidth + 'px'}">
 			<div class="scrollinner" :style="{ width: chartWidth + 'px', marginLeft: -scrollLeft + 'px' }">
-				<template v-if="dayWidth > 80">
+				<template v-if="dayWidth > 80 && !monthsOnly">
 					<div v-for="day in days" class="day" :key="day.timestamp" :style="{ left: day.position + '%' }">
 						{{ day.label }}
 					</div>
 				</template>
-				<template v-else-if="dayWidth > 30">
+				<template v-else-if="dayWidth > 30 && !monthsOnly">
 					<div v-for="day in everyotherday" class="day" :key="day.timestamp" :style="{ left: day.position + '%' }">
 						{{ day.label }}
 					</div>
 				</template>
-				<template v-else-if="dayWidth > 10">
+				<template v-else-if="dayWidth > 10 && !monthsOnly">
 					<div v-for="day in everyfourthday" class="day" :key="day.timestamp" :style="{ left: day.position + '%' }">
 						{{ day.label }}
 					</div>
@@ -78,6 +78,7 @@ export default {
 			type: Boolean,
 			default: false
 		},
+		monthsOnly: false,
 	},
 	computed: {
 		days() {
@@ -141,7 +142,8 @@ export default {
 
 <style lang="stylus" scoped>
 
-
+.chart-time
+	height 24px
 
 .chart-time.insideTimeline
 .chart-time.insideGraph
@@ -166,7 +168,7 @@ export default {
 .scrollframe {	
 	position: relative;
 	overflow: hidden;
-	height: 24px
+	height: 100%
 	background transparent
 	border-radius calc(var(--barheight) / 2)
 	border var(--borderstyle)
@@ -184,8 +186,7 @@ export default {
 .day
 	position: absolute;
 	left: 0;
-	top 13px;
-	top 4px;
+	bottom 3px;
 	width 0;
 	display: flex;
 	align-items: center;
@@ -199,8 +200,8 @@ export default {
 	padding-left 0.5vw
 
 	
-.chart-time.insideTimeline .day
-	top 10px
+// .chart-time.insideTimeline .day
+	// top 10px
 
 
 </style>

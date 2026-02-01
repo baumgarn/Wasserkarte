@@ -111,11 +111,32 @@
 			<div class="glossar-item">
 
 				<h4 class="glossar-item-header">
+					Trockenheitsstufen
+				</h4>
+
+				<div class="glossar-item-content">
+					Die Interpretation der nutzbaren Feldkapazität (nFK %) in verschiedene Trockenheitsstufen erfolgt frei nach der Einteilung des <a href="https://www.dwd.de/DE/fachnutzer/landwirtschaft/dokumentationen/allgemein/bodenfeuchte_farbskala_doku.html?nn=16102&lsbId=606604" target="_blank">Deutschen Wetterdienst</a>. Es handelt sich lediglich um eine Annäherung, da unterschiedliche Pflanzenarten sehr unterschiedliche Anforderungen an die Bodenfeuchte haben können.
+					<table class="nfk-table">
+						<tbody>
+							<tr v-for="label in nfkLabels" :key="label.originalIndex" :style="{ backgroundColor: levelColors[label.originalIndex] }">
+								<td class="range">{{ getNfkRange(label.originalIndex) }}</td>
+								<td class="name">{{ label.name }}</td>
+							</tr>
+						</tbody>
+					</table>
+
+				</div>
+
+			</div>
+
+			<div class="glossar-item">
+
+				<h4 class="glossar-item-header">
 					Trockenstress
 				</h4>
 
 				<div class="glossar-item-content">
-					Standorte mit einer nutzbaren Feldkapazität von unter 30% werden in der Statusanzeige der Wasserkarte als Trockenstress einbezogen. 
+					Standorte mit einer nutzbaren Feldkapazität von unter 30% werden in der Statusanzeige der Wasserkarte als Trockenstress einbezogen. Die Statusanzeige soll eine Tendenz sichtbar machen, ist aber nicht als objektive Messung zu verstehen, da sie von der sich im Laufe der Zeit verändernden Anzahl und Auswahl der Sensorstandorte abhängt.
 				</div>
 
 			</div>
@@ -127,7 +148,7 @@
 				</h4>
 
 				<div class="glossar-item-content">
-					Nicht alles Wasser im Boden können Pflanzen aufnehmen. Ein Teil ist so fest an die Erde gebunden, dass Wurzeln es nicht mehr erreichen – dieses Wasser nennt man Totwasser. Der Welkepunkt ist die Grenze, ab der Pflanzen zu welken beginnen, weil sie kein nutzbares Wasser mehr finden.
+					Nicht alles Wasser im Boden können Pflanzen aufnehmen. Ein Teil ist so fest an die Erde gebunden, dass Wurzeln es nicht mehr erreichen – dieses Wasser nennt man Totwasser. Der Welkepunkt ist die untere Grenze der nutzbaren Feldkapazität (nFK < 0 %), ab der Pflanzen zu welken beginnen, weil sie kein nutzbares Wasser mehr finden.
 				</div>
 
 			</div>
@@ -158,11 +179,39 @@ export default {
 		}
 	},
 	computed: {
+		nfkLabels() {
+			return dataModel.nfk_labels.map((label, index) => ({
+				...label,
+				originalIndex: index
+			})).reverse();
+		},
+		levelColors() {
+			const labels = dataModel.nfk_labels;
+			return labels.map((label, index) => {
+				// first entry stays at 0
+				if (index === 0) {
+					return dataModel.get_nfk_color(0);
+				}
+				// other entry midway between nfk level bounds
+				const prevValue = labels[index - 1].value;
+				const midpoint = prevValue + (label.value - prevValue) / 2;
+				return dataModel.get_nfk_color_alpha(midpoint, .9);
+			});
+		},
 	},
 	props: {
 	},
 	methods: {
-	
+		getNfkRange(index) {
+			const labels = dataModel.nfk_labels;
+			if (index === 0) {
+				return '< 0 %';
+			}
+			if (index === labels.length - 1) {
+				return '> ' + labels[index - 1].value + ' %';
+			}
+			return labels[index - 1].value + ' - ' + labels[index].value + ' %';
+		},
 	},
 	watch: {
 	
@@ -205,8 +254,20 @@ table
 		border-top 1px solid #ddd
 		padding 3px 0
 		margin 0
-		padding-right 24px
 		padding-right 12px
+
+table.nfk-table
+	border-bottom none
+	tr
+		td
+			border-top none
+		td.range
+			// width 80px
+			text-align right
+			padding-right 16px
+			padding-left 8px
+		td.name
+			text-align left
 
 
 	

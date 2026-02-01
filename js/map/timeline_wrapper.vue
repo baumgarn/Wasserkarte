@@ -14,21 +14,25 @@
 			
 			<template v-if="timelineRange == '365d'">
 
-				<Timeline
-				:dailyAverages
-				:startTimestamp="oneYearAgo"
-				:endTimestamp="latestTimestamp"
-				/>
+				<Timeline :dailyAverages :startTimestamp="_365d" :endTimestamp="latestTimestamp" />
+				
+			</template>
+		
+			<template v-else-if="timelineRange == '180d'">
+
+				<Timeline :dailyAverages :startTimestamp="_180d" :endTimestamp="latestTimestamp" />
+				
+			</template>
+			
+			<template v-else-if="timelineRange == '90d'">
+
+				<Timeline :dailyAverages :startTimestamp="_90d" :endTimestamp="latestTimestamp" />
 				
 			</template>
 			
 			<template v-else-if="timelineRange == 'all'">
 				
-				<Timeline
-				:dailyAverages
-				:startTimestamp="earliestTimestamp"
-				:endTimestamp="latestTimestamp"
-				/>
+				<Timeline :dailyAverages :startTimestamp="earliestTimestamp" :endTimestamp="latestTimestamp" />
 
 			</template>
 			
@@ -58,7 +62,6 @@
 						:dateAxis="true"
 						:firstItemPadding="true"
 						/>
-						<!-- :dateAxisBelow="true" -->
 
 					</template>
 
@@ -105,9 +108,17 @@ export default {
 		numberOfDays() {
 			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
 		},
-		oneYearAgo() {
+		_365d() {
 			const DAY = 24 * 60 * 60 * 1000;
-			return this.latestTimestamp - (364 * DAY);
+			return this.latestTimestamp - (365 * DAY);
+		},
+		_180d() {
+			const DAY = 24 * 60 * 60 * 1000;
+			return this.latestTimestamp - (180 * DAY);
+		},
+		_90d() {
+			const DAY = 24 * 60 * 60 * 1000;
+			return this.latestTimestamp - (90 * DAY);
 		},
 		years() {
 			const startYear = new Date(this.earliestTimestamp).getFullYear();
@@ -131,15 +142,15 @@ export default {
 			let menu = [];
 			if (this.years.length > 1 && this.numberOfDays > 365) {
 				menu.push(
-					// {type:'header', label:'Zeitachse'},
-					{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'timelineRange'},
-					{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'timelineRange'},
 					{type:'select', label:'Jahresvergleich', value:'years', group:'timerange', stateProp:'timelineRange'},
+					{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'timelineRange'},
+					{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'timelineRange'},
+					{type:'select', label:'Letzte 180 Tage', value:'180d', group:'timerange', stateProp:'timelineRange'},
+					// {type:'select', label:'Letzte 90 Tage', value:'90d', group:'timerange', stateProp:'timelineRange'},
 				)
 			}
 			menu.push(
 				{type:'divider'},
-				// {type:'header', label:'Visualisierung'},
 				{type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'style', stateProp:'timelineStyle'},
 				{type:'select', label:'Trockenheitsstufen', value:'levels', group:'style', stateProp:'timelineStyle'},
 			);
@@ -193,7 +204,7 @@ export default {
 	
 	
 	// .timelinecontainer
-	// 	margin 0 10px
+		// margin 0 16px
 		// border-left 1px solid #00000022
 		// border-right 1px solid #00000022
 

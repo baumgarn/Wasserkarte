@@ -22,13 +22,14 @@
 		:numberOfDays
 		:insideTimeline="true"
 		:firstItemPadding
+		:monthsOnly="true"
 		></DateAxis>
 
 		<div v-if="label" class="label">{{ label }}</div>
 
 	</div>
 
-	<div v-if="dateAxisBelow" class="dateaxisbelowcontainer">
+	<!-- <div v-if="dateAxisBelow" class="dateaxisbelowcontainer">
 		<DateAxis
 		v-if="dateAxis && dateAxisBelow"
 		:chartWidth="timelineWidth"
@@ -38,7 +39,7 @@
 		:insideTimeline="true"
 		:firstItemPadding="true"
 		></DateAxis>
-	</div>
+	</div> -->
 
 </template>
 
@@ -74,7 +75,7 @@ export default {
 		endTimestamp: Number,
 		dateAxis: {type: Boolean, default: true},
 		firstItemPadding: {type: Boolean, default: false},
-		dateAxisBelow: {type: Boolean, default: false},
+		// dateAxisBelow: {type: Boolean, default: false},
 		label: {type: String, default: ''},
 	},
 	computed: {
@@ -358,6 +359,8 @@ export default {
 		canvas
 			height 100%
 			background #fff
+			background #eee
+			background #eaeaea
 		.hoverline
 			border-left 1px dotted #000000
 			top -1px
@@ -395,7 +398,7 @@ export default {
 			position absolute
 			left 0.5vw
 			top 0
-			bottom 40%
+			top 10%
 			display flex
 			align-items center
 			font-size 10px
@@ -405,24 +408,26 @@ export default {
 			opacity .6
 			color #000
 		.chart-time
-			top 60%
-			transform translate(0,-10px)
-
-	.dateaxisbelowcontainer
-		position relative
-		width 100%
-		height 24px
-		.chart-time
-			top 0
-			transform translate(0,-3px)
-
-	.dateaxisbelowcontainer
-	.timeline
-		&:after
-			content ''
 			position absolute
+			bottom 0
+			top unset
 			left 0
-			top 0
-			right 0
-			border-top 1px solid #00000022
+		// 	top 60%
+		// 	transform translate(0,-10px)
+
+	// .dateaxisbelowcontainer
+	// 	position relative
+	// 	width 100%
+	// 	.chart-time
+	// 		bottom 0
+
+	// .dateaxisbelowcontainer
+	// .timeline
+	// 	&:after
+	// 		content ''
+	// 		position absolute
+	// 		left 0
+	// 		top 0
+	// 		right 0
+	// 		border-top 1px solid #00000022
 </style>
