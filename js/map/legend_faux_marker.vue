@@ -9,8 +9,8 @@
 
 				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(40)"></div>
 				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(10)"></div>
-				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(30)"></div>
-				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(2)"></div>
+				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(20)"></div>
+				<div class="schicht" :style="'background:'+dataModel.get_nfk_color(5)"></div>
 			
 			</div>
 

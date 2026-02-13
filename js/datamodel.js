@@ -59,6 +59,7 @@ export const dataModel = {
 		"Ss": {
 			name: "Sandiger Sand",
 			short: 'Ss',
+			sort: 1,
 			color: soilColors.sand,
 			TW: { "h0-1": 2, "h2": 3, "h3": 4, "h4": 6 },
 			FK: { "h0-1": 13, "h2": 16, "h3": 18, "h4": 23 },
@@ -66,6 +67,7 @@ export const dataModel = {
 		"Sl2": {
 			name: "Schwach lehmiger Sand",
 			short: 'Sl2',
+			sort: 2,
 			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 6, "h2": 7, "h3": 8, "h4": 9 },
 			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 },
@@ -73,6 +75,7 @@ export const dataModel = {
 		"Sl3": {
 			name: "Mittel lehmiger Sand",
 			short: 'Sl3',
+			sort: 3,
 			color: soilColors.lehmigerSand,
 			TW: { "h0-1": 9, "h2": 10, "h3": 10, "h4": 12 },
 			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
@@ -88,11 +91,11 @@ export const dataModel = {
 	},
 
 	humus_table : {
-		"h0": { name: "Nahezu humusfrei", short:'h0', color: '#f7f6f6'},
-		"h1": { name: "Sehr schwach humos", short:'h1', color: '#fbf9f8'},
-		"h2": { name: "Schwach humos", short:'h2', color: '#f0e7e4'},
-		"h3": { name: "Mittel humos", short:'h3', color: '#decec9'},
-		"h4": { name: "Stark humos", short:'h4', color: '#c5aba0'},
+		"h0": { name: "Nahezu humusfrei", short:'h0', sort: 0, color: '#f7f6f6'},
+		"h1": { name: "Sehr schwach humos", short:'h1', sort: 1, color: '#fbf9f8'},
+		"h2": { name: "Schwach humos", short:'h2', sort: 2, color: '#f0e7e4'},
+		"h3": { name: "Mittel humos", short:'h3', sort: 3, color: '#decec9'},
+		"h4": { name: "Stark humos", short:'h4', sort: 4, color: '#c5aba0'},
 		// "org": { name: "Organisch", short:'org' } 
 	},
 
@@ -113,15 +116,18 @@ export const dataModel = {
 
 	bewaessert_obj : {
 		name: 'Bewässert',
+		sort: 2,
 		img: 'Bewaessert.svg'
 	},
-
+	
 	grundwasser_obj : {
+		sort: 3,
 		name: 'Grundwassernah',
 		img: 'Grundwasser.svg'
 	},
 
 	regenabhängig_obj : {
+		sort: 1,
 		name: 'Regenabhängig',
 		img: 'regenabhaengig.svg'
 	},
@@ -151,7 +157,15 @@ export const dataModel = {
 		return this.humus_table[key] || null;
 	},
 
-
+	get_water_obj(device) {
+		if (device.attributes.Grundwasser) { 
+			return this.grundwasser_obj;
+		} else if (device.attributes.Bewässerung) {
+			return this.bewaessert_obj;
+		} else {
+			return this.regenabhängig_obj;
+		}
+	},
 
 
 

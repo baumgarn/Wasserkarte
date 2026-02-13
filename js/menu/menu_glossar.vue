@@ -225,6 +225,7 @@ export default {
 
 .menuwindow.glossar
 	width 440px
+	width 600px
 
 
 

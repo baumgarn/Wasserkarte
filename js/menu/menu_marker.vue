@@ -19,7 +19,7 @@
 				</div>
 				<div class="label">
 
-					Farbkreis Schichten
+					Trockenheit Schichten
 
 				</div>
 			</div>
@@ -32,16 +32,18 @@
 
 				<div class="iconspace">
 
-					<div class="map-marker einzeln">
-						<div class="schicht" :style="'background:'+dataModel.get_nfk_color(70)">
-							<div class="value">nFK<span class="unit">%</span></div>
+					<div class="icon nfk"></div>
+
+					<!-- <div class="map-marker einzeln">
+						<div class="schicht" :style="'background:'+dataModel.get_nfk_color(80)">
+							<div class="value">nFK</div>
 						</div>
-					</div>
+					</div> -->
 
 				</div>
 				<div class="label">
 
-					Pflanzenverfügbar
+					Nutzbare Feldkapazität %
 
 				</div>
 				
@@ -55,16 +57,17 @@
 
 				<div class="iconspace">
 
-					<div class="map-marker einzeln">
-						<div class="schicht" :style="'background:'+dataModel.get_nfk_color(120)">
-							<div class="value">Vol<span class="unit">%</span></div>
+					<div class="icon vol"></div>
+					<!-- <div class="map-marker einzeln">
+						<div class="schicht" :style="'background:'+dataModel.get_nfk_color(120100)">
+							<div class="value">Vol</div>
 						</div>
-					</div>
+					</div> -->
 
 				</div>
 				<div class="label">
 
-					Volumen
+					Volumen %
 
 				</div>
 				
@@ -80,7 +83,7 @@
 
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.usage_table.MW" :size="36" />
+					<FilterIcon :obj="dataModel.usage_table.MW" :size="22" />
 
 				</div>
 				<div class="label">
@@ -98,7 +101,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.bewaessert_obj" :size="36" />
+					<FilterIcon :obj="dataModel.bewaessert_obj" :size="22" />
 
 				</div>
 				<div class="label">
@@ -115,7 +118,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.soil_table.Ss" :size="36" />
+					<FilterIcon :obj="dataModel.soil_table.Ss" :size="22" />
 
 				</div>
 				<div class="label">
@@ -132,7 +135,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.humus_table.h3" :size="36" />
+					<FilterIcon :obj="dataModel.humus_table.h3" :size="22" />
 
 				</div>
 				<div class="label">
@@ -203,13 +206,14 @@ export default {
 	.menu-item
 		display flex
 		align-items center
-		height 40px
-		border-radius 20px
-		padding-left 2px
+		height 28px
+		// height 40px
+		// border-radius 20px
+		// padding-left 2px
 		.iconspace
 			margin-right 4px
-			margin-left -2px
-			flex-basis 40px
+			// margin-left -2px
+			flex-basis 22px
 			flex-grow 0
 			flex-shrink 0
 			display flex
@@ -227,12 +231,39 @@ export default {
 					align-items center
 					justify-content center
 				.value
-					transform scale(.85)
-					// opacity .9
+					opacity .7
+					// transform scale(.85)
+
+	.iconspace .icon
+		content ''
+		display inline-block
+		position relative
+		width 22px
+		flex-basis 22px
+		height 22px
+		flex-grow 0
+		flex-shrink 0
+		opacity .5
+		margin-left -4px
+		background-size contain
+		background-position center
+		background-repeat no-repeat
+		&.vol
+			opacity .85
+			background-image url(/img/tropfen_flat.png)
+			// background-size 60% 90%
+		&.nfk 
+			background-image url(/img/plant.svg)
+			opacity .8
 
 	.menu-item.Bodenfeuchte_Farbkreis 
+		.iconspace
+			height 22px
+			position relative
 		.map-marker.faux
-			transform scale(0.9)
+			left -10px
+			position absolute
+			transform scale(0.6)
 
 	.menu-item.Bodenfeuchte_nfk
 	.menu-item.Bodenfeuchte_vol
@@ -245,7 +276,8 @@ export default {
 	.menu-item.eigenschaften
 		.iconspace
 			.filtericon
-				transform scale(0.9)
+				margin-left -6px
+				// transform scale(0.9)
 			filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 	// .menu-item.smaller

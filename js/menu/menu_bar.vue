@@ -40,7 +40,7 @@ import ColorScheme from '@/menu/colorscheme_item.vue';
 export default {
 	name: 'MenuBar',
 	components: {
-		ColorScheme
+		ColorScheme 
 	},
 	setup() {
 		return {state};
@@ -52,12 +52,14 @@ export default {
 	computed: {
 		menuItems() {
 			return [
+				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse aller Standorte', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
+				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
-				{ title: 'Orte', tooltip: 'Alle ' + this.state.devices.length + ' Standorte', key: 'orte', group: '1' },
-				{ title: 'Darstellung', tooltip: 'Markerdarstelllung', key: 'bodenfeuchte', group: '1' },
+				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },
 				{ title: 'Filter', tooltip: 'Filter nach Standorteigenschaften', key: 'filter', group: '1' },
 				{ title: 'Karten', tooltip: 'Karten der Landesvermessung\nund Geobasisinformation Brandenburg (LGB)', key: 'karten', group: '1' },
 				{ title: 'Glossar', tooltip: 'Bodenkunde Glossar', key: 'glossar', group: '1' },
+				// { title: 'Bodenarten', tooltip: 'Bodenarten', key: 'bodenarten', group: '1' },
 				{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' },
 				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '2' },
 			];
@@ -135,6 +137,10 @@ export default {
 		},
 		activateInfo () {
 			state.selectedDevice = null;
+		},
+		activateTableView () {
+			state.menuOpen.info = false;
+			state.selectedDevice = null;
 		}
 	}
 };
@@ -167,7 +173,7 @@ export default {
 
 .toggle
 	width 22px
-	border-bottom 1px solid var(--menubg)
+	border-bottom 1px solid #aaa
 	cursor pointer
 	background url(/img/dreieck_links.png)  center / 65% no-repeat
 	background-color var(--menuinactivebg)

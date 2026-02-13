@@ -195,6 +195,7 @@ export default {
 		fitMarkers() {
 			const mapComponent = this.$refs.olMap;
 			if (mapComponent && mapComponent.map) {
+
 				const map = mapComponent.map;
 				const view = map.getView();
 				const size = map.getSize();
@@ -221,7 +222,7 @@ export default {
 	
 				const extent = boundingExtent(points);
 	
-				var padding = [70, 30, 70, 30];
+				var padding = [100, 30, 50, 30];
 			
 				view.fit(extent, {
 					size: size,

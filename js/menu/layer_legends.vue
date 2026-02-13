@@ -51,7 +51,7 @@ export default {
 		position fixed
 		top 0
 		right 0
-		z-index 999
+		z-index 1001
 		width auto
 		height auto
 		max-height 100vh
@@ -61,6 +61,7 @@ export default {
 		background #fff
 		pointer-events all
 		box-shadow 0 0 2px 2px #00000018
+		border 2px solid #00000011
 	.abstract
 	.attribution
 		font-size 9.5pt

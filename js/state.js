@@ -54,6 +54,8 @@ localStorageState('colorScheme', 'normal');
 localStorageState('filterFaultyValues', true);
 localStorageState('showDataGaps', false);
 
+localStorageState('tableview_compact', true);
+
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 
 

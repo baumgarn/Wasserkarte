@@ -2,7 +2,7 @@
 	<div class="karten menuwindow" :class="{ open: isOpen }">
 		<div class="menuwindow-header" @click="toggleOpen">
 			<h3>Geologische Karten</h3>
-			<div class="menuwindow-button-row">
+			<div class="menuwindow-button-row" :class="{ 'has-visible-layer': hasVisibleLayer }">
 				<div class="menuwindow-button icon transparent" @click="toggleTransparency" :class="{ active: state.wsmtransparency }">Transparent</div>
 				<div class="menuwindow-button icon legende" @click="toggleLegends" :class="{ active: state.wsmlegends }">Legende</div>
 			</div>
@@ -69,6 +69,9 @@ export default {
 	computed: {
 		layers() {
 			return [...state.wsmLayers];
+		},
+		hasVisibleLayer() {
+			return state.wsmLayers.some(layer => layer.visible);
 		}
 	},
 	created() {
@@ -87,7 +90,16 @@ export default {
 .attribution
 	margin 5px 5px -15px 5px
 	font-size 9.5pt
-	opacity .6
+	opacity 1
+
+.menuwindow-button-row
+	opacity 0
+	pointer-events none
+	transition opacity .05s linear
+
+.menuwindow-button-row.has-visible-layer
+	opacity 1
+	pointer-events all
 
 .map-section-header
 	cursor default
@@ -112,17 +124,6 @@ export default {
 .menu-item
 	margin-right -.25em
 
-// .wms-provider h4 {
-// 	display none
-// 	border-bottom 1px solid #ccc
-// 	margin-left -.25em
-// 	margin-right -.5em
-// 	margin-bottom 0
-// 	margin-top 0
-// 	max-width 100%
-// 	padding 0
-// 	font-weight: bold;
-// }
 .layer-item label
 	display flex
 	flex-direction row

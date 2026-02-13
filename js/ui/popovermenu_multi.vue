@@ -25,11 +25,21 @@
 			/>
 
 			<div
+				v-else-if="item.type === 'boolean'"
+				class="item boolean"
+				:class="{ active: state[item.stateProp] }"
+				@click="toggleBoolean(item)"
+			>
+				<span v-html="item.label" />
+				<span class="toggle">{{ state[item.stateProp] ? '✓' : '' }}</span>
+			</div>
+
+			<div
 				v-else-if="item.type === 'divider'"
 				class="divider"
 			/>
 
-			
+
 		</template>
 
 	</div>
@@ -53,7 +63,8 @@ export default {
 
 	data() {
 		return {
-			isOpen: false
+			isOpen: false,
+			state
 		};
 	},
 
@@ -64,12 +75,12 @@ export default {
 			nextTick(() => {
 
 				if (position) {
-					this.$el.style.bottom = position.bottom + 'px';
-					this.$el.style.right = position.right + 'px';
+					if (position.top) { this.$el.style.top = position.top + 'px';}
+					if (position.bottom) { this.$el.style.bottom = position.bottom + 'px';}
+					if (position.right) { this.$el.style.right = position.right + 'px';}
+					if (position.left) { this.$el.style.left = position.left + 'px';}
 
-					if (position.zIndex) {
-						this.$el.style.zIndex = position.zIndex;
-					}
+					if (position.zIndex) {this.$el.style.zIndex = position.zIndex;}
 				}
 
 				setTimeout(() => {
@@ -103,6 +114,10 @@ export default {
 			state[item.stateProp] = item.value;
 		},
 
+		toggleBoolean(item) {
+			state[item.stateProp] = !state[item.stateProp];
+		},
+
 		runAction(item) {
 			if (typeof item.action === 'function') {
 				item.action(state);
@@ -120,8 +135,7 @@ export default {
 <style lang="stylus" scoped>
 .popover-menu
 	position absolute
-	right -4px
-	bottom -12px
+
 
 // .item
 	// padding 8px 12px

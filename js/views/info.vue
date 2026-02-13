@@ -32,6 +32,14 @@
 
 					<Legend/>
 
+					<div class="legenditem clickable" @click="openMenu('standorttabelle', $event )">
+						<div class="legendimage">
+							<div class="icon standorttabelle"></div>
+						</div>
+						<div class="legendtext">
+							Tabellarische Zeitachse aller Sensorstandorte
+						</div>
+					</div>
 					<div class="legenditem clickable" @click="openMenu('orte', $event )">
 						<div class="legendimage">
 							<div class="icon orte"></div>
@@ -202,11 +210,13 @@ export default {
 		},
 		
 		openMenu(key) {
+				
 			if (state.menuOpen[key]){
 				state.menuOpen[key] = false;
 
 			} else {
 
+				state.menuOpen.standorttabelle = false;
 				state.menuOpen.orte = false;
 				state.menuOpen.bodenfeuchte = false;
 				state.menuOpen.filter = false;
@@ -217,6 +227,7 @@ export default {
 					state.menuOpen.info = false;
 				}
 				state.menuOpen[key] = true;
+
 			}
 		},
 	},
@@ -296,7 +307,7 @@ export default {
 	.settings-item
 		margin 16px 0 10px
 	.sidebar.info
-		z-index 10000
+		z-index 1000
 		background #fff
 		line-height 1.4
 		height 100vh

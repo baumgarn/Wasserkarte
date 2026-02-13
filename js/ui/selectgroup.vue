@@ -68,7 +68,7 @@ export default {
 		.item:last-child
 			padding-right 16px
 		.item + .item
-			border-left: var(--buttonborder)
+			border-left: 1px solid #00000018
 
 
 	@media (max-width: 600px)

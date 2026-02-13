@@ -297,7 +297,7 @@
 		width 100%
 		color var(--warningred)
 		text-transform normal
-		font-size 10pt
+		font-size 11pt
 		opacity .8
 		margin-top 4px
 	.notelemetry .icon
@@ -349,7 +349,7 @@
 		background-size 60% 90%
 	.datarow.pflanzenverfuegbar .icon
 		background-image url(/img/plant.svg)
-		opacity .55
+		opacity .65
 		// top 10px
 	.datarow.totwasser .icon
 		background-size auto

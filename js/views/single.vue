@@ -1,5 +1,5 @@
 <template>
-	<div class="fullview single">
+	<div v-if="device" class="fullview single">
 
 		<LocationView :device="device" context="single" />
 

@@ -1,5 +1,5 @@
 <template>
-	<div class="fullview iframe">
+	<div v-if="device" class="fullview iframe">
 
 			<LocationView :device="device" context="iframe" />
 
@@ -44,6 +44,7 @@ export default {
 <style lang="stylus" scoped>
 .iframe
 	// padding .5em 0 0
+	overflow-x hidden
 	overflow-y auto
 	position absolute
 	left 0

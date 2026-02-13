@@ -237,9 +237,6 @@ export default {
 	background-color: #fff
 	border-radius: calc(var(--barheight) / 2)
 	background-color: #00000022
-	// background-color: #ccc
-	// border 1px solid #00000011
-	// border var(--buttonborder)
 
 .range-indicator
 	position: absolute
@@ -247,11 +244,6 @@ export default {
 	background-color: #bbb
 	border-radius: calc(var(--barheight) / 2)
 	background-color: var(--activecolordarker)
-	// background-color: var(--activecolor)
-	// background-color: #a9a9a9
-	// background-color: #aaa
-	// background-color: #00000033
-	// background-color: #fff
 	cursor: grab
 	&:active
 		cursor: grabbing
@@ -265,14 +257,8 @@ export default {
 	background-color: #aaa
 	background-color: #00000066
 	background-color: #666
-	// background-color: #00000000
-	// border: 2px solid #666
 	top: 50%
 	cursor: ew-resize
-	// display none
-	// &:hover
-		// background-color: #999
-		// border: 2px solid #555
 	&.start-handle
 		transform: translate(0, -50%)
 	&.end-handle

@@ -265,7 +265,6 @@ export default {
 			}
 		},
 		cacheTime() {
-			console.log(state.cacheTime)
 			return state.cacheTime;
 		},
 		timelineDate() {
@@ -364,8 +363,8 @@ export default {
 			state.markerClicked = true;
 			state.selectedDevice = this.device?.name || null;
 		},
-		async getTelemetry(){
-			this.telemetryData = await dataStore.fetchTelemetryCache(this.device.id);
+		getTelemetry(){
+			this.telemetryData = dataStore.fetchTelemetryCache(this.device.id);
 		},
 		wheelForward(event) {
 
@@ -436,6 +435,7 @@ export default {
 		},
 	},
 	mounted() {
+		this.getTelemetry();
 		this.$nextTick(() => {
 			setTimeout(() => {
 				const el = this.$refs.popup;

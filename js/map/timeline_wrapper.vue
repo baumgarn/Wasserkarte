@@ -146,7 +146,6 @@ export default {
 					{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'timelineRange'},
 					{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'timelineRange'},
 					{type:'select', label:'Letzte 180 Tage', value:'180d', group:'timerange', stateProp:'timelineRange'},
-					// {type:'select', label:'Letzte 90 Tage', value:'90d', group:'timerange', stateProp:'timelineRange'},
 				)
 			}
 			menu.push(
@@ -169,21 +168,16 @@ export default {
 			this.latestTimestamp = rows[rows.length - 1].ts + msPerDay
 		},
 		openSettings() {
-			const button = this.$refs.settingsbuttonRef;
-			const rect = button.getBoundingClientRect();
-			const bottomDistance = window.innerHeight - rect.bottom;
-
-			var position = {
-				bottom: bottomDistance - 4,
-				right: 20,
-				zIndex: 10,
-			};
 			this.$refs.popovermenuRef.open();
-			// this.$refs.popovermenuRef.open(position);
 		}
 	},
 	watch: {
-		telemetryLoaded: 'getNfkDailyAverages',
+		telemetryLoaded: {
+			handler(val) {
+				if (val) this.getNfkDailyAverages()
+			},
+			immediate: true
+		},
 		filteredDevices: 'getNfkDailyAverages'
 	}
 }

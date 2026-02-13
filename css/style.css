@@ -3,42 +3,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 :root {
   --borderstyle: 1px solid #ccc;
-  --chartborderstyle: 3px solid #fff;
   --chartborderstyle: 1px solid rgba(0,0,0,0.082);
   --chartborderradius: 4px;
   --sidebartextmargin: 1px;
   --borderstyle: none;
-  --buttonborder: 1px solid rgba(0,0,0,0.094);
   --dropshadowfilter: drop-shadow(0 2px 3px rgba(0,0,0,0.133));
-  --dropshadowfilterdarker: drop-shadow(0 1px 3px rgba(0,0,0,0.267));
-  --activecolordarker: #9bb9dd;
   --activecolor: #b9d0eb;
   --activecolordarker: rgba(137,156,179,0.6);
   --activecolorgrey: rgba(82,117,160,0.333);
   --activecolorgreybrighter: rgba(82,117,160,0.133);
-  --activecolorbrighter: rgba(212,231,247,0.8);
-  --activecolorbrightest: rgba(212,231,247,0.467);
   --warningred: rgba(234,69,69,0.933);
   --windowbg: #efefef;
-  --uibrighter: rgba(255,255,255,0.8);
   --uibrighter: #f7f7f7;
-  --menubg: #aaa;
-  --menuinactivebg: #dbdbdb;
   --menuinactivebg: #eaeaea;
   --menugrau: #eee;
-  --menugrau: #eee;
+  --menubariconsize: 42px;
   --separatorline: 2px solid rgba(0,0,0,0.067);
   --thinline: 1px solid rgba(0,0,0,0.133);
   --logogruen: #008c46;
   --logorot: #f15f5c;
   --infobg: rgba(68,68,68,0.6);
-  --infobgopaque: #888;
-  --menubariconsize: 42px;
   --timelineheight: min( max( 4vh, 42px), 64px );
   --timelineheightmobile: max( 4vh, 64px);
   --timelinedatebg: rgba(68,68,68,0.6);
   --menusectionheadercolor: #4c88cc;
-  --menuheaderline: rgba(71,111,208,0.4);
+  --menusectionheadercolor: #4466bc;
   --menuheaderline: rgba(0,0,0,0.133);
 }
 body.is-mobile {
@@ -167,7 +156,8 @@ button.ol-zoom-out {
   width: 100%;
 }
 .sidebaropen .mapareawrapper,
-.sidebaropen .timelinewrapper {
+.sidebaropen .timelinewrapper,
+.sidebaropen .tableview {
   width: calc(100% - 600px);
 }
 #mapcontainer,
@@ -290,13 +280,13 @@ button.ol-zoom-out {
   border-top-right-radius: 0;
 }
 .menu-item.selected {
-  background: var(--activecolor);
   background: var(--activecolorgrey);
 }
 .menuwindow-button-row {
   display: flex;
   gap: 5px;
   flex-direction: row;
+  margin-right: -5px;
 }
 .menuwindow-button {
   flex-grow: 1;
@@ -317,26 +307,27 @@ button.ol-zoom-out {
 .menuwindow-button.active {
   background: var(--activecolor);
 }
-.menuwindow-button.icon:before {
+.menuwindow-button.icon:after {
   content: '';
   display: inline-block;
   width: 1.1em;
   height: 1.1em;
-  margin-left: 0.1em;
-  margin-right: 0.3em;
+  margin-right: 0.05em;
+  margin-left: 0.3em;
   margin-bottom: -0.2em;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
 }
-.menuwindow-button.legende:before {
+.menuwindow-button.legende:after,
+.menuwindow-button.extended:after {
   background-image: url("/img/legende2.png");
   opacity: 1;
 }
-.menuwindow-button.transparent:before {
+.menuwindow-button.transparent:after {
   background-size: 80% 80%;
   opacity: 0.7;
-  background-image: url("/img/transparent.png");
+  background-image: url("/img/transparentr.png");
 }
 .itemrow {
   display: flex;
@@ -391,9 +382,6 @@ input[type=radio] {
   padding-left: 6px;
   cursor: pointer;
   display: inline-block;
-}
-.tooltip {
-  display: none;
 }
 .showtooltips .tooltip {
   display: block;
@@ -604,6 +592,21 @@ input[type=radio] {
   border-left: 1px solid #eee;
   position: absolute;
 }
+.windowbuttons.left {
+  right: unset;
+  left: 0;
+  padding: 6px 2px 8px 0;
+}
+.windowbuttons.row {
+  flex-direction: row;
+  width: unset;
+  height: 36px;
+  gap: 8px;
+  padding: 0 6px 0 4px;
+}
+.windowbuttons.row.left {
+  padding: 0 0 0 4px;
+}
 .windowbuttonsinner {
   pointer-events: all;
   display: flex;
@@ -655,14 +658,29 @@ input[type=radio] {
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0.8;
+  transition: opacity linear 0.05s;
   position: relative;
   cursor: pointer;
 }
 .iconbutton:hover {
   opacity: 0.45;
 }
+.iconbutton.light {
+  opacity: 0.35;
+}
+.iconbutton.light:hover {
+  opacity: 0.8;
+}
 .iconbutton.more {
   background-image: url("/img/morev.png");
+}
+.iconbutton.settings {
+  background-image: url("/img/settings_black.png");
+  background-size: 105%;
+}
+.iconbutton.filter {
+  background-image: url("/img/filter_black.png");
+  background-size: 110%;
 }
 .iconbutton.close {
   background-image: url("/img/close.png");
@@ -703,6 +721,7 @@ input[type=radio] {
   font-weight: normal;
   white-space: nowrap;
   color: rgba(0,0,0,0.8);
+  user-select: none;
 }
 .popover-menu .item:hover {
   background: var(--activecolorgreybrighter);
@@ -711,6 +730,9 @@ input[type=radio] {
   color: #000;
   background: var(--activecolorgrey);
   pointer-events: none;
+}
+.popover-menu .item.boolean.active {
+  pointer-events: all;
 }
 .popover-menu .item.header {
   pointer-events: none;
@@ -980,9 +1002,20 @@ hr {
   background-position: center center;
   background-repeat: no-repeat;
 }
+.standorttabelle.icon {
+  background-image: url("/img/table.png");
+  background-size: 66% 66%;
+  background-position: 58% center;
+  opacity: 0.6;
+}
 .orte.icon {
   background-image: url("/img/sensor.png");
   background-size: 77% 77%;
+  opacity: 0.7;
+}
+.bodenarten.icon {
+  background-image: url("/img/soil.png");
+  background-size: 85% 85%;
   opacity: 0.9;
 }
 .bodenfeuchte.icon {
@@ -1001,7 +1034,7 @@ hr {
 .error.icon {
   background-image: url("/img/warningred.png");
   background-size: 80% 80%;
-  opacity: 0.7;
+  opacity: 0.65;
 }
 .karten.icon {
   background-image: url("/img/karten.png");

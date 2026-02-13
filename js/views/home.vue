@@ -13,15 +13,10 @@
 
 					<MenuBar />
 					
-					<!-- <a v-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a> -->
-
 					<div v-if="state.isMobile && !state.menuOpen.info" class="infobutton" @click="state.menuOpen.info = true"></div>
 
 					<StatusBar />
 				</div>
-
-
-				<!-- <Legend v-if="state.showHelp"/> -->
 
 				<div class="leftui">
 
@@ -36,7 +31,7 @@
 						<SettingsMenu v-if="state.menuOpen.einstellungen"/>
 						<KartenMenu v-if="state.menuOpen.karten"/>
 					</div>
-
+										
 				</div>
 
 
@@ -51,12 +46,14 @@
 
 		<TimelineWrapper />
 		
+		<TableView v-if="state.menuOpen.standorttabelle"/>
 	</div>
 
 	<div class="rightui">
 
 		<Info v-if="state.menuOpen.info"/>
 		
+
 		<Sidebar />
 		
 		<LayerLegends />
@@ -72,6 +69,7 @@
 <script>
 import { ref, computed } from 'vue';
 import { nextTick } from 'vue';
+import TableView from '@/table/tableview.vue';
 import Sidebar from '@/views/sidebar.vue';
 import Info from '@/views/info.vue';
 import MenuBar from '@/menu/menu_bar.vue';
@@ -95,6 +93,7 @@ import Map from '@/map/map.vue';
 import TimelineWrapper from '@/map/timeline_wrapper.vue';
 
 export default {
+	name: 'Home',
 	setup() {
 		return {state, dataModel}
 	},
@@ -105,6 +104,7 @@ export default {
 	}, 
 	components: {
 		Sidebar,
+		TableView,
 		KartenMenu,
 		MenuBar,
 		LayerLegends,
@@ -129,10 +129,15 @@ export default {
 		},
 	},
 	watch: {
-		telemetryLoaded() {
-			window.setTimeout(()=>{
-				this.loaded = true;
-			},10)	
+		telemetryLoaded: {
+			handler(val) {
+				if (val) {
+					window.setTimeout(()=>{
+						this.loaded = true;
+					},10)
+				}
+			},
+			immediate: true
 		},
 	}
 };

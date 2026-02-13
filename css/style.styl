@@ -31,42 +31,31 @@ uicardgrau = #eee
 
 :root
 	--borderstyle 1px solid #ccc
-	--chartborderstyle 3px solid #fff
 	--chartborderstyle 1px solid #00000015
 	--chartborderradius 4px
 	--sidebartextmargin 1px
 	--borderstyle none
-	--buttonborder 1px solid #00000018
 	--dropshadowfilter drop-shadow(0 2px 3px #00000022)
-	--dropshadowfilterdarker drop-shadow(0 1px 3px #00000044)
-	--activecolordarker #9bb9dd
 	--activecolor #b9d0eb
 	--activecolordarker #899cb399
 	--activecolorgrey #5275a055
 	--activecolorgreybrighter #5275a022
-	--activecolorbrighter #d4e7f7cc
-	--activecolorbrightest #d4e7f777
 	--warningred  #ea4545ee
 	--windowbg #efefef
-	--uibrighter #ffffffcc
 	--uibrighter #f7f7f7
-	--menubg #aaa
-	--menuinactivebg #dbdbdb
 	--menuinactivebg #eaeaea
 	--menugrau #eee
-	--menugrau #eee
+	--menubariconsize 42px
 	--separatorline 2px solid #00000011
 	--thinline 1px solid #00000022
 	--logogruen #008c46
 	--logorot #f15f5c
 	--infobg #44444499
-	--infobgopaque #888
-	--menubariconsize 42px
 	--timelineheight unquote("min( max( 4vh, 42px), 64px )") 
 	--timelineheightmobile unquote("max( 4vh, 64px)") 
 	--timelinedatebg #44444499
 	--menusectionheadercolor #4c88ccff
-	--menuheaderline rgba(71, 111, 208, .4)
+	--menusectionheadercolor rgb(68, 102, 188)
 	--menuheaderline #00000022
 
 body.is-mobile
@@ -74,6 +63,7 @@ body.is-mobile
 
 *
 	box-sizing border-box
+
 
 html, body
 	margin: 0;
@@ -191,6 +181,7 @@ menuwidth = 250px
 
 .sidebaropen .mapareawrapper
 .sidebaropen .timelinewrapper
+.sidebaropen .tableview
 	width calc( 100% - 600px )
 
 #mapcontainer
@@ -316,13 +307,13 @@ menuwidth = 250px
 	border-top-right-radius 0
 
 .menu-item.selected
-	background var(--activecolor)
 	background var(--activecolorgrey)
 
 .menuwindow-button-row
 	display flex
 	gap 5px
 	flex-direction row
+	margin-right -5px
 
 .menuwindow-button
 	flex-grow 1
@@ -341,24 +332,25 @@ menuwidth = 250px
 	user-select none
 	&.active
 		background: var(--activecolor)
-	&.icon:before
+	&.icon:after
 		content ''
 		display inline-block
 		width 1.1em
 		height 1.1em
-		margin-left .1em
-		margin-right .3em
+		margin-right .05em
+		margin-left .3em
 		margin-bottom -.2em
 		background-repeat no-repeat
 		background-position center
 		background-size 100% 100%
-	&.legende:before
+	&.legende:after
+	&.extended:after
 		background-image url(/img/legende2.png)
 		opacity 1
-	&.transparent:before
+	&.transparent:after
 		background-size 80% 80%
 		opacity .7
-		background-image url(/img/transparent.png)
+		background-image url(/img/transparentr.png)
 
 
 .itemrow
@@ -420,10 +412,6 @@ input[type=radio]
 
 // TOOLTIP
 
-.tooltip
-	display none
-// .tooltip.opaque
-// 	--infobg var(--infobgopaque)
 .showtooltips .tooltip
 	display block
 .hastooltip .tooltip
@@ -645,15 +633,27 @@ input[type=radio]
 	width 36px
 	padding 6px 0 8px 2px
 	flex-grow 0
-	// z-index 2
 	display flex
 	flex-direction column
 	align-items center
 	justify-content flex-start
-	// background #eeeeee55
-	// box-shadow 1px 0 4px #00000015 inset
 	border-left 1px solid #eee
 	position absolute
+
+.windowbuttons.left
+	right unset
+	left 0
+	padding 6px 2px 8px 0
+
+.windowbuttons.row
+	flex-direction row
+	width unset
+	height 36px
+	gap 8px
+	padding 0 6px 0 4px
+
+.windowbuttons.row.left
+	padding 0 0 0 4px
 
 .windowbuttonsinner
 	pointer-events all
@@ -700,13 +700,26 @@ input[type=radio]
 	background-position center
 	background-repeat no-repeat
 	opacity .8
+	transition opacity linear .05s
 	position relative
 	cursor pointer
 	&:hover 
 		opacity .45
 
+.iconbutton.light
+	opacity .35
+	&:hover 
+		opacity .8
+
+
 .iconbutton.more
 	background-image url(/img/morev.png)
+.iconbutton.settings
+	background-image url(/img/settings_black.png)
+	background-size 105%
+.iconbutton.filter
+	background-image url(/img/filter_black.png)
+	background-size 110%
 .iconbutton.close
 	background-image url(/img/close.png)
 	background-size 120%
@@ -744,12 +757,15 @@ input[type=radio]
 		font-weight normal
 		white-space nowrap
 		color #000000cc
+		user-select none
 		&:hover
 			background: var(--activecolorgreybrighter)
 		&.active
 			color #000000
 			background: var(--activecolorgrey)
 			pointer-events none
+	.item.boolean.active
+		pointer-events all
 	.item.header
 		pointer-events none
 		font-weight bold
@@ -1053,9 +1069,20 @@ hr
 	background-position center center
 	background-repeat no-repeat
 
+.standorttabelle.icon
+	background-image url('/img/table.png')
+	background-size 66% 66%
+	background-position 58% center
+	opacity .6
+
 .orte.icon
 	background-image url('/img/sensor.png')
 	background-size 77% 77%
+	opacity .7
+
+.bodenarten.icon
+	background-image url('/img/soil.png')
+	background-size 85% 85%
 	opacity .9
 
 .bodenfeuchte.icon
@@ -1074,7 +1101,7 @@ hr
 .error.icon
 	background-image url('/img/warningred.png')
 	background-size 80% 80%
-	opacity .7
+	opacity .65
 
 .karten.icon
 	background-image url('/img/karten.png')

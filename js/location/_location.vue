@@ -356,9 +356,25 @@
 			this.loadSensorData();
 			state.minimapZoom = config.minimapZoom;
 			window.addEventListener('resize', this.updateFrameWidth);
+
+			// Use ResizeObserver to track frameRef size changes
+			this.$nextTick(() => {
+				if (this.$refs.frameRef) {
+					this.resizeObserver = new ResizeObserver(() => {
+						const frameRef = this.$refs.frameRef;
+						if (frameRef) {
+							this.frameWidth = frameRef.clientWidth - this.frameMargin;
+						}
+					});
+					this.resizeObserver.observe(this.$refs.frameRef);
+				}
+			});
 		},
 		beforeUnmount() {
 			window.removeEventListener('resize', this.updateFrameWidth);
+			if (this.resizeObserver) {
+				this.resizeObserver.disconnect();
+			}
 		},
 	};
 
@@ -516,7 +532,7 @@
 
 <style lang="stylus" scoped>
 	.location
-		padding 12px 24px 0
+		padding 10px 24px 0
 		z-index 10
 		position relative
 	@media (max-width: 600px)

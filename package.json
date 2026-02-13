@@ -7,7 +7,7 @@
     "serve": "vite preview",
     "upload": "node upload-ftp.js",
     "dist": "npm run build && npm run upload",
-	"commit": "git add . && git commit -m \"update\" && git push origin main && git push opencode main"
+    "commit": "git add . && git commit -m \"update\" && git push origin main && git push opencode main"
   },
   "devDependencies": {
     "basic-ftp": "^5.0.5",

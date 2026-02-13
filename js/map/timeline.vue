@@ -15,7 +15,7 @@
 		<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
 
 		<DateAxis
-		v-if="dateAxis && !dateAxisBelow"
+		v-if="dateAxis"
 		:chartWidth="timelineWidth"
 		:frameWidth="timelineWidth"
 		:startTimestamp="startTimestamp"
@@ -28,18 +28,6 @@
 		<div v-if="label" class="label">{{ label }}</div>
 
 	</div>
-
-	<!-- <div v-if="dateAxisBelow" class="dateaxisbelowcontainer">
-		<DateAxis
-		v-if="dateAxis && dateAxisBelow"
-		:chartWidth="timelineWidth"
-		:frameWidth="timelineWidth"
-		:startTimestamp="startTimestamp"
-		:numberOfDays
-		:insideTimeline="true"
-		:firstItemPadding="true"
-		></DateAxis>
-	</div> -->
 
 </template>
 
@@ -75,7 +63,6 @@ export default {
 		endTimestamp: Number,
 		dateAxis: {type: Boolean, default: true},
 		firstItemPadding: {type: Boolean, default: false},
-		// dateAxisBelow: {type: Boolean, default: false},
 		label: {type: String, default: ''},
 	},
 	computed: {
@@ -149,7 +136,7 @@ export default {
 	},
 	methods: {
 		drawHeatmap() {
-			if (this.telemetryLoaded) {
+			if (this.telemetryLoaded ) {
 				const timeline = this.$refs.timeline;
 				if (timeline) {
 					this.timelineWidth = timeline.getBoundingClientRect().width;
@@ -407,6 +394,7 @@ export default {
 			color #000000aa
 			opacity .6
 			color #000
+			user-select none
 		.chart-time
 			position absolute
 			bottom 0
