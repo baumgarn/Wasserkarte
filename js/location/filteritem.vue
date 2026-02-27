@@ -38,6 +38,22 @@
 			
 		</template>
 		
+		<template v-else-if="type=='table'">
+			
+			<FilterIcon :obj :size="20"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+			
+		</template>
+		
+		<template v-else-if="type=='tablecompact'">
+			
+			<FilterIcon :obj :size="22"/>
+			
+		</template>
+
 		<template v-else-if="type=='pill'">
 			
 			<FilterIcon :obj :size="24"/>
@@ -109,10 +125,12 @@ export default {
 			if (state.isMobile) {
 				state.selectedDevice = null;
 			}
+			event.stopPropagation();
 		},
 	},
 	computed: {
 		includeActive() {
+			if (this.type == 'table' || this.type == 'tablecompact') return false
 			let included = false;
 			state.includeFilter.forEach(item => {
 				if (item.name == this.obj.name) {
@@ -122,6 +140,7 @@ export default {
 			return included;
 		},
 		excludeActive() {
+			if (this.type == 'table' || this.type == 'tablecompact') return false
 			let excluded = false;
 			state.excludeFilter.forEach(element => {
 				if (element.name == this.obj.name) {
@@ -199,7 +218,6 @@ export default {
 	height 42px
 	padding-right 0
 	padding-left 0
-	// background red
 	.bg
 		display none
 	.filtericon
@@ -274,11 +292,37 @@ export default {
 		border none
 		.bg
 			opacity 1
-	// &:hover .bg
-		// background transparent
 	&:hover .bg
 		background transparent
 	&.active:hover .bg
 		background var(--activecolorgrey)
 
+.filteritem.table
+.filteritem.tablecompact
+	box-shadow none
+	border none
+	margin 0
+	border-radius unset
+	font-weight normal
+	font-size unset
+	cursor pointer
+	background transparent
+	.filtericon
+		filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+	margin-left -6px
+	.name
+		user-select all
+		margin-right 0
+.filteritem.tablecompact
+	margin-top 0px
+	margin-left -7px
+	margin-right -8px
+	width 24px
+	height 24px
+	filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+	.filtericon
+		filter none
+	.icon
+		width 24px
+		height 24px
 </style>

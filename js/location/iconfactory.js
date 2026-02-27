@@ -61,11 +61,11 @@ export const IconFactory = {
 		ctx.fill();
 
 		if (obj.short) {
-			const fontsize = size * 0.45;
+			const fontsize = size * 0.5;
 			ctx.font = fontsize+'px Arial';
 			ctx.fillStyle = '#00000066'
 			ctx.textAlign = "center";
-			ctx.fillText(obj.short, cx, cy*1.35);
+			ctx.fillText(obj.short, cx, cy*1.4);
 		}
 
 		const dataUrl = canvas.toDataURL();

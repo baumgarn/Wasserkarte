@@ -152,6 +152,7 @@ export default {
 	left 0
 	margin 0
 	filter none
+	font-weight normal
 	opacity .9
 	.scrollframe
 		background transparent

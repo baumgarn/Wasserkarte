@@ -388,7 +388,7 @@
 	<div class="location" :class="[ { wideView, sidebarFullView }, 'context-' + context ]">
 
 	
-	<div class="framered" ref="frameRef"></div>
+	<div class="frameref" ref="frameRef"></div>
 
 		<div v-if="wideView" class="headersplit">
 			

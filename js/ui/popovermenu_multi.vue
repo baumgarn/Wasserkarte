@@ -30,8 +30,8 @@
 				:class="{ active: state[item.stateProp] }"
 				@click="toggleBoolean(item)"
 			>
+				<div class="icon"></div>
 				<span v-html="item.label" />
-				<span class="toggle">{{ state[item.stateProp] ? '✓' : '' }}</span>
 			</div>
 
 			<div
@@ -70,6 +70,10 @@ export default {
 
 	methods: {
 		open(position) {
+			if (this.isOpen) {
+				this.close();
+				return;
+			}
 			this.isOpen = true;
 			state.popupMenuOpen = true;
 			nextTick(() => {

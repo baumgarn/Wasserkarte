@@ -668,7 +668,8 @@ input[type=radio] {
 .iconbutton.light {
   opacity: 0.35;
 }
-.iconbutton.light:hover {
+.iconbutton.light:hover,
+.iconbutton.light.active {
   opacity: 0.8;
 }
 .iconbutton.more {
@@ -712,7 +713,7 @@ input[type=radio] {
 }
 .popover-menu .item {
   width: 100%;
-  padding: 5px 16px;
+  padding: 6px 12px;
   background: none;
   border: none;
   text-align: right;
@@ -722,6 +723,8 @@ input[type=radio] {
   white-space: nowrap;
   color: rgba(0,0,0,0.8);
   user-select: none;
+  display: flex;
+  align-items: center;
 }
 .popover-menu .item:hover {
   background: var(--activecolorgreybrighter);
@@ -749,6 +752,22 @@ input[type=radio] {
 .popover-menu .second-group {
   border-top: 1px solid rgba(0,0,0,0.2);
   margin-top: -1px;
+}
+.popover-menu .icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  margin-left: -4px;
+  background-position: center center;
+  background-size: 100% 100%;
+}
+.popover-menu .boolean .icon {
+  background-image: url("/img/checkbox_false.png");
+  opacity: 0.4;
+}
+.popover-menu .boolean.active .icon {
+  opacity: 0.4;
+  background-image: url("/img/checkbox_true.png");
 }
 .separator {
   display: inline-block;

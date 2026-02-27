@@ -298,11 +298,11 @@ export default {
 		colorScheme() {
 			this.drawHeatmap()
 		},
-		timelineWidth() {
-			nextTick(()=>{
-				this.drawHeatmap()
-			})
-		},
+		// timelineWidth() {
+		// 	nextTick(()=>{
+		// 		this.drawHeatmap()
+		// 	})
+		// },
 		'state.timelineStyle'() {
 			nextTick(()=>{
 				this.drawHeatmap()

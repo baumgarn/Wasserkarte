@@ -17,12 +17,9 @@
 				</template>
 			</div>
 		</div>
-		<PopoverDoubleselect 
-			ref="popoverRef" 
-			:items="chartTimeRanges" 
-			:secondItems="aggregationOptions"
-			:stateProperty="'chartTimeRange'" 
-			secondStateProperty="dataAggregation"/>
+		<PopoverMenu
+			ref="popoverRef"
+			:items="popoverItems" />
 	</div>
 
 </template>
@@ -30,14 +27,14 @@
 <script>
 import Tabs from '@/ui/tabs.vue';
 import ChartRange from '@/charts/chart_rangebar.vue';
-import PopoverDoubleselect from '@/ui/popover_doubleselect.vue';
+import PopoverMenu from '@/ui/popovermenu_multi.vue';
 import {state} from '@/state.js';
 
 export default {
 	name: 'ChartSettings',
 	components: {
 		Tabs,
-		PopoverDoubleselect,
+		PopoverMenu,
 		ChartRange
 	},
 	props: {
@@ -80,13 +77,8 @@ export default {
 	},
 	methods: {
 		openTimeRanges() {
-			const button = this.$refs.openTimeRangeRef;
-			const rect = button.getBoundingClientRect();
-			var position = {
-				bottom: rect.bottom,
-				right: 4,
-			};
-			this.$refs.popoverRef.open(position);
+			const outer = this.$refs.openTimeRangeRef.closest('.settingsouter');
+			this.$refs.popoverRef.open({ bottom: -8, right: -4 });
 		}
 	},
 	computed: {
@@ -98,6 +90,13 @@ export default {
 				{ label: 'Letzte 90 Tage', value: 90 },
 				{ label: 'Letzte 30 Tage', value: 30 },
 				{ label: 'Letzte 7 Tage', value: 7 },
+			];
+		},
+		popoverItems() {
+			return [
+				...this.chartTimeRanges.map(item => ({ type: 'select', stateProp: 'chartTimeRange', ...item })),
+				{ type: 'divider' },
+				...this.aggregationOptions.map(item => ({ type: 'select', stateProp: 'dataAggregation', ...item })),
 			];
 		},
 		wideView() {
@@ -115,7 +114,7 @@ export default {
 			return Math.floor((Date.now() - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
 		},
 		isPopoverOpen() {
-			return this.$refs.popoverRef ? this.$refs.popoverRef.isOpen : false;
+			return this.$refs.popoverRef.isOpen;
 		}
 	}
 };
