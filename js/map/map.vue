@@ -304,7 +304,7 @@ export default {
 		filter saturate(90%)
 	
 	.focusmode .osm-layer
-		filter saturate(0%)
+		filter saturate(0%) brightness(1.1) contrast(0.8)
 		opacity 1
 		
 	// .map-tint

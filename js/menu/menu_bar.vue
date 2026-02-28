@@ -4,7 +4,7 @@
 	</div>
 	<div
 		class="menubar"
-		:class="{ anyactive: isAnyMenuItemActive, soloactive: isSoloActive, mobileopen: state.mobilemenuOpen }" >
+		:class="{ groupactive: isGroupActive, soloactive: isSoloActive, mobileopen: state.mobilemenuOpen }" >
 
 		<template v-for="item in menuItems" :key="item.key">
 
@@ -13,7 +13,8 @@
 			:key="item.key"
 			class="menubaritem hastooltip"
 			:class="[item.key, { active: state.menuOpen[item.key] }, item.class]"
-			@click="handleClick(item, $event )">
+			v-click-hide-tooltip
+			@click="handleClick(item)">
 
 			<div class="tooltip">
 				{{ item.tooltip }}
@@ -64,21 +65,16 @@ export default {
 				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '2' },
 			];
 		},
-		isAnyMenuItemActive() {
-			return Object.values(state.menuOpen).some(isActive => isActive);
+		isGroupActive() {
+			return this.menuItems.some(item =>
+				item.group && !item.solo && state.menuOpen[item.key]
+			);
+			// return Object.values(state.menuOpen).some(isActive => isActive);
 		},
 		isSoloActive() {
 			return this.menuItems.some(item =>
 				item.solo && state.menuOpen[item.key]
 			);
-		},
-		menuItemsWithHtmlTooltips() {
-			return this.menuItems.map(item => {
-				return {
-					...item,
-					tooltipHtml: item.tooltip.replace(/\n/g, '<br>')
-				};
-			})
 		},
 		selectedColorScheme() {
 			return dataModel.color_schemes.nfk[state.colorScheme];
@@ -91,7 +87,7 @@ export default {
 		}
 	},
 	methods: {
-		handleClick(item, event) {
+		handleClick(item) {
 			const wasActive = state.menuOpen[item.key];
 
 
@@ -119,16 +115,7 @@ export default {
 				}
 			}
 
-			// add class was-clicked to prevent tooltip to immediately appear when clicked
-			const el = event.currentTarget;
-			this.$nextTick(() => {
-				el.classList.add('was-clicked');
-			});
-			setTimeout(() => {
-				el.classList.remove('was-clicked');
-			}, 2000);
-			//
-		},
+			},
 		openMobile() {
 			state.mobilemenuOpen = true;
 		},

@@ -3,7 +3,20 @@
 	<div class="windowbuttons">
 		<div class="windowbuttonsinner">
 			<div class="iconbutton close" v-on:click="closefunc()"></div>
-			<div v-if="showswitch" class="iconbutton switchfullwindow" v-on:click="switchSidebarWidth()"></div>
+			<div class="tooltipwrapper hastooltip" v-click-hide-tooltip>
+
+				<div v-if="showswitch" class="iconbutton switchfullwindow" v-on:click="switchSidebarWidth()"></div>
+				
+				<div class="tooltip left">
+					<template v-if="sidebarFullView">
+						Schmale Ansicht
+					</template>
+					<template v-else>
+						Weite Ansicht
+					</template>
+				</div>
+			</div>
+
 			<div class="iconbutton more" ref="toggleMore" v-on:click="openMore()"></div>
 			<PopoverMenu ref="moreRef" :items="moreItems" @select="handleMoreMenu" />
 		</div>
@@ -34,6 +47,9 @@ export default {
 		}
 	},
 	computed: {
+		sidebarFullView() {
+			return state.sidebarFullView;
+		},
 		showswitch() {
 			return this.$route.name != 'standort' && this.$route.name != 'embed' && this.$route.name != 'iframe' && this.$route.name != 'qrcode';
 		},

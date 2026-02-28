@@ -7,4 +7,18 @@ import { createApp } from 'vue';
 export const app = createApp(App);
 app.use(OpenLayersMap);
 app.use(router);
+
+
+
+
+app.directive('click-hide-tooltip', {
+	mounted(el) {
+		el.addEventListener('click', () => {
+			const target = el.closest('.hastooltip') ?? el;
+			target.classList.add('was-clicked');
+			setTimeout(() => target.classList.remove('was-clicked'), 1000);
+		});
+	}
+});
+
 export const vm = app.mount('#app');

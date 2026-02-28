@@ -83,7 +83,6 @@ export default {
 					if (position.bottom) { this.$el.style.bottom = position.bottom + 'px';}
 					if (position.right) { this.$el.style.right = position.right + 'px';}
 					if (position.left) { this.$el.style.left = position.left + 'px';}
-
 					if (position.zIndex) {this.$el.style.zIndex = position.zIndex;}
 				}
 
@@ -139,13 +138,4 @@ export default {
 <style lang="stylus" scoped>
 .popover-menu
 	position absolute
-
-
-// .item
-	// padding 8px 12px
-	// cursor pointer
-
-// .item.action
-	// font-weight 500
-
 </style>

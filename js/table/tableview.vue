@@ -5,19 +5,19 @@
 
 		</div>
 
-		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content" @click="unselect">
+		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content">
 		
 			<div class="table-col" :class="col.class" :style="col.width ? { width: col.width + 'px', flexShrink: 0 } : {}" v-for="col in columns" :key="col.key">
 				
 				<template v-if="tableview_compact && (col.type == 'attribute')">
 				
-					<div class="table-colheader compact" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click.stop="col.sortable && sortBy(col.key)"></div>
+					<div class="table-colheader compact" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click="col.sortable && sortBy(col.key)" :colheaderinfo="col.name"></div>
 					
 				</template>
 
 				<template v-else-if="col.type == 'timeline'">
 					
-					<div class="table-colheader timeline" ref="timelineref" @click.stop="">
+					<div class="table-colheader timeline" ref="timelineref">
 
 						<div class="dateaxiswrapper">
 
@@ -38,7 +38,7 @@
 				
 				<template v-else>
 				
-					<div class="table-colheader" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click.stop="col.sortable && sortBy(col.key)">
+					<div class="table-colheader" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click="col.sortable && sortBy(col.key)">
 
 						{{ col.name }}
 
@@ -51,7 +51,7 @@
 					<div
 						class="table-data"
 						:class="[col.type, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact) }]"
-						@click.stop="selectDevice(row.device)"
+						@click="selectDevice(row.device, $event)"
 						:hoverinfo="getDataHoverInfo(col, row)"
 						>
 
@@ -93,15 +93,19 @@
 
 				</template>
 
+				<div class="table-colfooter" @click="unselectDevice">
+				</div>
+
 			</div>
 
-			<div class="tableview-footer">
-
-			</div>
 			
 		</div>
+		
+		
 
 		<div class="mouse-tooltip" v-show="tooltip.visible" :class="{ ready: tooltip.ready }" :style="tooltipStyle">{{ tooltip.text }}</div>
+
+	<div class="colheader-tooltip" v-show="colHeaderTooltip.visible" :class="{ ready: colHeaderTooltip.ready }" :style="colHeaderTooltipStyle">{{ colHeaderTooltip.text }}</div>
 
 		<div class="windowbuttons plain left row">
 			<div class="iconbutton close" v-on:click="close()"></div>
@@ -152,6 +156,7 @@ export default {
 			earliestTimestamp: 0,
 			latestTimestamp: 0,
 			tooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
+			colHeaderTooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			timelineWidth: 0,
 		}
 	},
@@ -160,15 +165,21 @@ export default {
 			return state.devices;
 		},
 		columns() {
-			return [
-				{ key: 'name', name: 'Standort', sortable: true, width: 250 },
-				{ key: 'nutzung', name: 'Nutzungsart', sortable: true, type: 'attribute' },
-				{ key: 'wasser', name: 'Wasserhaushalt', sortable: true, type: 'attribute' },
-				{ key: 'boden', name: 'Bodenart', sortable: true, type: 'attribute' },
-				{ key: 'humus', name: 'Humusgehalt', sortable: true, type: 'attribute' },
-				{ key: 'timeline', name: '', class: 'timeline', type:'timeline' },
-				// { key: 'rightspacer', name: '', class: 'rightspacer' },
-			]
+			let cols = [];
+
+			cols.push({ key: 'name', name: 'Standort', sortable: true, width: 250 })
+				
+			if (this.tableview_attributes) {
+				cols.push(
+					{ key: 'nutzung', name: 'Nutzungsart', sortable: true, type: 'attribute' },
+					{ key: 'wasser', name: 'Wasserhaushalt', sortable: true, type: 'attribute' },
+					{ key: 'boden', name: 'Bodenart', sortable: true, type: 'attribute' },
+					{ key: 'humus', name: 'Humusgehalt', sortable: true, type: 'attribute' });
+			}
+
+			cols.push({ key: 'timeline', name: '', class: 'timeline', type:'timeline' })
+
+			return cols;
 		},
 		tableData() {
 			return this.devices.map(device => ({
@@ -204,6 +215,8 @@ export default {
 			let menu = [];
 			menu.push(
 				{type:'boolean', label:'Kompakte Darstellung', stateProp:'tableview_compact'},
+				{type:'boolean', label:'Standorteigenschaften', stateProp:'tableview_attributes'},
+				{type:'boolean', label:'Datenlücken anzeigen', stateProp:'showDataGaps'},
 				{type:'divider'},
 				{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'tableview_timelinerange'},
 				{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'tableview_timelinerange'},
@@ -216,6 +229,9 @@ export default {
 		},
 		filteredDevices() {
 			return state.filteredDevices;
+		},
+		tableview_attributes() {
+			return state.tableview_attributes
 		},
 		tableview_compact() {
 			return state.tableview_compact
@@ -251,6 +267,13 @@ export default {
 				top: (this.tooltip.y + 10) + 'px',
 			};
 		},
+		colHeaderTooltipStyle() {
+			return {
+				left: this.colHeaderTooltip.x + 'px',
+				top: this.colHeaderTooltip.y + 'px',
+				transform: 'translateX(-50%) translateY(calc(-100% - 4px))',
+			};
+		},
 		minTimelineWidth() {
 			return (numberOfDays * 1)
 		},
@@ -270,7 +293,8 @@ export default {
 				});
 			}
 		},
-		unselect() {
+		unselectDevice() {
+			console.log('ddsd')
 			state.selectedDevice = null;
 		},
 		setSelectedDevice(device) {
@@ -327,8 +351,11 @@ export default {
 		onScroll(e) {
 			this.isScrollTop = e.target.scrollTop === 0;
 			this._clearTooltipTimer();
+			this._clearColHeaderTooltipTimer();
 			this.tooltip.visible = false;
 			this.tooltip.ready = false;
+			this.colHeaderTooltip.visible = false;
+			this.colHeaderTooltip.ready = false;
 			this._clearScrollEndTimer();
 			this._scrollEndTimer = setTimeout(() => {
 				this._scrollEndTimer = null;
@@ -375,20 +402,45 @@ export default {
 				this._scrollEndTimer = null;
 			}
 		},
+		_clearColHeaderTooltipTimer() {
+			if (this._colHeaderTooltipTimer) {
+				clearTimeout(this._colHeaderTooltipTimer);
+				this._colHeaderTooltipTimer = null;
+			}
+		},
 		_checkTooltipAtCursor() {
 			const el = document.elementFromPoint(this.tooltip.x, this.tooltip.y);
 			if (!el || !this.$el.contains(el)) return;
 			let node = el;
-			let text = null;
+			let hoverText = null;
+			let colHeaderText = null;
+			let colHeaderEl = null;
 			while (node && node !== this.$el) {
+				if (node.hasAttribute?.('colheaderinfo')) {
+					colHeaderText = node.getAttribute('colheaderinfo') || null;
+					colHeaderEl = node;
+					break;
+				}
 				if (node.hasAttribute?.('hoverinfo')) {
-					text = node.getAttribute('hoverinfo') || null;
+					hoverText = node.getAttribute('hoverinfo') || null;
 					break;
 				}
 				node = node.parentElement;
 			}
-			if (text) {
-				this.tooltip.text = text;
+			if (colHeaderText && colHeaderEl) {
+				const rect = colHeaderEl.getBoundingClientRect();
+				this.colHeaderTooltip.text = colHeaderText;
+				this.colHeaderTooltip.x = rect.left + rect.width / 2;
+				this.colHeaderTooltip.y = rect.top;
+				this.colHeaderTooltip.visible = true;
+				if (!this._colHeaderTooltipTimer) {
+					this._colHeaderTooltipTimer = setTimeout(() => {
+						this._colHeaderTooltipTimer = null;
+						this.colHeaderTooltip.ready = true;
+					}, 400);
+				}
+			} else if (hoverText) {
+				this.tooltip.text = hoverText;
 				this.tooltip.visible = true;
 				if (!this._tooltipTimer) {
 					this._tooltipTimer = setTimeout(() => {
@@ -404,17 +456,46 @@ export default {
 			this.tooltip.y = e.clientY;
 
 			let el = e.target;
-			let text = null;
+			let hoverText = null;
+			let colHeaderText = null;
+			let colHeaderEl = null;
 			while (el && el !== this.$el) {
+				if (el.hasAttribute('colheaderinfo')) {
+					colHeaderText = el.getAttribute('colheaderinfo') || null;
+					colHeaderEl = el;
+					break;
+				}
 				if (el.hasAttribute('hoverinfo')) {
-					text = el.getAttribute('hoverinfo') || null;
+					hoverText = el.getAttribute('hoverinfo') || null;
 					break;
 				}
 				el = el.parentElement;
 			}
 
-			if (text) {
-				this.tooltip.text = text;
+			if (colHeaderText && colHeaderEl) {
+				const rect = colHeaderEl.getBoundingClientRect();
+				this.colHeaderTooltip.text = colHeaderText;
+				this.colHeaderTooltip.x = rect.left + rect.width / 2;
+				this.colHeaderTooltip.y = rect.top;
+				this.colHeaderTooltip.visible = true;
+				if (!this._colHeaderTooltipTimer && !this.colHeaderTooltip.ready) {
+					this._colHeaderTooltipTimer = setTimeout(() => {
+						this._colHeaderTooltipTimer = null;
+						this.colHeaderTooltip.ready = true;
+					}, 400);
+				}
+				// suppress cursor tooltip while over colheader
+				this._clearTooltipTimer();
+				this.tooltip.visible = false;
+				this.tooltip.ready = false;
+			} else {
+				this._clearColHeaderTooltipTimer();
+				this.colHeaderTooltip.visible = false;
+				this.colHeaderTooltip.ready = false;
+			}
+
+			if (hoverText) {
+				this.tooltip.text = hoverText;
 				if (this.tooltip.ready) {
 					// already visible — switch content instantly, no delay
 				} else {
@@ -426,7 +507,7 @@ export default {
 						}, 600);
 					}
 				}
-			} else {
+			} else if (!colHeaderText) {
 				this._clearTooltipTimer();
 				this.tooltip.visible = false;
 				this.tooltip.ready = false;
@@ -435,8 +516,11 @@ export default {
 		hideTooltip() {
 			this._clearTooltipTimer();
 			this._clearScrollEndTimer();
+			this._clearColHeaderTooltipTimer();
 			this.tooltip.visible = false;
 			this.tooltip.ready = false;
+			this.colHeaderTooltip.visible = false;
+			this.colHeaderTooltip.ready = false;
 		},
 	},
 	mounted() {
@@ -458,6 +542,7 @@ export default {
 		if (this._resizeObserver) this._resizeObserver.disconnect();
 		this._clearTooltipTimer();
 		this._clearScrollEndTimer();
+		this._clearColHeaderTooltipTimer();
 	},
 	watch: {
 		selectedDevice: {
@@ -496,10 +581,7 @@ export default {
 		*
 			box-sizing border-box
 		position absolute
-		left 0
-		top 0
-		bottom 0
-		right 0
+		inset 0
 		z-index 90
 		background #fff
 		display flex
@@ -515,7 +597,6 @@ export default {
 			flex-direction row
 			align-items flex-start
 			position relative
-			padding-bottom var(--rowheight)
 			&.scrolltop .table-colheader:before
 				opacity 0
 			.table-colheader:before
@@ -529,18 +610,23 @@ export default {
 		.table-data
 			padding 0
 			// border-right none
-	// .table-col
+	.table-col
+		min-height 100%
+		display flex
+		flex-direction column
 	// 	margin-bottom var(--rowheight)
 	.table-colheader
 		white-space nowrap
 		padding var(--cellpad)
 		position sticky
+		flex-basis var(--rowheight)
+		flex-shrink 0
+		flex-grow 0
 		top 0
 		user-select none
 		border-top var(--line)
 		border-bottom var(--line)
 		border-right var(--line)
-		height var(--rowheight)
 		display flex
 		align-items center
 		background #fff
@@ -566,7 +652,7 @@ export default {
 			content ''
 			position absolute
 			right 6px
-			opacity .6
+			opacity .7
 			margin-left 5px 
 			margin-top 2px 
 			display block
@@ -577,6 +663,7 @@ export default {
 		&.asc::after
 			border-top 8px solid currentColor
 		&.timeline
+			min-width 400px
 			border-right none
 			// overflow hidden
 		.dateaxiswrapper
@@ -586,8 +673,15 @@ export default {
 		&:after
 			right 50%
 			margin-right -5px
+	.table-colfooter
+		flex-basis var(--rowheight)
+		flex-grow 1
+		width 100%
 	.table-data
 		white-space nowrap
+		flex-basis var(--rowheight)
+		flex-shrink 0
+		flex-grow 0
 		border-right var(--line)
 		height var(--rowheight)
 		padding var(--cellpad)
@@ -607,34 +701,29 @@ export default {
 			// 	z-index 2
 			// 	display block
 			// 	position absolute
-			// 	top calc( 100% + 1px)
+			// 	top calc( 100% )
 			// 	left 0
 			// 	right -1px
 			// 	height 8px
-			// 	background linear-gradient(to bottom, rgba(0, 0, 0, 0.12), transparent)
+			// 	background linear-gradient(to bottom, rgba(0, 0, 0, 0.18), transparent)
 			// &:before
 			// 	content ''
 			// 	z-index 2
 			// 	display block
 			// 	position absolute
-			// 	bottom calc( 100%)
 			// 	left 0
+			// 	top 0
 			// 	right -1px
-			// 	height 8px
-			// 	background linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent)
-				// inset -1px -1px -1px
-				// border-top 1px solid #00000033
-				// border-bottom 1px solid #00000033
+			// 	height 12px
+				// border-bottom 1px solid #00000030
+				// border-bottom 1px solid #ffffff44
+				// background linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent)
 	.table-data.attribute
 		font-size var(--tablefontsize)
 	.table-data.timeline
 		border-right none
-	.table-data.attribute.compact .filteritem
-		filter brightness(1)
-		transition filter .1s linear
-	.table-data.attribute.compact:hover
-		.filteritem
-			filter brightness(.9)
+	.table-data.attribute
+		padding 0
 	.label
 		text-overflow ellipsis
 		overflow: hidden;
@@ -678,12 +767,31 @@ export default {
 	// border-top-left-radius 0
 	&.ready
 		opacity 1
-	// &:after
-	// 	content ''
-	// 	position absolute
-	// 	left 0
-	// 	bottom 100%
-	// 	border-bottom 6px solid var(--infobg)
-	// 	border-right 6px solid transparent
+
+.colheader-tooltip
+	position fixed
+	background var(--infobg)
+	color #fff
+	font-size 9pt
+	padding 4px 6px
+	border-radius 3px
+	font-weight normal
+	pointer-events none
+	z-index 9999
+	white-space nowrap
+	filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
+	opacity 0
+	transition opacity 0.15s linear
+	&.ready
+		opacity 1
+	&:after
+		content ''
+		position absolute
+		left 50%
+		transform translateX(-50%)
+		top 100%
+		border-left 5px solid transparent
+		border-right 5px solid transparent
+		border-top 7px solid var(--infobg)
 
 </style> 

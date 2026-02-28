@@ -31,17 +31,17 @@
 
 				<div class="settings-item">
 					<input type="checkbox" id="showdatagaps" v-model="state.showDataGaps">
-					<label for="showdatagaps">Datenlücken in Graphen</label>
+					<label for="showdatagaps">Datenlücken anzeigen</label>
 				</div>
 				
 				<div class="settings-item">
 					<input type="checkbox" id="locationwarnings" v-model="state.showErrors">
-					<label for="locationwarnings">Fehlermeldungen</label>
+					<label for="locationwarnings">Fehlermeldungen anzeigen</label>
 				</div>
 
 				<div class="settings-item">
-					<input type="checkbox" id="showinfoonstart" v-model="state.debugAttributes">
-					<label for="showinfoonstart">Geräterohdaten</label>
+					<input type="checkbox" id="debugattributes" v-model="state.debugAttributes">
+					<label for="debugattributes">Geräterohdaten anzeigen</label>
 				</div>
 
 			</div>

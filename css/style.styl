@@ -412,6 +412,9 @@ input[type=radio]
 
 // TOOLTIP
 
+.tooltipwrapper
+	position relative
+
 .showtooltips .tooltip
 	display block
 .hastooltip .tooltip
@@ -464,19 +467,40 @@ input[type=radio]
 	border-width: 5px 0 5px 8px;
 	border-color: transparent transparent transparent var(--infobg) ;
 
+.hastooltip .tooltip.right
+	max-width: 208px
+	top: 50%;
+	transform translateY(-50%)
+	right: auto;
+	left: calc(100% + 10px)
+
+.is-mobile .hastooltip .tooltip.right
+	max-width 160px;
+	left: calc(100% + 8px)
+
+.hastooltip .tooltip.right:after
+	top auto
+	right auto
+	left -8px
+	top calc(50% - 5px);
+	border-width: 5px 8px 5px 0;
+	border-color: transparent var(--infobg) transparent transparent;
+
 
 .hastooltip:hover .tooltip
 	opacity: 1;
 	visibility: visible;
 	transition-delay: .25s;
 
-.menubaritem.was-clicked:hover .tooltip
+.hastooltip.was-clicked .tooltip
 	opacity 0
+	visibility hidden
+	transition-delay 0s
 
-.menubar.anyactive:not(.soloactive)
-.menubar.anyactive
+.menubar.groupactive
 	.tooltip
-		display none
+		display none !important
+
 
 // FULL VIEW
 
@@ -777,7 +801,7 @@ input[type=radio]
 		// height 1px
 		padding 0
 		margin 0
-		border-top 1px solid #00000033
+		border-top 1px solid #00000044
 		margin-top -1px
 	.second-group
 		border-top 1px solid #00000033
@@ -791,9 +815,10 @@ input[type=radio]
 		background-size 100% 100%
 	.boolean .icon
 		background-image url('/img/checkbox_false.png')
+		background-size 90% 90%
 		opacity .4
 	.boolean.active .icon
-		opacity .4
+		opacity .5
 		background-image url('/img/checkbox_true.png')
 
 

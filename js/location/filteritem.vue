@@ -130,7 +130,7 @@ export default {
 	},
 	computed: {
 		includeActive() {
-			if (this.type == 'table' || this.type == 'tablecompact') return false
+			// if (this.type == 'table' || this.type == 'tablecompact') return false
 			let included = false;
 			state.includeFilter.forEach(item => {
 				if (item.name == this.obj.name) {
@@ -140,7 +140,7 @@ export default {
 			return included;
 		},
 		excludeActive() {
-			if (this.type == 'table' || this.type == 'tablecompact') return false
+			// if (this.type == 'table' || this.type == 'tablecompact') return false
 			let excluded = false;
 			state.excludeFilter.forEach(element => {
 				if (element.name == this.obj.name) {
@@ -299,30 +299,55 @@ export default {
 
 .filteritem.table
 .filteritem.tablecompact
+	width 100%
+	height 100%
+	border-radius unset
 	box-shadow none
 	border none
 	margin 0
-	border-radius unset
 	font-weight normal
 	font-size unset
 	cursor pointer
 	background transparent
+	justify-content flex-start
 	.filtericon
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
-	margin-left -6px
-	.name
-		user-select all
-		margin-right 0
+
+
+.filteritem.table
+	.bg
+		transition opacity linear .1s
+		background var(--activecolorgreybrighter)
+		opacity 0
+	.filtericon
+		margin-left 2px
+	&.active
+		border none
+		.bg
+			background var(--activecolorgreybrighter)
+			opacity 0
+	&:hover 
+		.bg
+			opacity 1
+
 .filteritem.tablecompact
-	margin-top 0px
-	margin-left -7px
-	margin-right -8px
-	width 24px
-	height 24px
+	margin 0
+	padding 0
 	filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+	transition filter .1s linear
+	filter brightness(1)
+	justify-content center
 	.filtericon
 		filter none
 	.icon
 		width 24px
 		height 24px
+	&:hover
+		filter brightness(.9)
+	.bg
+		opacity 0 !important
+	&.active
+		border none
+
+
 </style>
