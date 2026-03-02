@@ -12,7 +12,7 @@
                 v-for="(device, index) in deviceItems"
                 :key="device.name"
                 :class="[
-                    'menu-item', 
+                    'menuitem', 
                     device.name.replace(/\s+/g, '_'), 
                     { 
                         selected: isDeviceSelected(device),
@@ -187,7 +187,7 @@ export default {
 		background url('/img/sensor.png') no-repeat center center / 100%
 	.warning
 		color: red
-	.menu-item
+	.menuitem
 		display: flex
 		user-select none
 	.menu-title

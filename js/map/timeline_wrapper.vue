@@ -189,7 +189,7 @@ export default {
 	.timelinewrapper
 		position relative
 		flex-direction column
-		background #fff
+		// background #fff
 		box-shadow 2px 0 4px #00000033
 		content ''
 		left 0

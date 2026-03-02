@@ -19,7 +19,7 @@
 				</div>
 				<div
 					v-else
-					class="menu-item"
+					class="menuitem"
 					:title="layer.title || layer.name"
 					:class="{ 'selected': layer.visible }"
 					@click="toggleLayer(layer)">
@@ -89,8 +89,8 @@ export default {
 
 .attribution
 	margin 5px 5px -15px 5px
-	font-size 9.5pt
-	opacity 1
+	font-size 9pt
+	opacity .9
 
 .menuwindow-button-row
 	opacity 0
@@ -121,7 +121,7 @@ export default {
 .map-section-header + .map-section-header .title
 	margin-top -.1em
 
-.menu-item
+.menuitem
 	margin-right -.25em
 
 .layer-item label

@@ -761,7 +761,7 @@ export default {
 		white-space: nowrap;
 	.red
 		color: red
-	.menu-item
+	.menuitem
 		display: flex
 	.menu-title
 		flex-grow 1
@@ -771,7 +771,7 @@ export default {
 		margin-left .5em
 		opacity	.45
 		font-size 11pt
-	.menu-item
+	.menuitem
 		display flex
 		padding-right 2px
 	.title

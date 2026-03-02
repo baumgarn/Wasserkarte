@@ -345,8 +345,6 @@ export default {
 		height var(--timelineheight);
 		canvas
 			height 100%
-			background #fff
-			background #eee
 			background #eaeaea
 		.hoverline
 			border-left 1px dotted #000000

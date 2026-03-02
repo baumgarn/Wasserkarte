@@ -5,7 +5,7 @@
 			<div
 				v-for="title in menuItems"
 				:key="title"
-				:class="['menu-item', title.replace(/\s+/g, '_'), { selected: selectedSoil === title }]"
+				:class="['menuitem', title.replace(/\s+/g, '_'), { selected: selectedSoil === title }]"
 				@click="selectSoil(title)"
 				>
 				{{ getDisplayTitle(title) }}

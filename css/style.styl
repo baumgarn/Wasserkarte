@@ -76,7 +76,7 @@ html, body
 	font-size: 11pt;
 	line-height 1.3
 	overscroll-behavior: none;
-	color: #000000ee
+	color: #000000
 
 a
 	color: #000000ee
@@ -239,10 +239,11 @@ menuwidth = 250px
 	pointer-events all
 	display flex
 	flex-direction column
-	background var(--menugrau)
 	background #fff
+	// background #ffffffcc
+	// backdrop-filter blur(20px)
 	padding 0
-	min-width 250px
+	min-width 225px
 
 .is-mobile .menuwindow
 	max-width 80vw !important
@@ -265,7 +266,7 @@ menuwidth = 250px
 
 .menuwindow-content
 	overflow-y auto
-	background #fff
+	// background #fff
 	overflow auto
 	margin 0
 	padding 6px 6px
@@ -276,7 +277,7 @@ menuwidth = 250px
 		display block
 		color var(--menusectionheadercolor)
 		font-size 80%
-		font-size 9.5pt
+		font-size 9pt
 		text-transform uppercase
 		border-top var(--thinline)
 	& > h4:first-of-type
@@ -287,27 +288,28 @@ menuwidth = 250px
 
 // MENU ITEM
 
-.menu-item
+.menuitem
 	cursor pointer
 	width 100%
 	margin 0 0
-	padding 4px 6px
+	padding 6px 6px
 	min-height 28px
 	border-radius 3px
 	border-radius 14px
+	font-size 9pt
 	overflow hidden
 	white-space nowrap
 	text-overflow ellipsis
 	user-select none
 
-.menu-item.hasselectedbelow
+.menuitem.hasselectedbelow
 	border-bottom-left-radius 0
 	border-bottom-right-radius 0
-.menu-item.selected + .menu-item.selected
+.menuitem.selected + .menuitem.selected
 	border-top-left-radius 0
 	border-top-right-radius 0
 
-.menu-item.selected
+.menuitem.selected
 	background var(--activecolorgrey)
 
 .menuwindow-button-row
@@ -760,15 +762,11 @@ input[type=radio]
 // POPOVER
 
 .popover-menu
-	// background var(--uibrighter)
-	// background #fff
 	background #ffffffcc
 	backdrop-filter: blur(20px);
-	// background #fff
-	border 2px solid #bcbcbc
-	border 1.5px solid rgba(0,0,0,0.2)
+	border 1px solid rgba(0,0,0,0.2)
 	border-radius 8px
-	box-shadow 0 2px 8px rgba(0, 0, 0, 0.1)
+	box-shadow 0 2px 8px rgba(0, 0, 0, 0.2)
 	z-index 1000
 	overflow hidden
 	.items
@@ -800,7 +798,6 @@ input[type=radio]
 	.item.header
 		pointer-events none
 		font-weight bold
-		// padding-top 4px
 		padding-bottom 4px
 		padding-left 5px
 	.divider
@@ -808,6 +805,8 @@ input[type=radio]
 		padding 0
 		margin 0
 		background rgba(0,0,0,0.3)
+		height 3px
+		background rgba(0,0,0,0.1)
 	.icon
 		width 16px
 		height 16px
@@ -815,24 +814,13 @@ input[type=radio]
 		margin-left -6px
 		background-position center center
 		background-size 100% 100%
-	.boolean .icon
-		// background-image url('/img/checkbox_false.png')
-		background-size 90% 90%
-		background-size 100% 100%
-		opacity .4
 	.boolean.active .icon
 		opacity .8
-		background-image url('/img/checkbox_true.png')
 		background-image url('/img/check.png')
 		background-size 100% 100%
-	.select .icon
-		// background-image url('/img/radio_false.png')
-		background-size 90% 90%
-		opacity .4
 	.select.active .icon
 		opacity .7
 		background-image url('/img/radio_fill.png')
-		// background-image url('/img/dreieck_rechts.png')
 		background-size 40% 40%
 
 
@@ -843,16 +831,9 @@ input[type=radio]
 	display inline-block
 	margin 0 .3em
 	opacity .4
-	// border-right 1px solid #00000044
-	// height 1em
+
 .separator::before
 	content '-'
-
-.popover-menu .separator
-	margin 0 .3em
-	position relative
-	// top .125em
-	opacity .7
 
 hr
 	border none
@@ -1020,11 +1001,9 @@ hr
 .map-marker.kreis
 	width auto
 	height auto
-	// filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 	.schichten
 		border 2px solid #00000033
 		filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
-		// border: 2px solid rgba(68,68,68,.467)
 		width 36px
 		height 36px
 		border-radius 50%
@@ -1043,7 +1022,7 @@ hr
 	top -8px
 	width 36px
 	height 36px
-	filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+	filter drop-shadow(0 1px 2px rgba(0,0,0,.3))
 	.filtericon
 		border 2px solid #00000033
 		border-radius 50%
@@ -1056,7 +1035,7 @@ hr
 .map-marker.property.selected .propertyicon .filtericon
 	border 2px solid #888
 	outline 2px solid #ffffffdd
-	filter: drop-shadow(0 1px 2px rgba(0,0,0,.45));
+	filter: drop-shadow(0 1px 2px rgba(0,0,0,.45))
 
 .map-marker .disabled
 	width auto

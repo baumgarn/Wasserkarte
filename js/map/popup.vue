@@ -371,7 +371,6 @@ body.sensor-Bodenfeuchte .popupcontent
 		gap 3px 0
 		justify-content center
 		margin-bottom 4px
-		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 	.dataheader
 		font-size 8pt
 		display flex

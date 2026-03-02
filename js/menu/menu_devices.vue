@@ -12,7 +12,7 @@
 				v-for="(device, index) in deviceItems"
 				:key="device.name"
 				ref="items"
-				class="menu-item"
+				class="menuitem"
 				:class="{ selected: selectedIndex === index }"
 				@click="selectDevice(device)"
 			>
@@ -148,7 +148,8 @@ export default {
 
 <style scoped lang="stylus">
 	.menuwindow.devices
-		width 320px
+		min-width 275px
+		// width 320px
 	.menuwindow.devices:focus
 		outline none
 	.sideview
@@ -181,7 +182,7 @@ export default {
 		background url('/img/sensor.png') no-repeat center center / 100%
 	.red
 		color: red
-	.menu-item
+	.menuitem
 		display: flex
 	.menu-title
 		flex-grow 1
@@ -191,7 +192,7 @@ export default {
 		margin-left .5em
 		opacity	.45
 		font-size 11pt
-	.menu-item
+	.menuitem
 		display flex
 		padding-right 2px
 	.title

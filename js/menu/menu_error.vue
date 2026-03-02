@@ -1,5 +1,5 @@
 <template>
-	<div class="devices menuwindow" :class="{ open: isOpen, sideview }">
+	<div class="error menuwindow" :class="{ open: isOpen, sideview }">
 		<div class="menuwindow-header" @click="toggleOpen">
 			<h3>
 				<span>Fehlermeldungen</span>
@@ -8,7 +8,7 @@
 		</div>
 		<div class="menuwindow-content">
 
-			<div v-if="telemetryLoaded" v-for="device in faultyDevices" :key="device.name" class="menu-item" :class="[{ 
+			<div v-if="telemetryLoaded" v-for="device in faultyDevices" :key="device.name" class="menuitem" :class="[{ 
 						selected: selectedDevice === device.name,
 					}]" @click="selectDevice(device)">
 
@@ -117,9 +117,10 @@ export default {
 </script>
 
 <style scoped lang="stylus">
-	.menuwindow.devices
-		width 320px
-	.menu-item
+	.menuwindow.error
+		min-width 275px
+
+	.menuitem
 		display: flex
 		flex-direction column
 		color: #ea4545ee

@@ -23,6 +23,16 @@
 			</div>
 			
 		</template>
+		
+		<template v-else-if="type=='menuitem'">
+			
+			<FilterIcon :obj :size="22"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+
+		</template>
 
 		<template v-else-if="type=='popovermenuitem'">
 
@@ -233,7 +243,6 @@ export default {
 	display flex
 	border none
 	border-radius none
-	box-shadow none
 	font-weight normal
 	justify-content flex-start
 	border none
@@ -241,6 +250,8 @@ export default {
 	flex-basis 50%
 	flex-shrink 0
 	flex-grow 0
+	background #fff
+	box-shadow none 
 	.name
 		flex-grow 1
 		flex-shrink 1
@@ -265,12 +276,13 @@ export default {
 		.bg
 			display none
 
+.filteritem.menuitem
 .filteritem.popovermenuitem
 	display flex
 	border none
 	border-radius 0
 	height auto
-	min-height 28px
+	height 28px
 	box-shadow none
 	background transparent
 	font-size 9pt
@@ -278,8 +290,6 @@ export default {
 	justify-content flex-start
 	padding 4px 12px 4px 4px
 	.filtericon
-		width 16px
-		height 16px
 		margin 0
 		margin-left 0
 		margin-right 1px
@@ -301,6 +311,11 @@ export default {
 	&.active:hover .bg
 		background var(--activecolorgrey)
 		opacity 1
+
+.filteritem.menuitem
+	border-radius 14px
+	.filtericon
+		margin-left -1px
 
 .filteritem.table
 .filteritem.tablecompact

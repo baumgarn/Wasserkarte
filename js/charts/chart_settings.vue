@@ -78,7 +78,7 @@ export default {
 	methods: {
 		openTimeRanges() {
 			const outer = this.$refs.openTimeRangeRef.closest('.settingsouter');
-			this.$refs.popoverRef.open({ bottom: -8, right: 0 });
+			this.$refs.popoverRef.open({ bottom: -5, right: 0 });
 		}
 	},
 	computed: {
