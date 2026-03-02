@@ -27,7 +27,7 @@
 <script>
 import Tabs from '@/ui/tabs.vue';
 import ChartRange from '@/charts/chart_rangebar.vue';
-import PopoverMenu from '@/ui/popovermenu_multi.vue';
+import PopoverMenu from '@/ui/popovermenu.vue';
 import {state} from '@/state.js';
 
 export default {
@@ -78,7 +78,7 @@ export default {
 	methods: {
 		openTimeRanges() {
 			const outer = this.$refs.openTimeRangeRef.closest('.settingsouter');
-			this.$refs.popoverRef.open({ bottom: -8, right: -4 });
+			this.$refs.popoverRef.open({ bottom: -8, right: 0 });
 		}
 	},
 	computed: {

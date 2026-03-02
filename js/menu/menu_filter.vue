@@ -9,26 +9,26 @@
 
 				<h4>Wasserhaushalt</h4>
 
-				<FilterItem :obj="dataModel.regenabhängig_obj" type="menuitem"/>
-					<FilterItem :obj="dataModel.bewaessert_obj" type="menuitem"/>
-					<FilterItem :obj="dataModel.grundwasser_obj" type="menuitem"/>
+				<FilterItem :obj="dataModel.regenabhängig_obj" type="popovermenuitem"/>
+					<FilterItem :obj="dataModel.bewaessert_obj" type="popovermenuitem"/>
+					<FilterItem :obj="dataModel.grundwasser_obj" type="popovermenuitem"/>
 				<!-- </div> -->
 
 				<h4>Bodenart</h4>
 
 				<!-- <div class="filteritems"> -->
-					<FilterItem v-for="item in dataModel.soil_table" :obj="item" type="menuitem"/>
+					<FilterItem v-for="item in dataModel.soil_table" :obj="item" type="popovermenuitem"/>
 				<!-- </div> -->
 				
 				<h4>Humusgehalt</h4>
 
 				<!-- <div class="filteritems"> -->
-					<FilterItem v-for="item in dataModel.humus_table" :obj="item" type="menuitem"/>
+					<FilterItem v-for="item in dataModel.humus_table" :obj="item" type="popovermenuitem"/>
 				<!-- </div> -->
 			
 				<h4>Nutzungsart</h4>
 				<!-- <div class="filteritems"> -->
-					<FilterItem v-for="item in dataModel.usage_table" :obj="item" type="menuitem"/>
+					<FilterItem v-for="item in dataModel.usage_table" :obj="item" type="popovermenuitem"/>
 				</div>
 
 			</div>

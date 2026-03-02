@@ -7,7 +7,7 @@
 
 		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content">
 		
-			<div class="table-col" :class="col.class" :style="col.width ? { width: col.width + 'px', flexShrink: 0 } : {}" v-for="col in columns" :key="col.key">
+			<div class="table-col" :class="col.class" :style="col.width ? { width: col.width + 'px', flexShrink: 0 } : col.minWidth ? { minWidth: col.minWidth + 'px' } : {}" v-for="col in columns" :key="col.key">
 				
 				<template v-if="tableview_compact && (col.type == 'attribute')">
 				
@@ -105,7 +105,7 @@
 
 		<div class="mouse-tooltip" v-show="tooltip.visible" :class="{ ready: tooltip.ready }" :style="tooltipStyle">{{ tooltip.text }}</div>
 
-	<div class="colheader-tooltip" v-show="colHeaderTooltip.visible" :class="{ ready: colHeaderTooltip.ready }" :style="colHeaderTooltipStyle">{{ colHeaderTooltip.text }}</div>
+		<div class="colheader-tooltip" v-show="colHeaderTooltip.visible" :class="{ ready: colHeaderTooltip.ready }" :style="colHeaderTooltipStyle">{{ colHeaderTooltip.text }}</div>
 
 		<div class="windowbuttons plain left row">
 			<div class="iconbutton close" v-on:click="close()"></div>
@@ -113,11 +113,16 @@
 		
 		<PopoverMenuMulti
 		class="tablesettingspopup"
-		ref="settingspopupref" 
+		ref="settingspopupref"
 		:items="settingsMenuItems" />
-		
-		<div class="windowbuttons plain row">
-			<div class="iconbutton light filter" v-on:click="openFilterPopup()"></div>
+
+		<PopoverMenuMulti
+		class="tablefilterpopup"
+		ref="filterpopupref"
+		:items="filterMenuItems" />
+
+		<div class="windowbuttons plain row tablesettings">
+			<div class="iconbutton light filter" ref="filterbuttonref" :class="{ active: $refs.filterpopupref?.isOpen }" v-on:click="openFilterPopup()"></div>
 			<div class="iconbutton light settings" :class="{ active: $refs.settingspopupref?.isOpen }" v-on:click="openSettingsPopup()" ref="settingsbuttonref"></div>
 		</div>
 
@@ -130,7 +135,7 @@ import { state } from '@/state.js';
 import dataStore from '@/datastore.js';
 import { dataModel } from '@/datamodel.js'
 import ColorDot from '@/menu/colordot.vue';
-import PopoverMenuMulti from '@/ui/popovermenu_multi.vue'
+import PopoverMenuMulti from '@/ui/popovermenu.vue'
 import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
 import DateAxis from '@/charts/dateaxis.vue'
@@ -155,6 +160,7 @@ export default {
 			isScrollTop: true,
 			earliestTimestamp: 0,
 			latestTimestamp: 0,
+			popoverMenuPosition: { top: 32, right: 8 },
 			tooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			colHeaderTooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			timelineWidth: 0,
@@ -177,7 +183,7 @@ export default {
 					{ key: 'humus', name: 'Humusgehalt', sortable: true, type: 'attribute' });
 			}
 
-			cols.push({ key: 'timeline', name: '', class: 'timeline', type:'timeline' })
+			cols.push({ key: 'timeline', name: '', class: 'timeline', type:'timeline', minWidth: this.minTimelineWidth })
 
 			return cols;
 		},
@@ -210,6 +216,23 @@ export default {
 				if (aEmpty !== bEmpty) return aEmpty ? dir : -dir;
 				return dir * String(as).localeCompare(String(bs));
 			});
+		},
+		filterMenuItems() {
+			let items = [];
+			items.push({ type: 'header', label: 'Wasserhaushalt' });
+			items.push({ type: 'filteritem', obj: dataModel.regenabhängig_obj });
+			items.push({ type: 'filteritem', obj: dataModel.bewaessert_obj });
+			items.push({ type: 'filteritem', obj: dataModel.grundwasser_obj });
+			items.push({ type: 'divider' });
+			items.push({ type: 'header', label: 'Bodenart' });
+			Object.values(dataModel.soil_table).forEach(item => items.push({ type: 'filteritem', obj: item }));
+			items.push({ type: 'divider' });
+			items.push({ type: 'header', label: 'Humusgehalt' });
+			Object.values(dataModel.humus_table).forEach(item => items.push({ type: 'filteritem', obj: item }));
+			items.push({ type: 'divider' });
+			items.push({ type: 'header', label: 'Nutzungsart' });
+			Object.values(dataModel.usage_table).forEach(item => items.push({ type: 'filteritem', obj: item }));
+			return items;
 		},
 		settingsMenuItems() {
 			let menu = [];
@@ -275,7 +298,8 @@ export default {
 			};
 		},
 		minTimelineWidth() {
-			return (numberOfDays * 1)
+			return 356;
+			// return (this.numberOfDays * 2)
 		},
 	},
 	methods: {
@@ -377,13 +401,10 @@ export default {
 			state.menuOpen.standorttabelle = false;
 		},
 		openFilterPopup() {
+			this.$refs.filterpopupref.open(this.popoverMenuPosition);
 		},
 		openSettingsPopup() {
-			var position = {
-				top: 32,
-				right: 4,
-			};
-			this.$refs.settingspopupref.open(position);
+			this.$refs.settingspopupref.open(this.popoverMenuPosition);
 		},
 		getDataHoverInfo(col, row) {
 			if (col.type !== 'attribute' || !this.tableview_compact) return null;
@@ -522,6 +543,13 @@ export default {
 			this.colHeaderTooltip.visible = false;
 			this.colHeaderTooltip.ready = false;
 		},
+		calculateTimelineWidth() {
+			const timelineref = this.$refs.timelineref?.[0];
+			if (timelineref) {
+				const w = timelineref.getBoundingClientRect().width;
+				this.timelineWidth = Math.max(w, this.minTimelineWidth);
+			}
+		},
 	},
 	mounted() {
 		this.$el.focus();
@@ -530,11 +558,11 @@ export default {
 		this.$nextTick(() => {
 			const timelineref = this.$refs.timelineref?.[0];
 			if (timelineref) {
-				this._resizeObserver = new ResizeObserver(entries => {
-					this.timelineWidth = entries[0].contentRect.width;
+				this._resizeObserver = new ResizeObserver(() => {
+					this.calculateTimelineWidth();
 				});
 				this._resizeObserver.observe(timelineref);
-				this.timelineWidth = timelineref.getBoundingClientRect().width;
+				this.calculateTimelineWidth();
 			}
 		});
 	},
@@ -563,6 +591,7 @@ export default {
 			handler(val) {
 				this.earliestTimestamp = dataStore.earliestTimestamp;
 				this.latestTimestamp = dataStore.latestTimestamp;
+				this.$nextTick(() => this.calculateTimelineWidth());
 			}
 		},
 	},
@@ -589,6 +618,8 @@ export default {
 		.tableview-header
 			flex-basis var(--headerheight)
 			flex-shrink 0
+		.windowbuttons.tablesettings
+			margin-right 4px
 		.table-content
 			flex-grow 1
 			overflow-x auto
@@ -663,7 +694,7 @@ export default {
 		&.asc::after
 			border-top 8px solid currentColor
 		&.timeline
-			min-width 400px
+			// min-width 400px
 			border-right none
 			// overflow hidden
 		.dateaxiswrapper

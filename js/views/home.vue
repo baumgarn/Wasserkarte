@@ -60,9 +60,9 @@
 
 	</div>
 
-	<div class="loadingoverlay" v-if="!loaded">
+	<!-- <div class="loadingoverlay" v-if="!loaded">
 
-	</div>
+	</div> -->
 
 </template>
 
@@ -99,7 +99,7 @@ export default {
 	},
 	data(){
 		return {
-			loaded: false
+			// loaded: false
 		}
 	}, 
 	components: {
@@ -129,16 +129,6 @@ export default {
 		},
 	},
 	watch: {
-		telemetryLoaded: {
-			handler(val) {
-				if (val) {
-					window.setTimeout(()=>{
-						this.loaded = true;
-					},10)
-				}
-			},
-			immediate: true
-		},
 	}
 };
 </script>
@@ -192,14 +182,5 @@ export default {
 		filter drop-shadow(2px 3px 2px #00000022)
 		cursor pointer
 		background #fff url(/img/info.png) center / 80% no-repeat
-
-	.loadingoverlay
-		background #fff
-		position fixed
-		left 0
-		top 0
-		right 0
-		bottom 0
-		z-index 10000
 
 </style>

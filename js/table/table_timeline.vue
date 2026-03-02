@@ -263,7 +263,6 @@ export default {
 		height 100%
 		height calc(100% + 1px)
 		overflow hidden
-		// margin-bottom -1px
 		// background #fff
 		// background #eaeaea
 		canvas

@@ -53,7 +53,7 @@ export default {
 	computed: {
 		menuItems() {
 			return [
-				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse aller Standorte', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
+				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
 				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },

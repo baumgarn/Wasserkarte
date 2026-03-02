@@ -77,9 +77,6 @@ const dataStore = {
 
 		this.sortFaultyDevices();
 
-		document.body.classList.remove('loading');
-		document.body.classList.add('loaded');
-		state.loading = false;
 	},
 
 
@@ -145,6 +142,12 @@ const dataStore = {
 		this.createDeviceSchemaIndex();
 		this.buildTimelineCache()
 
+		window.setTimeout(()=>{
+			// this.loaded = true;
+			document.body.classList.remove('loading');
+			document.body.classList.add('loaded');
+			state.loading = false;
+		},100)
 	},
 
 	// The data rows for each device have a different schema. 

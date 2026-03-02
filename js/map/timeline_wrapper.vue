@@ -78,7 +78,7 @@
 import { state } from '@/state.js'
 import dataStore from '@/datastore.js'
 import Timeline from '@/map/timeline.vue'
-import PopoverMenuMulti from '@/ui/popovermenu_multi.vue'
+import PopoverMenuMulti from '@/ui/popovermenu.vue'
 import DateAxis from '@/charts/dateaxis.vue'
 
 export default {

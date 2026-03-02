@@ -23,6 +23,7 @@
   --logogruen: #008c46;
   --logorot: #f15f5c;
   --infobg: rgba(68,68,68,0.6);
+  --infobg: rgba(51,51,51,0.6);
   --timelineheight: min( max( 4vh, 42px), 64px );
   --timelineheightmobile: max( 4vh, 64px);
   --timelinedatebg: rgba(68,68,68,0.6);
@@ -411,6 +412,9 @@ input[type=radio] {
   transition: opacity 0.2s ease-in, visibility 0s linear 0.2s;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
 }
+body.loading .hastooltip .tooltip {
+  transition: none;
+}
 .hastooltip .tooltip:after {
   content: '';
   position: absolute;
@@ -711,19 +715,17 @@ input[type=radio] {
   background-size: 120%;
 }
 .iconbutton.switchfullwindow {
-  background-image: url("/img/double_arrow_left.png");
-  background-image: url("/img/fullscreen.png");
   background-image: url("/img/dock_left.png");
   background-size: 94%;
 }
 .sidebar.fullwidth .iconbutton.switchfullwindow {
-  background-image: url("/img/double_arrow_right.png");
   background-image: url("/img/dock_right.png");
 }
 .popover-menu {
-  background: var(--uibrighter);
-  background: #fff;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
   border: 2px solid #bcbcbc;
+  border: 1.5px solid rgba(0,0,0,0.2);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   z-index: 1000;
@@ -764,34 +766,41 @@ input[type=radio] {
   pointer-events: none;
   font-weight: bold;
   padding-bottom: 4px;
-  padding-top: 4px;
+  padding-left: 5px;
 }
 .popover-menu .divider {
+  height: 1px;
   padding: 0;
   margin: 0;
-  border-top: 1px solid rgba(0,0,0,0.267);
-  margin-top: -1px;
-}
-.popover-menu .second-group {
-  border-top: 1px solid rgba(0,0,0,0.2);
-  margin-top: -1px;
+  background: rgba(0,0,0,0.3);
 }
 .popover-menu .icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   margin-right: 4px;
-  margin-left: -4px;
+  margin-left: -6px;
   background-position: center center;
   background-size: 100% 100%;
 }
 .popover-menu .boolean .icon {
-  background-image: url("/img/checkbox_false.png");
   background-size: 90% 90%;
+  background-size: 100% 100%;
   opacity: 0.4;
 }
 .popover-menu .boolean.active .icon {
-  opacity: 0.5;
+  opacity: 0.8;
   background-image: url("/img/checkbox_true.png");
+  background-image: url("/img/check.png");
+  background-size: 100% 100%;
+}
+.popover-menu .select .icon {
+  background-size: 90% 90%;
+  opacity: 0.4;
+}
+.popover-menu .select.active .icon {
+  opacity: 0.7;
+  background-image: url("/img/radio_fill.png");
+  background-size: 40% 40%;
 }
 .separator {
   display: inline-block;

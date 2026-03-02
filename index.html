@@ -10,8 +10,9 @@
 		content="Visualisierung von Bodenfeuchte Sensoren Messwerten auf einer interaktiven Datenkarte für das Wassermeisterei Citizen Science Sensoren Netzwerk">
 	<meta name="keywords"
 		content="Wasserkarte, Wassermeisterei, Bodenfeuchte, Sensorik, Sensoren, Wasser, Citizen Science, Zukunftsschusterei, Bad Belzig, Wiesenburg, Fläming, Klimadaten, Dürre, Trockenheit, Feuchtigkeit, Nutzbare Feldkapazität">
+  <style>body.loading::before{content:'';position:fixed;inset:0;background:#fff;z-index:100000}body.loading *{transition:none!important}</style>
   </head>
-  <body>
+  <body class="loading">
 	<div id="app"></div>
 	  
     <script type="module" src="js/main.js"></script>
