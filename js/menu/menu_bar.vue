@@ -20,7 +20,7 @@
 				{{ item.tooltip }}
 			</div>
 
-			<div class="icon" :class="item.key"></div>
+			<div class="icon" :class="item.key" :style="item.iconStyle || {}"></div>
 
 			<div v-if="item.key =='error'" class="count">
 				{{ state.faultyDevices.length }}
@@ -36,6 +36,7 @@
 <script>
 import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
+import { IconFactory } from '@/location/iconfactory.js';
 import ColorScheme from '@/menu/colorscheme_item.vue';
 
 export default {
@@ -54,6 +55,7 @@ export default {
 		menuItems() {
 			return [
 				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
+				// { title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1', iconStyle: { backgroundImage: `url(${this.standorttabelleIcon})`, backgroundSize: '80% 80%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } },
 				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },
@@ -78,7 +80,11 @@ export default {
 		},
 		selectedColorScheme() {
 			return dataModel.color_schemes.nfk[state.colorScheme];
-		}, 
+		},
+		standorttabelleIcon() {
+			IconFactory.cache.delete('standorttabelle_' + state.colorScheme);
+			return IconFactory.getStandorttabelleIcon(state.colorScheme);
+		},
 		showErrorMenu() {
 			return ( this.telemetryLoaded && state.showErrors && state.faultyDevices.length > 0)
 		},

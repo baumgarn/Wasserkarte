@@ -245,8 +245,13 @@
 				this.earliestTimestamp = 0;
 				this.latestTimestamp = 0;
 				
-				const telemetryData = await dataStore.fetchTelemetryData(this.device.id, 'all', state.dataAggregation);
-				
+				let telemetryData = await dataStore.fetchTelemetryData(this.device.id, 'all', state.dataAggregation);
+				// if (state.dataAggregation == '1d') { // add latest live data point to daily aggregates
+				// 	console.log(telemetryData)
+				// 	telemetryData.data.push(this.device.telemetrySchema.data[0]);
+
+				// }
+
 				this.dataPresent = true;
 				
 				this.earliestTimestamp = telemetryData.data[0][0];

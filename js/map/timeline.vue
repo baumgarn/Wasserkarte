@@ -237,7 +237,7 @@ export default {
 					}
 				} else {
 					// Draw regular heatmap (single line)
-					canvas.height = 1;
+					canvas.height = Math.max(1, Math.round(dpr));
 					canvas.style.height = '';
 
 					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -355,7 +355,8 @@ export default {
 			font-size 8pt
 			opacity 1
 			pointer-events none
-			background var(--timelinedatebg)
+			background var(--infobg)
+			backdrop-filter: blur(20px);
 			color #fff
 			text-align center
 			padding 3px 0 2px
@@ -367,18 +368,11 @@ export default {
 			margin-left -4.5px
 			top -8px
 			position absolute
-			border-top 8px solid var(--timelinedatebg)
+			border-top 8px solid var(--infobg)
 			border-left 6px solid transparent
 			border-right 6px solid transparent
 			opacity 1
 			z-index 101
-		// .selectedDeviceArea
-		// 	position absolute
-		// 	bottom 0
-		// 	height 4px
-		// 	// background #00000044
-		// 	z-index 102
-		// 	display none
 		.label
 			position absolute
 			left 0.5vw
@@ -398,22 +392,4 @@ export default {
 			bottom 0
 			top unset
 			left 0
-		// 	top 60%
-		// 	transform translate(0,-10px)
-
-	// .dateaxisbelowcontainer
-	// 	position relative
-	// 	width 100%
-	// 	.chart-time
-	// 		bottom 0
-
-	// .dateaxisbelowcontainer
-	// .timeline
-	// 	&:after
-	// 		content ''
-	// 		position absolute
-	// 		left 0
-	// 		top 0
-	// 		right 0
-	// 		border-top 1px solid #00000022
 </style>

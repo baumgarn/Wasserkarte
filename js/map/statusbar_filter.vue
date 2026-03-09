@@ -1,12 +1,16 @@
 <template>
 
-	<div class="filterbar" v-if="hasIncludeFilter || hasExcludeFilter">
+	<div class="filterbar" :class="{ small: small }" v-if="hasIncludeFilter || hasExcludeFilter">
 
 			<template v-if="hasIncludeFilter">
 				
-				<!-- <div class="label">mit</div> -->
 				<div class="include filteritems">
-					<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritem"/>
+					<template v-if="small">
+						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritemsmall"/>
+					</template>
+					<template v-else>
+						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritem"/>
+					</template>
 				</div>
 				
 			</template>
@@ -15,20 +19,24 @@
 				
 				<div class="label ohne">ohne</div>
 				<div class="exclude filteritems">
-					<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritem"/>
+					<template v-if="small">
+						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritemsmall"/>
+					</template>
+					<template v-else>
+						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritem"/>
+					</template>
+
 				</div>
 				
 			</template>
 			
-			<div class="label before">
-				<!-- <span class="count"> -->
-					{{filteredDevicesCount}}
-				<!-- </span>  -->
+			<div v-if="!narrow" class="label before">
+				{{filteredDevicesCount}}
 				{{filteredDevicesCount == 1 ? 'Standort' : 'Standorte'}}&nbsp;
 			</div>
 
 
-		<div class="iconbutton close" @click="clearFilter"></div>
+		<div v-if="hasIncludeFilter || hasExcludeFilter" class="iconbutton close" @click="clearFilter"></div>
 
 	</div>
 
@@ -44,6 +52,8 @@ export default {
 		FilterItem
 	},
 	props: {
+		small: Boolean,
+		narrow: Boolean,
 	},
 	computed: {
 		includeFilter() {
@@ -83,6 +93,7 @@ export default {
 	padding 0
 	padding-right 20px
 	min-width 284px
+	font-size 9pt
 	border-radius 21px
 	background var(--menuinactivebg)
 	background #fff
@@ -90,6 +101,22 @@ export default {
 	align-items center
 	justify-content flex-start
 	margin 0
+.filterbar.small
+	min-width unset
+	height 32px
+	border 1px solid #00000018
+	filter: drop-shadow(0 1px 1px rgba(0,0,0,.075));
+	// padding-right 0
+	.label
+		margin-left 3px 
+		margin-right 7px
+	.iconbutton.close
+		background-size 85%
+		opacity .475
+		top 3px
+		right 2px
+		&:hover
+			opacity .8
 .filteritems
 	display inline-flex
 	align-items center

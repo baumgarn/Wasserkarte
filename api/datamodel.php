@@ -255,9 +255,11 @@ function avg_value($v10,$v30,$v60,$v80)
     }
     // 10,60 (no 30)
     elseif (isset($v10) && isset($v60) && !isset($v30)) {
-        // Matches original: use 30's slot as 10’s proxy? (v30*3 + v60*3) where v30 is missing.
-        // We keep the logic identical for parity:
         $result = $v10 * 3.0 + $v60 * 3.0;
+    }
+    // 10,80 (no 30, 60)
+    elseif (isset($v10) && isset($v80) && !isset($v30) && !isset($v60)) {
+        $result = $v10 * 3.0 + $v80 * 3.0;
     }
     // 30,60 (no 10)
     elseif (!isset($v10) && isset($v30) && isset($v60)) {
@@ -266,6 +268,18 @@ function avg_value($v10,$v30,$v60,$v80)
     // 10
     elseif (isset($v10) && !isset($v30) && !isset($v60) && !isset($v80)) {
         $result = $v10 * 6.0;
+    }
+    // 30
+    elseif (isset($v30) && !isset($v10) && !isset($v60) && !isset($v80)) {
+        $result = $v30 * 6.0;
+    }
+    // 60
+    elseif (isset($v60) && !isset($v10) && !isset($v30) && !isset($v80)) {
+        $result = $v60 * 6.0;
+    }
+    // 80
+    elseif (isset($v80) && !isset($v10) && !isset($v30) && !isset($v60)) {
+        $result = $v80 * 6.0;
     }
 
     return round($result / 6, 2);

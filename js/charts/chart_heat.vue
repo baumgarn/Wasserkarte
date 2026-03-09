@@ -49,11 +49,12 @@
 									:height="rowHeight"
 									preserveAspectRatio="none"
 									>
-									<image 
-										:href="img" 
-										:width="chartWidth" 
+									<image
+										:href="img"
+										:width="chartWidth"
 										:height="rowHeight"
 										preserveAspectRatio="none"
+										style="image-rendering: pixelated"
 									/>
 									</pattern>
 							</defs>
@@ -298,6 +299,8 @@ export default {
 			const yScale = d3.scaleLinear().domain([yMin, yMax]).range([this.rowHeight - this.offsetBottom, this.offsetTop]);
 			const [xStart, xEnd] = this.globalExtentX;
 			const xScale = d3.scaleTime().domain([xStart, xEnd]).range([0, this.chartWidth]);
+			const msPerPx = (xEnd - xStart) / this.chartWidth;
+			const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 			this.sensors.forEach((sensor, i) => {
 
@@ -319,6 +322,7 @@ export default {
 				const ctx = canvas.getContext('2d');
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 				const canvasScale = canvas.width / this.chartWidth;
+				const oneDayPx = Math.max(2, Math.ceil((ONE_DAY_MS / msPerPx) * canvasScale));
 				const GAP_COLOR = '#fff';
 
 				if (this.title === 'Bodenfeuchte') {
@@ -327,78 +331,46 @@ export default {
 					const nfk_key = 'nfk_'+depth+'cm';
 					const nfk_index = this.getKeyIndex(nfk_key);
 
-					for (let j = 0; j < this.sensorData.data.length - 1; j++) {
-						const r0 = this.sensorData.data[j];
-						const r1 = this.sensorData.data[j + 1];
-						const ts0 = r0[idxTs], ts1 = r1[idxTs];
-						const v0 = r0[nfk_index];
-
-						const timeGap = ts1 - ts0;
-						const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
-						const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
-						const width = Math.max(1, Math.ceil(x1 - x0));
-
-						let color = dataModel.get_nfk_color(v0)
-
-						ctx.fillStyle = color;
-						ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
-
+					if (this.heatmap) {
+						// Heatmap mode: draw canvas in segments so gaps align exactly
+						const segs = this.splitByGapsRows(this.sensorData.data, idxTs, this.showDataGaps ? config.dataGapLength : Infinity);
+						for (let s = 0; s < segs.length; s++) {
+							const seg = segs[s];
+							const isLastSeg = s === segs.length - 1;
+							for (let j = 0; j < seg.length - 1; j++) {
+								const ts0 = seg[j][idxTs], ts1 = seg[j + 1][idxTs];
+								const v0 = seg[j][nfk_index];
+								const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
+								const x1 = Math.ceil(xScale(new Date(ts1)) * canvasScale);
+								const width = this.showDataGaps ? oneDayPx : Math.max(1, x1 - x0);
+								ctx.fillStyle = dataModel.get_nfk_color(v0);
+								ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
+							}
+							// Last point in segment: stub (inner segs) or fill to edge (last seg)
+							if (seg.length >= 1) {
+								const last = seg[seg.length - 1];
+								const x0 = Math.floor(xScale(new Date(last[idxTs])) * canvasScale);
+								ctx.fillStyle = dataModel.get_nfk_color(last[nfk_index]);
+								ctx.fillRect(x0, 0, isLastSeg ? Math.max(oneDayPx, canvas.width - x0) : oneDayPx, CANVAS_HEIGHT);
+							}
+						}
+					} else {
+						// Graph mode: fill full canvas, segmentation is handled by SVG paths
+						for (let j = 0; j < this.sensorData.data.length - 1; j++) {
+							const ts0 = this.sensorData.data[j][idxTs], ts1 = this.sensorData.data[j + 1][idxTs];
+							const v0 = this.sensorData.data[j][nfk_index];
+							const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
+							const x1 = Math.ceil(xScale(new Date(ts1)) * canvasScale);
+							ctx.fillStyle = dataModel.get_nfk_color(v0);
+							ctx.fillRect(x0, 0, Math.max(1, x1 - x0), CANVAS_HEIGHT);
+						}
+						// Last point: fill to canvas edge
+						const lastRow = this.sensorData.data[this.sensorData.data.length - 1];
+						const lastX = Math.floor(xScale(new Date(lastRow[idxTs])) * canvasScale);
+						ctx.fillStyle = dataModel.get_nfk_color(lastRow[nfk_index]);
+						ctx.fillRect(lastX, 0, Math.max(oneDayPx, canvas.width - lastX), CANVAS_HEIGHT);
 					}
-				} else if (this.title === 'Ø Nutzbare Feldkapazität' || this.title === 'Ø Bodenfeuchte Vol %') {
-
-					const depth = this.getDepth(sensor.key);
-					const nfk_key = 'nfk_avg';
-					const nfk_index = this.getKeyIndex(nfk_key);
-
-					for (let j = 0; j < this.sensorData.data.length - 1; j++) {
-						const r0 = this.sensorData.data[j];
-						const r1 = this.sensorData.data[j + 1];
-						const ts0 = r0[idxTs], ts1 = r1[idxTs];
-						const v0 = r0[nfk_index];
-
-						const timeGap = ts1 - ts0;
-						const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
-						const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
-						const width = Math.max(1, Math.ceil(x1 - x0));
-
-						let color = dataModel.get_nfk_color(v0)
-
-						ctx.fillStyle = color;
-						ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
-
-					}
-
-				} else {
-
-					// for (let j = 0; j < this.sensorData.data.length - 1; j++) {
-					// 	const r0 = this.sensorData.data[j];
-					// 	const r1 = this.sensorData.data[j + 1];
-					// 	const ts0 = r0[idxTs], ts1 = r1[idxTs];
-					// 	const v0 = r0[sensor.col];
-
-					// 	const timeGap = ts1 - ts0;
-					// 	const x0 = Math.floor(xScale(new Date(ts0)) * canvasScale);
-					// 	const x1 = Math.floor(xScale(new Date(ts1)) * canvasScale);
-					// 	const width = Math.max(1, Math.ceil(x1 - x0));
-
-					// 	let color;
-					// 	if (config.segmentation && timeGap > config.dataGapLength) {
-					// 		color = GAP_COLOR;
-					// 	} else if (!Number.isFinite(v0)) {
-					// 		color = GAP_COLOR;
-					// 	} else if (this.title === 'Bodenfeuchte') {
-					// 		color = dataModel.get_vol_color(this.device, v0);
-					// 	} else if (this.title === 'Bodentemperatur') {
-					// 		color = dataModel.get_temperature_color(this.device, v0);
-					// 	} else {
-					// 		color = '#000';
-					// 	}
-
-					// 	ctx.fillStyle = color;
-					// 	ctx.fillRect(x0, 0, width, CANVAS_HEIGHT);
-					// }
 				}
-
 
 				this.heatmapImages[i] = canvas.toDataURL();
 
@@ -422,7 +394,15 @@ export default {
 					d3.select(parentNode).selectAll('.gap-aware-line,.gap-aware-area').remove();
 
 					segments.forEach(seg => {
-						if (seg.length < 2) return;
+						if (seg.length === 0) return;
+
+						if (seg.length === 1) {
+							const row = seg[0];
+							if (!Number.isFinite(row[sensor.col])) return;
+							const fakeRow = [...row];
+							fakeRow[idxTs] = row[idxTs] + Math.max(msPerPx * 2, ONE_DAY_MS);
+							seg = [row, fakeRow];
+						}
 
 						// Area (using heatmap pattern as fill)
 						const areaGen = d3.area()

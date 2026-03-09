@@ -56,7 +56,7 @@ localStorageState('showDataGaps', false);
 
 localStorageState('tableview_compact', true);
 localStorageState('tableview_attributes', true);
-localStorageState('tableview_timelinerange', 365);
+localStorageState('tableview_timelinerange', 'all');
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 

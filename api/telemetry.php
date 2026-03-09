@@ -259,7 +259,9 @@ function buildSchemaData(array $telemetryData, array $schema, $aggregation)
 				$aligned[] = array_key_exists($field, $row) ? $row[$field] : null;
 			}
 		}
-		$rows[] = $aligned;
+		if (isRowValid($aligned, $schema)) {
+			$rows[] = $aligned;
+		}
 	}
 
 	return [
@@ -450,4 +452,31 @@ function formatValue($value)
 {
 	if ($value === null || $value === '') return null;
 	return round((float)$value, 2);
+}
+
+
+// ROW IS VALID ONLY IF ALL REQUIRED FIELDS ARE WITHIN -10 AND 100
+function isRowValid(array $row, array $schema): bool {
+    $fields = [
+        'Bodenfeuchte_10cm',
+        'Bodenfeuchte_30cm',
+        'Bodenfeuchte_60cm',
+        'Bodenfeuchte_80cm',
+    ];
+
+    foreach ($fields as $field) {
+        $idx = array_search($field, $schema, true);
+        if ($idx === false) {
+            continue; // field not present in this schema → ignore
+        }
+        $val = $row[$idx] ?? null;
+        if ($val === false) {
+            return false; // treat non-numeric as invalid
+        }
+        $f = (float)$val;
+        if ($f < -10 || $f > 100) {
+            return false; // out of range → row invalid
+        }
+    }
+    return true;
 }

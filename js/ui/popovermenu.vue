@@ -41,6 +41,11 @@
 
 
 			<div
+				v-else-if="item.type === 'thinline'"
+				class="thinline"
+			/>
+
+			<div
 				v-else-if="item.type === 'divider'"
 				class="divider"
 			/>
@@ -166,7 +171,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.popover-menu
-	position absolute
-	overflow-y auto
+// .popover-menu
+
 </style>

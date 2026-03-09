@@ -25,6 +25,7 @@
 <script>
 import { nextTick } from 'vue';
 import { state } from '@/state.js';
+import { config } from '@/config.js';
 import { dataModel } from '@/dataModel.js'
 import dataStore from '@/datastore.js';
 import { displayutil } from '@/displayutil.js'
@@ -49,7 +50,6 @@ export default {
 	},
 	props: {
 		device: Object,
-		dailyAverages: Object,
 		startTimestamp: Number,
 		endTimestamp: Number,
 		chartWidth: Number,
@@ -60,9 +60,6 @@ export default {
 		// label: {type: String, default: ''},
 	},
 	computed: {
-		device() {
-			return dataStore.getDeviceByName(state.selectedDevice);
-		},
 		fullWidth() {
 			return (state.selectedDevice == null && !state.menuOpen.info) 
 		},
@@ -152,10 +149,9 @@ export default {
 
 				this.timelineSpan = Math.max(1, this.endTimestamp - this.startTimestamp);
 				this.dayWidth = this.timelineWidth / this.timelineSpan;
-				console.log(this.dayWidth)
 				const ctx = canvas.getContext('2d');
 
-				canvas.height = 1;
+				canvas.height = Math.max(1, Math.round(dpr));
 
 				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 				ctx.clearRect(0, 0, this.timelineWidth, 1);
@@ -164,15 +160,13 @@ export default {
 					const row = rows[i];
 					const ts = row[0];
 					const nfk = row[this.nfkavg_index];
-					// console.log(i, nfk)
-					const nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
+					let nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
+					if (state.showDataGaps && (nextTs - ts) > config.dataGapLength) nextTs = ts + msPerDay;
 
 					const startRel = ts - this.startTimestamp;
 					const endRel = nextTs - this.startTimestamp;
 					const segX = startRel * this.dayWidth;
 					const segW = (endRel - startRel) * this.dayWidth + 1;
-					// const segW = Math.ceil(this.timelineWidth / this.numberOfDays);
-					// const segW = this.dayWidth +1;
 
 					if (nfk != null) {
 						ctx.fillStyle = dataModel.get_nfk_color(nfk);
@@ -199,12 +193,14 @@ export default {
 			return ((ts - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
 		},
 		fetchTelemetry() {
+			if (!this.device) return;
 			this.telemetryData = dataStore.fetchTelemetryCache(this.device.id).data;
 		}
 
 	},
 	watch: {
-		dailyAverages() {
+		startTimestamp() {
+			this.drawHeatmap();
 		},
 		telemetryLoaded() {
 			this.fetchTelemetry();
@@ -219,6 +215,9 @@ export default {
 			})	
 		},
 		colorScheme() {
+			this.drawHeatmap()
+		},
+		'state.showDataGaps'() {
 			this.drawHeatmap()
 		},
 		timelineWidth() {

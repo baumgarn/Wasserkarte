@@ -90,6 +90,7 @@ export default {
 				{ label: 'Letzte 90 Tage', value: 90 },
 				{ label: 'Letzte 30 Tage', value: 30 },
 				{ label: 'Letzte 7 Tage', value: 7 },
+				{ label: 'Letzte 24 Stunden', value: 1 },
 			];
 		},
 		popoverItems() {

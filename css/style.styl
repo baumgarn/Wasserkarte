@@ -51,7 +51,7 @@ uicardgrau = #eee
 	--logogruen #008c46
 	--logorot #f15f5c
 	--infobg #44444499
-	--infobg #33333399
+	--infobg #33333388
 	--timelineheight unquote("min( max( 4vh, 42px), 64px )") 
 	--timelineheightmobile unquote("max( 4vh, 64px)") 
 	--timelinedatebg #44444499
@@ -432,6 +432,7 @@ input[type=radio]
 	text-align left
 	color: white;
 	background: var(--infobg);
+	backdrop-filter: blur(10px);
 	font-size 9pt
 	padding: 4px 6px
 	border-radius: 3px;
@@ -603,6 +604,7 @@ input[type=radio]
 	max-width 100%
 	z-index 100
 	box-shadow -2px 0 4px 0 #00000022
+	box-shadow -3px 0 6px 0 #00000018
 	overflow visible
 
 .sidebar.fullwidth
@@ -769,6 +771,8 @@ input[type=radio]
 	box-shadow 0 2px 8px rgba(0, 0, 0, 0.2)
 	z-index 1000
 	overflow hidden
+	position absolute
+	overflow-y auto
 	.items
 		display flex
 		flex-direction column
@@ -801,11 +805,14 @@ input[type=radio]
 		padding-bottom 4px
 		padding-left 5px
 	.divider
-		height 1px
 		padding 0
 		margin 0
-		background rgba(0,0,0,0.3)
 		height 3px
+		background rgba(0,0,0,0.1)
+	.thinline
+		padding 0
+		margin 0
+		height 1px
 		background rgba(0,0,0,0.1)
 	.icon
 		width 16px

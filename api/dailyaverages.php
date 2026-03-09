@@ -357,29 +357,3 @@ function getLatestTimestampFromCache(): int {
 //     return $buckets;
 // }
 
-
-// ROW IS VALID ONLY IF ALL REQUIRED FIELDS ARE WITHIN -10 AND 100
-function isRowValid(array $row, array $schema): bool {
-    $fields = [
-        'Bodenfeuchte_10cm',
-        'Bodenfeuchte_30cm',
-        'Bodenfeuchte_60cm',
-        'Bodenfeuchte_80cm',
-    ];
-
-    foreach ($fields as $field) {
-        $idx = array_search($field, $schema, true);
-        if ($idx === false) {
-            continue; // field not present in this schema → ignore
-        }
-        $val = $row[$idx] ?? null;
-        if ($val === false) {
-            return false; // treat non-numeric as invalid
-        }
-        $f = (float)$val;
-        if ($f < -10 || $f > 100) {
-            return false; // out of range → row invalid
-        }
-    }
-    return true;
-}

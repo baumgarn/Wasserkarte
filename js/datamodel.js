@@ -253,9 +253,8 @@ export const dataModel = {
 	},
 
 	get_nfk_color(value) {
-		if (Number.isNaN(value)){
-			return '#9bb9dd'
-		}
+		if (value === null) return 'transparent'
+		if (Number.isNaN(value)) return 'transparent'
 		return this.get_color(value, this.get_color_scheme('nfk'));
 	},
 

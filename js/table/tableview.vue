@@ -2,7 +2,7 @@
 	<div class="tableview" tabindex="0" @keydown="onKeydown" @mousemove="onMouseMove" @mouseleave="hideTooltip">
 
 		<div class="tableview-header">
-
+			<FilterBar :small="true" :narrow="(tableWidth < 400)"/>
 		</div>
 
 		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content">
@@ -24,7 +24,7 @@
 							<DateAxis
 							:chartWidth="timelineWidth"
 							:frameWidth="timelineWidth"
-							:startTimestamp="earliestTimestamp"
+							:startTimestamp
 							:numberOfDays
 							:insideTimeline="true"
 							:monthsOnly="true"
@@ -81,7 +81,7 @@
 
 							<TableTimeline 
 								:device="row.device"
-								:startTimestamp="earliestTimestamp"
+								:startTimestamp
 								:endTimestamp="latestTimestamp"
 								:selected="isSelected(row.device)"
 								:timelineWidth
@@ -139,13 +139,14 @@ import PopoverMenuMulti from '@/ui/popovermenu.vue'
 import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
 import DateAxis from '@/charts/dateaxis.vue'
+import FilterBar from '@/map/statusbar_filter.vue';
 
 export default {
 	name: 'TableView',
 	setup() {
 		return {state}
 	},
-	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis},
+	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, FilterBar},
 	props: {
 		type: Boolean,
 		sideview: {
@@ -164,6 +165,7 @@ export default {
 			tooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			colHeaderTooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			timelineWidth: 0,
+			tableWidth: 0,
 		}
 	},
 	computed: {
@@ -237,13 +239,16 @@ export default {
 		settingsMenuItems() {
 			let menu = [];
 			menu.push(
+				{type:'header', label:'Tabelle'},
 				{type:'boolean', label:'Kompakte Darstellung', stateProp:'tableview_compact'},
 				{type:'boolean', label:'Standorteigenschaften', stateProp:'tableview_attributes'},
-				{type:'boolean', label:'Datenlücken anzeigen', stateProp:'showDataGaps'},
 				{type:'divider'},
+				{type:'header', label:'Zeitachse'},
 				{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'tableview_timelinerange'},
 				{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'tableview_timelinerange'},
 				{type:'select', label:'Letzte 180 Tage', value:'180d', group:'timerange', stateProp:'tableview_timelinerange'},
+				{type:'thinline'},
+				{type:'boolean', label:'Datenlücken anzeigen', stateProp:'showDataGaps'},
 			)
 			return menu;
 		},
@@ -260,7 +265,8 @@ export default {
 			return state.tableview_compact
 		},
 		timelineRange() {
-			if (this.numberOfDays <= 365) return 'all';
+			const totalDays = (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
+			if (totalDays <= 365) return 'all';
 			return state.tableview_timelinerange;
 		},
 		telemetryLoaded() {
@@ -270,7 +276,16 @@ export default {
 			return state.filteredDevices;
 		},
 		numberOfDays() {
-			return (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
+			return  (this.latestTimestamp - this.startTimestamp) / (1000 * 60 * 60 * 24)
+		},
+		startTimestamp() {
+			if (this.timelineRange == 'all') {
+				return this.earliestTimestamp;
+			} else if (this.timelineRange == '365d') {
+				return this._365d;
+			} else if (this.timelineRange == '180d') {
+				return this._180d;
+			}
 		},
 		_365d() {
 			const DAY = 24 * 60 * 60 * 1000;
@@ -543,8 +558,12 @@ export default {
 			this.colHeaderTooltip.visible = false;
 			this.colHeaderTooltip.ready = false;
 		},
+		getTimelineRef() {
+			const ref = this.$refs.timelineref;
+			return Array.isArray(ref) ? ref[0] : ref;
+		},
 		calculateTimelineWidth() {
-			const timelineref = this.$refs.timelineref?.[0];
+			const timelineref = this.getTimelineRef();
 			if (timelineref) {
 				const w = timelineref.getBoundingClientRect().width;
 				this.timelineWidth = Math.max(w, this.minTimelineWidth);
@@ -555,8 +574,13 @@ export default {
 		this.$el.focus();
 		this.earliestTimestamp = dataStore.earliestTimestamp;
 		this.latestTimestamp = dataStore.latestTimestamp;
+		this._tableResizeObserver = new ResizeObserver(() => {
+			this.tableWidth = this.$el.getBoundingClientRect().width;
+		});
+		this._tableResizeObserver.observe(this.$el);
+		this.tableWidth = this.$el.getBoundingClientRect().width;
 		this.$nextTick(() => {
-			const timelineref = this.$refs.timelineref?.[0];
+			const timelineref = this.getTimelineRef();
 			if (timelineref) {
 				this._resizeObserver = new ResizeObserver(() => {
 					this.calculateTimelineWidth();
@@ -567,6 +591,7 @@ export default {
 		});
 	},
 	beforeUnmount() {
+		if (this._tableResizeObserver) this._tableResizeObserver.disconnect();
 		if (this._resizeObserver) this._resizeObserver.disconnect();
 		this._clearTooltipTimer();
 		this._clearScrollEndTimer();
@@ -600,11 +625,10 @@ export default {
 
 <style scoped lang="stylus">
 	.tableview
-		--headerheight 36px
+		--headerheight 38px
 		--rowheight 28px
 		--cellpad 0 8px
 		--line 1px solid #00000018
-		// --line 1px solid transparent
 		--tablefontsize 12px
 		--hovercolor #e9edf3
 		*
@@ -618,6 +642,9 @@ export default {
 		.tableview-header
 			flex-basis var(--headerheight)
 			flex-shrink 0
+			display flex
+			justify-content center
+			align-items center
 		.windowbuttons.tablesettings
 			margin-right 4px
 		.table-content
@@ -784,6 +811,7 @@ export default {
 .mouse-tooltip
 	position fixed
 	background var(--infobg)
+	backdrop-filter: blur(10px);
 	color #fff
 	font-size 9pt
 	padding: 4px 6px 4px
@@ -802,6 +830,7 @@ export default {
 .colheader-tooltip
 	position fixed
 	background var(--infobg)
+	backdrop-filter: blur(10px);
 	color #fff
 	font-size 9pt
 	padding 4px 6px
@@ -817,6 +846,7 @@ export default {
 		opacity 1
 	&:after
 		content ''
+		opacity .8
 		position absolute
 		left 50%
 		transform translateX(-50%)

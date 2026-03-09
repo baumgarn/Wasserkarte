@@ -283,7 +283,19 @@ export default {
 				.defined(row => Number.isFinite(row[sensor.col]));
 
 				segments.forEach(seg => {
-				if (seg.length < 2) return;
+				const validPoints = seg.filter(row => Number.isFinite(row[sensor.col]));
+
+				if (validPoints.length === 1) {
+					const row = validPoints[0];
+					sel.append('circle')
+						.attr('class', 'top-line')
+						.attr('cx', xScale(new Date(row[idxTs])))
+						.attr('cy', yScale(row[sensor.col]))
+						.attr('r', this.strokeWidth)
+						.attr('fill', lineColor)
+						.style('opacity', 1);
+					return;
+				}
 
 				sel.append('path')
 					.datum(seg)

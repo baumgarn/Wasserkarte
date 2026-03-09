@@ -13,6 +13,16 @@
 			</div>
 			
 		</template>
+
+		<template v-else-if="type=='statusbaritemsmall'">
+			
+			<FilterIcon :obj :size="24"/>
+			
+			<div class="name">
+				{{ obj.name }}
+			</div>
+			
+		</template>
 		
 		<template v-else-if="type=='small'">
 
@@ -238,6 +248,25 @@ export default {
 		margin 3px
 		margin-right .2em
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+
+.filteritem.statusbaritemsmall
+	height 30px
+	border 1px solid #00000011
+	box-shadow 0 1px 1px rgba(0,0,0,.05)
+	border-radius none
+	border none
+	box-shadow none
+	padding-right 0
+	padding-left 0
+	pointer-events none
+	.bg
+		display none
+	.filtericon
+		width 24px
+		height 24px
+		position relative
+		margin 3px
+		// filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.small
 	display flex

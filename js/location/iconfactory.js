@@ -1,3 +1,5 @@
+import { dataModel } from '../datamodel.js';
+
 export const IconFactory = {
 	size: 30,
 	cache: new Map(),
@@ -73,6 +75,42 @@ export const IconFactory = {
 		return dataUrl;
 	},
 	
+
+	getStandorttabelleIcon(colorScheme) {
+		const key = 'standorttabelle_' + colorScheme;
+		if (this.cache.has(key)) return this.cache.get(key);
+
+		const SIZE = this.size;
+		const BAR_VALUES  = [120, 100, 15, 5];
+		const BAR_WIDTHS  = [1.0, 0.9, 0.8, 0.7];
+		const BAR_HEIGHT  = SIZE * 0.125;
+		const BAR_GAP     = SIZE * 0.1;
+		const MARGIN_X    = SIZE * 0.08;
+
+		const totalH = BAR_VALUES.length * BAR_HEIGHT + (BAR_VALUES.length - 1) * BAR_GAP;
+		const startY = (SIZE - totalH) / 2;
+
+		const dpr = window.devicePixelRatio || 1;
+		const px = SIZE * dpr;
+		const canvas = document.createElement('canvas');
+		canvas.width = px;
+		canvas.height = px;
+		const ctx = canvas.getContext('2d');
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+		BAR_VALUES.forEach((val, i) => {
+			const color = dataModel.get_nfk_color(val);
+			const barW = (SIZE - 2 * MARGIN_X) * BAR_WIDTHS[i];
+			const x = MARGIN_X;
+			const y = startY + i * (BAR_HEIGHT + BAR_GAP);
+			ctx.fillStyle = color;
+			ctx.fillRect(x, y, barW, BAR_HEIGHT);
+		});
+
+		const dataUrl = canvas.toDataURL();
+		this.cache.set(key, dataUrl);
+		return dataUrl;
+	},
 
 	// async getHumusIcon(obj) {
 	// 	await this.preloadTextures();
