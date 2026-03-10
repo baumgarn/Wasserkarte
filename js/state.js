@@ -5,7 +5,6 @@ import { config } from '@/config.js';
 
 
 export const state = reactive({
-	// markerStyle: 'Bodenfeuchte_Farbkreis',
 	hoverFilter: null,
 	includeFilter: [],
 	excludeFilter: [],
@@ -57,6 +56,7 @@ localStorageState('showDataGaps', false);
 localStorageState('tableview_compact', true);
 localStorageState('tableview_attributes', true);
 localStorageState('tableview_timelinerange', 'all');
+localStorageState('tableview_timelinestyle', 'nfk_avg');
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 

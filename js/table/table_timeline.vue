@@ -1,6 +1,6 @@
 <template>
 
-	<div class="timeline" ref="timeline" :class="{selected: selected}" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
+	<div class="timeline" ref="timeline" :class="[{selected}, timelineStyle]" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 
 		<canvas ref="heatmap"></canvas>
 
@@ -46,6 +46,7 @@ export default {
 			selectedDeviceTelemetry: null,
 			hoverPosition: -1,
 			hoverDateWidth: 70,
+			schichten_gaps: false,
 		};
 	},
 	props: {
@@ -55,9 +56,6 @@ export default {
 		chartWidth: Number,
 		selected: Boolean,
 		timelineWidth: Number,
-		// dateAxis: {type: Boolean, default: true},
-		// firstItemPadding: {type: Boolean, default: false},
-		// label: {type: String, default: ''},
 	},
 	computed: {
 		fullWidth() {
@@ -115,9 +113,6 @@ export default {
 			}
 			return pos;
 		},
-		// minTimelineWidth() {
-		// 	return (numberOfDays * 1)
-		// },
 		schema() {
 			return this.device.telemetrySchema.schema;
 		},
@@ -125,24 +120,40 @@ export default {
 			const i = this.schema.indexOf('nfk_avg');
 			return (i >= 0) ? i : null;
 		},
+		nfk10_index() {
+			const i = this.schema.indexOf('nfk_10cm');
+			return (i >= 0) ? i : null;
+		},
+		nfk30_index() {
+			const i = this.schema.indexOf('nfk_30cm');
+			return (i >= 0) ? i : null;
+		},
+		nfk60_index() {
+			const i = this.schema.indexOf('nfk_60cm');
+			return (i >= 0) ? i : null;
+		},
+		nfk80_index() {
+			const i = this.schema.indexOf('nfk_80cm');
+			return (i >= 0) ? i : null;
+		},
+		timelineStyle() {
+			return state.tableview_timelinestyle;
+		},
 	},
 	methods: {
 		drawHeatmap() {
-			if (this.telemetryLoaded ) {
-				// const timeline = this.$refs.timeline;
-				// if (timeline) {
-				// 	this.timelineWidth = Math.max( timeline.getBoundingClientRect().width );
-				// }
+			if (this.telemetryLoaded) {
+
 				const canvas = this.$refs.heatmap;
-				
+
 				const dpr = window.devicePixelRatio || 1;
 				canvas.style.width = this.timelineWidth + 'px';
 				canvas.width = Math.max(1, Math.floor(this.timelineWidth * dpr));
-				
-				if ( !this.telemetryData ) return;
+
+				if (!this.telemetryData) return;
 
 				const rows = this.telemetryData;
-				this.latestTimestamp = this.telemetryData[this.telemetryData.length-1][0];
+				this.latestTimestamp = this.telemetryData[this.telemetryData.length - 1][0];
 				this.earliestTimestamp = this.telemetryData[0][0];
 
 				const msPerDay = 24 * 60 * 60 * 1000;
@@ -151,26 +162,73 @@ export default {
 				this.dayWidth = this.timelineWidth / this.timelineSpan;
 				const ctx = canvas.getContext('2d');
 
-				canvas.height = Math.max(1, Math.round(dpr));
+				if (this.timelineStyle === 'nfk_schichten') {
+					const allDepthIndices = [this.nfk10_index, this.nfk30_index, this.nfk60_index, this.nfk80_index];
 
-				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-				ctx.clearRect(0, 0, this.timelineWidth, 1);
+					// In gaps mode: keep 4 fixed slots, missing depths stay empty.
+					// In compact mode: only render present depths, canvas height = number present.
+					const bands = this.schichten_gaps
+						? allDepthIndices.map((dataIndex, slotIdx) => ({ dataIndex, bandIdx: slotIdx }))
+						: allDepthIndices.reduce((acc, dataIndex) => {
+							if (dataIndex !== null) acc.push({ dataIndex, bandIdx: acc.length });
+							return acc;
+						}, []);
 
-				for (let i = 0; i < rows.length; i++) {
-					const row = rows[i];
-					const ts = row[0];
-					const nfk = row[this.nfkavg_index];
-					let nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
-					if (state.showDataGaps && (nextTs - ts) > config.dataGapLength) nextTs = ts + msPerDay;
+					const numBands = this.schichten_gaps ? allDepthIndices.length : bands.length;
 
-					const startRel = ts - this.startTimestamp;
-					const endRel = nextTs - this.startTimestamp;
-					const segX = startRel * this.dayWidth;
-					const segW = (endRel - startRel) * this.dayWidth + 1;
+					canvas.height = Math.max(numBands, Math.round(numBands * dpr));
+					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+					ctx.clearRect(0, 0, this.timelineWidth, numBands);
 
-					if (nfk != null) {
-						ctx.fillStyle = dataModel.get_nfk_color(nfk);
-						ctx.fillRect(segX, 0, segW, 1);
+					for (const { dataIndex, bandIdx } of bands) {
+						if (dataIndex === null) continue;
+
+						for (let i = 0; i < rows.length; i++) {
+							const row = rows[i];
+							const ts = row[0];
+							const nfk = row[dataIndex];
+							if (nfk == null) continue;
+
+							// Find the next row that has data for this specific depth
+							let nextTs = ts + msPerDay;
+							for (let j = i + 1; j < rows.length; j++) {
+								if (rows[j][dataIndex] != null) {
+									nextTs = rows[j][0];
+									break;
+								}
+							}
+							if (state.showDataGaps && (nextTs - ts) > config.dataGapLength) nextTs = ts + msPerDay;
+
+							const startRel = ts - this.startTimestamp;
+							const endRel = nextTs - this.startTimestamp;
+							const segX = startRel * this.dayWidth;
+							const segW = (endRel - startRel) * this.dayWidth + 1;
+
+							ctx.fillStyle = dataModel.get_nfk_color(nfk);
+							ctx.fillRect(segX, bandIdx, segW, 1);
+						}
+					}
+				} else {
+					canvas.height = Math.max(1, Math.round(dpr));
+					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+					ctx.clearRect(0, 0, this.timelineWidth, 1);
+
+					for (let i = 0; i < rows.length; i++) {
+						const row = rows[i];
+						const ts = row[0];
+						const nfk = row[this.nfkavg_index];
+						let nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
+						if (state.showDataGaps && (nextTs - ts) > config.dataGapLength) nextTs = ts + msPerDay;
+
+						const startRel = ts - this.startTimestamp;
+						const endRel = nextTs - this.startTimestamp;
+						const segX = startRel * this.dayWidth;
+						const segW = (endRel - startRel) * this.dayWidth + 1;
+
+						if (nfk != null) {
+							ctx.fillStyle = dataModel.get_nfk_color(nfk);
+							ctx.fillRect(segX, 0, segW, 1);
+						}
 					}
 				}
 
@@ -225,7 +283,7 @@ export default {
 				this.drawHeatmap()
 			})
 		},
-		'state.timelineStyle'() {
+		timelineStyle() {
 			nextTick(()=>{
 				this.drawHeatmap()
 			})
@@ -262,14 +320,13 @@ export default {
 		height 100%
 		height calc(100% + 1px)
 		overflow hidden
-		// background #fff
-		// background #eaeaea
 		canvas
 			height calc(100% + 1px)
-		// &.selected canvas
-		// 	margin 2px 0
-		// 	height calc(100% - 4px)
-			// background var(--activecolorgreybrighter)
+			image-rendering pixelated
+		&.nfk_schichten 
+			height 100%
+			canvas
+				height 100%
 		.hoverline
 			border-left 1px dotted #000000
 			top -1px

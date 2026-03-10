@@ -114,9 +114,11 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		if (isset($FK10, $TW10) && $Bodenfeuchte_10cm_index !== null && $nfk_10cm_index !== null) { // nfk_10 apply
 			$den = ($FK10 - $TW10);
 			$vol10 = $row[$Bodenfeuchte_10cm_index] ?? null;
-			if ($den != 0 && $vol10 !== null && is_numeric($vol10)) {
+			if (!isValidBodenfeuchte($vol10)) {
+				$row[$Bodenfeuchte_10cm_index] = $vol10 = null;
+			}
+			if ($den != 0 && $vol10 !== null) {
 				$nfk10 = round((($vol10 - $TW10) / $den) * 100, 2);
-				// $nfk10 = round(max(0, (($vol10 - $TW10) / $den) * 100), 2);
 				if (is_finite($nfk10)) { $row[$nfk_10cm_index] = $nfk10; }
 			}
 		}
@@ -124,9 +126,11 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		if (isset($FK30, $TW30) && $Bodenfeuchte_30cm_index !== null && $nfk_30cm_index !== null) { // nfk_30 apply
 			$den = ($FK30 - $TW30);
 			$vol30 = $row[$Bodenfeuchte_30cm_index] ?? null;
-			if ($den != 0 && $vol30 !== null && is_numeric($vol30)) {
+			if (!isValidBodenfeuchte($vol30)) {
+				$row[$Bodenfeuchte_30cm_index] = $vol30 = null;
+			}
+			if ($den != 0 && $vol30 !== null) {
 				$nfk30 = round((($vol30 - $TW30) / $den) * 100, 2);
-				// $nfk30 = round(max(0, (($vol30 - $TW30) / $den) * 100), 2);
 				if (is_finite($nfk30)) { $row[$nfk_30cm_index] = $nfk30; }
 			}
 		}
@@ -134,9 +138,11 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		if (isset($FK60, $TW60) && $Bodenfeuchte_60cm_index !== null && $nfk_60cm_index !== null) { // nfk_60 apply
 			$den = ($FK60 - $TW60);
 			$vol60 = $row[$Bodenfeuchte_60cm_index] ?? null;
-			if ($den != 0 && $vol60 !== null && is_numeric($vol60)) {
+			if (!isValidBodenfeuchte($vol60)) {
+				$row[$Bodenfeuchte_60cm_index] = $vol60 = null;
+			}
+			if ($den != 0 && $vol60 !== null) {
 				$nfk60 = round((($vol60 - $TW60) / $den) * 100, 2);
-				// $nfk60 = round(max(0, (($vol60 - $TW60) / $den) * 100), 2);
 				if (is_finite($nfk60)) { $row[$nfk_60cm_index] = $nfk60; }
 			}
 		}
@@ -144,9 +150,11 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 		if (isset($FK80, $TW80) && $Bodenfeuchte_80cm_index !== null && $nfk_80cm_index !== null) { // nfk_80 apply
 			$den = ($FK80 - $TW80);
 			$vol80 = $row[$Bodenfeuchte_80cm_index] ?? null;
-			if ($den != 0 && $vol80 !== null && is_numeric($vol80)) {
+			if (!isValidBodenfeuchte($vol80)) {
+				$row[$Bodenfeuchte_80cm_index] = $vol80 = null;
+			}
+			if ($den != 0 && $vol80 !== null) {
 				$nfk80 = round((($vol80 - $TW80) / $den) * 100, 2);
-				// $nfk80 = round(max(0, (($vol80 - $TW80) / $den) * 100), 2);
 				if (is_finite($nfk80)) { $row[$nfk_80cm_index] = $nfk80; }
 			}
 		}
@@ -285,7 +293,9 @@ function avg_value($v10,$v30,$v60,$v80)
     return round($result / 6, 2);
 }
 
-
+function isValidBodenfeuchte($value) {
+	return (is_numeric($value) && $value >= -10 && $value <= 100);
+}
 
 
 function buildFieldIndex(array $schema): array

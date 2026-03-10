@@ -239,89 +239,6 @@ function getBatchAttributesAndLastTelemetry(string $token, array $deviceIds): ar
     return [$allAttributes, $allTelemetry];
 }
 
-// function getBatchAttributesAndLastTelemetry($token, $deviceIds)
-// {
-// 	$allAttributes = [];
-// 	$allTelemetry = [];
-// 	$multiHandle = curl_multi_init();
-// 	$curlHandles = [];
-
-// 	foreach ($deviceIds as $deviceId) {
-
-// 		$attrUrl = THINGSBOARD_URL . "/plugins/telemetry/DEVICE/$deviceId/values/attributes";
-// 		$attrCh = curl_init($attrUrl);
-
-
-
-// 		curl_setopt($attrCh, CURLOPT_HTTPHEADER, [
-// 			"X-Authorization: Bearer " . $token,
-// 			"Content-Type: application/json"
-// 		]);
-
-// 		curl_setopt_array($attrCh, [
-// 			CURLOPT_RETURNTRANSFER => true,
-// 			CURLOPT_CONNECTTIMEOUT => 5,
-// 			CURLOPT_TIMEOUT        => 15,
-// 			CURLOPT_SSL_VERIFYPEER => false,
-// 		]);
-
-// 		$curlHandles["attr_$deviceId"] = $attrCh;
-
-// 		curl_setopt($attrCh, CURLOPT_SSL_VERIFYPEER, false);
-
-// 		curl_multi_add_handle($multiHandle, $attrCh);
-
-// 		$teleUrl = THINGSBOARD_URL . "/plugins/telemetry/DEVICE/$deviceId/values/timeseries";
-// 		$teleCh = curl_init($teleUrl);
-// 		curl_setopt($teleCh, CURLOPT_HTTPHEADER, [
-// 			"X-Authorization: Bearer " . $token,
-// 			"Content-Type: application/json"
-// 		]);
-
-// 		curl_setopt_array($teleCh, [
-// 			CURLOPT_RETURNTRANSFER => true,
-// 			CURLOPT_CONNECTTIMEOUT => 5,
-// 			CURLOPT_TIMEOUT        => 15,
-// 			CURLOPT_SSL_VERIFYPEER => false,
-// 		]);
-
-// 		$curlHandles["tele_$deviceId"] = $teleCh;
-
-// 		curl_setopt($teleCh, CURLOPT_SSL_VERIFYPEER, false);
-// 		curl_multi_add_handle($multiHandle, $teleCh);
-// 	}
-
-// 	$running = null;
-// 	do {
-// 		curl_multi_exec($multiHandle, $running);
-// 		curl_multi_select($multiHandle);
-// 	} while ($running > 0);
-
-// 	foreach ($curlHandles as $key => $ch) {
-// 		$result = curl_multi_getcontent($ch);
-// 		if ($result !== false) {
-// 			$response = json_decode($result, true);
-// 			if (!empty($response)) {
-// 				if (strpos($key, 'attr_') === 0) {
-// 					$deviceId = str_replace('attr_', '', $key);
-// 					$allAttributes[$deviceId] = $response;
-// 				} elseif (strpos($key, 'tele_') === 0) {
-// 					$deviceId = str_replace('tele_', '', $key);
-// 					$allTelemetry[$deviceId]['flat'] = $response;
-// 					$allTelemetry[$deviceId]['schema'] = normalizeLatestTelemetryToSchema($response);
-// 				}
-// 			}
-// 		}
-// 		curl_multi_remove_handle($multiHandle, $ch);
-// 		curl_close($ch);
-// 	}
-
-// 	curl_multi_close($multiHandle);
-// 	return [$allAttributes, $allTelemetry];
-// }
-
-
-
 
 
 // Format our latest telemetry to our schema format used in our timeseries telemtry for more efficient formatting 
@@ -406,41 +323,65 @@ function fetchLastTelemetryForCachedDevices($token, $cache)
 function getBatchLastTelemetry($token, $deviceIds)
 {
 	$allTelemetry = [];
-	$multiHandle  = curl_multi_init();
-	$curlHandles  = [];
 
-	foreach ($deviceIds as $deviceId) {
-		$teleUrl = THINGSBOARD_URL . "/plugins/telemetry/DEVICE/$deviceId/values/timeseries";
-		$teleCh  = curl_init($teleUrl);
-		curl_setopt_array($teleCh, [
-			CURLOPT_HTTPHEADER     => ["X-Authorization: Bearer " . $token, "Content-Type: application/json"],
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYPEER => false,
-		]);
-		$curlHandles["tele_$deviceId"] = $teleCh;
-		curl_multi_add_handle($multiHandle, $teleCh);
-	}
+	$MAX_DEVICES_PER_BATCH = 10;
+	$CONNECT_TIMEOUT = 5;
+	$REQUEST_TIMEOUT = 15;
 
-	$running = null;
-	do {
-		curl_multi_exec($multiHandle, $running);
-		curl_multi_select($multiHandle);
-	} while ($running > 0);
+	$headers = [
+		"X-Authorization: Bearer $token",
+		"Content-Type: application/json"
+	];
 
-	foreach ($curlHandles as $key => $ch) {
-		$result = curl_multi_getcontent($ch);
-		if ($result !== false) {
-			$response = json_decode($result, true) ?: [];
-			if (strpos($key, 'tele_') === 0) {
-				$deviceId = substr($key, 5);
-				$allTelemetry[$deviceId]['flat'] = $response;
-				$allTelemetry[$deviceId]['schema'] = normalizeLatestTelemetryToSchema($response);
-			}
+	$deviceChunks = array_chunk($deviceIds, $MAX_DEVICES_PER_BATCH);
+
+	foreach ($deviceChunks as $chunk) {
+		$multiHandle = curl_multi_init();
+		$curlHandles = [];
+
+		foreach ($chunk as $deviceId) {
+			$teleUrl = THINGSBOARD_URL . "/plugins/telemetry/DEVICE/$deviceId/values/timeseries";
+			$teleCh  = curl_init($teleUrl);
+			curl_setopt_array($teleCh, [
+				CURLOPT_HTTPHEADER     => $headers,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_CONNECTTIMEOUT => $CONNECT_TIMEOUT,
+				CURLOPT_TIMEOUT        => $REQUEST_TIMEOUT,
+				CURLOPT_SSL_VERIFYPEER => false,
+			]);
+			$curlHandles["tele_$deviceId"] = $teleCh;
+			curl_multi_add_handle($multiHandle, $teleCh);
 		}
-		curl_multi_remove_handle($multiHandle, $ch);
-		curl_close($ch);
+
+		$running = null;
+		do {
+			$status = curl_multi_exec($multiHandle, $running);
+			if ($running) {
+				curl_multi_select($multiHandle, 1.0);
+			}
+		} while ($running && $status === CURLM_OK);
+
+		foreach ($curlHandles as $key => $ch) {
+			$body     = curl_multi_getcontent($ch);
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+			if ($httpCode === 200 && $body !== false) {
+				$data = json_decode($body, true);
+				if (!empty($data)) {
+					$deviceId = substr($key, 5);
+					$allTelemetry[$deviceId]['flat']   = $data;
+					$allTelemetry[$deviceId]['schema'] = normalizeLatestTelemetryToSchema($data);
+				}
+			} else {
+				error_log("ThingsBoard last-telemetry request failed [$httpCode] for $key");
+			}
+
+			curl_multi_remove_handle($multiHandle, $ch);
+			curl_close($ch);
+		}
+
+		curl_multi_close($multiHandle);
 	}
 
-	curl_multi_close($multiHandle);
 	return $allTelemetry;
 }

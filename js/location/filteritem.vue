@@ -250,9 +250,7 @@ export default {
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.statusbaritemsmall
-	height 30px
-	border 1px solid #00000011
-	box-shadow 0 1px 1px rgba(0,0,0,.05)
+	height 28px
 	border-radius none
 	border none
 	box-shadow none
@@ -265,7 +263,7 @@ export default {
 		width 24px
 		height 24px
 		position relative
-		margin 3px
+		margin 2px
 		// filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.small

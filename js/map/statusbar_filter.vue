@@ -103,17 +103,17 @@ export default {
 	margin 0
 .filterbar.small
 	min-width unset
-	height 32px
+	height 30px
 	border 1px solid #00000018
 	filter: drop-shadow(0 1px 1px rgba(0,0,0,.075));
 	// padding-right 0
 	.label
-		margin-left 3px 
-		margin-right 7px
+		margin-left 0 
+		margin-right 6px
 	.iconbutton.close
 		background-size 85%
-		opacity .475
-		top 3px
+		opacity .6
+		top 2px
 		right 2px
 		&:hover
 			opacity .8

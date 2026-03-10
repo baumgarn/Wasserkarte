@@ -8,7 +8,7 @@
 require_once 'config.php';
 
 // only run if cache file doesn't exist or was changed more than 1 hours ago
-if (file_exists(CACHE_FILE_DEVICES)) {
+if (file_exists(CACHE_FILE_DEVICES) && !isset($_GET['refresh'])) {
 	$mtime = filemtime(CACHE_FILE_DEVICES);
 	if ($mtime !== false) {
 		$age = time() - $mtime;
