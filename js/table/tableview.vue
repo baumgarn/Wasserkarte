@@ -2,7 +2,8 @@
 	<div class="tableview" tabindex="0" @keydown="onKeydown" @mousemove="onMouseMove" @mouseleave="hideTooltip">
 
 		<div class="tableview-header">
-			<FilterBar :small="true" :narrow="(tableWidth < 400)"/>
+			<FilterBar :intableview="true" :narrow="(tableWidth < 400)"/>
+			<Interpretation :intableview="true"/>
 		</div>
 
 		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content">
@@ -46,13 +47,14 @@
 
 				</template>
 
-				<template v-for="row in filteredSortedTableData">
+				<template v-for="(row, rowIndex) in filteredSortedTableData">
 
 					<div
 						class="table-data"
-						:class="[col.type, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact) }]"
+						:class="[col.type, col.key, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: rowIndex === 0 }]"
 						@click="selectDevice(row.device, $event)"
 						:hoverinfo="getDataHoverInfo(col, row)"
+						v-on="col.type === 'timeline' ? { mousemove: onTimelineHover, mouseleave: onTimelineHoverOut } : {}"
 						>
 
 						<template v-if="col.key === 'name'">
@@ -95,6 +97,8 @@
 
 				<div class="table-colfooter" @click="unselectDevice">
 				</div>
+
+				<div v-if="col.type === 'timeline' && timelineHoverLinePos > 0" class="timeline-col-hoverline" :style="{ left: timelineHoverLinePos + 'px', height: `calc(${filteredSortedTableData.length} * var(--rowheight))` }"></div>
 
 			</div>
 
@@ -140,13 +144,14 @@ import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
 import DateAxis from '@/charts/dateaxis.vue'
 import FilterBar from '@/map/statusbar_filter.vue';
+import Interpretation from '@/map/statusbar_interpretation.vue';
 
 export default {
 	name: 'TableView',
 	setup() {
 		return {state}
 	},
-	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, FilterBar},
+	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, FilterBar, Interpretation},
 	props: {
 		type: Boolean,
 		sideview: {
@@ -166,7 +171,8 @@ export default {
 			colHeaderTooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			timelineWidth: 0,
 			tableWidth: 0,
-		}
+			timelineHoverX: -1,
+}
 	},
 	computed: {
 		devices() {
@@ -248,8 +254,9 @@ export default {
 				{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timelinerange', stateProp:'tableview_timelinerange'},
 				{type:'select', label:'Letzte 180 Tage', value:'180d', group:'timelinerange', stateProp:'tableview_timelinerange'},
 				{type:'thinline'},
-				{type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
-				{type:'select', label:'Schichten nFK', value:'nfk_schichten', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
+				// {type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
+				// {type:'select', label:'Schichten nFK', value:'nfk_schichten', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
+				{type:'boolean', label:'Schichten anzeigen', stateProp:'tableview_showdepths'},
 				{type:'thinline'},
 				{type:'boolean', label:'Datenlücken anzeigen', stateProp:'showDataGaps'},
 			)
@@ -318,6 +325,25 @@ export default {
 		minTimelineWidth() {
 			return 356;
 			// return (this.numberOfDays * 2)
+		},
+		timelineSpan() {
+			return Math.max(1, this.latestTimestamp - this.startTimestamp);
+		},
+		timelineHoverLinePos() {
+			if (this.timelineHoverX > -1) {
+				let pos = this.timelineHoverX;
+				if (this.earliestTimestamp && this.latestTimestamp) {
+					const msPerDay = 24 * 60 * 60 * 1000;
+					const earliestX = ((this.earliestTimestamp - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+					const latestX = ((this.latestTimestamp + msPerDay - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+					if (pos < earliestX) pos = earliestX;
+					if (pos > latestX) pos = latestX;
+				}
+				return pos;
+			} else if (state.timelineDate && state.timelineDate > this.startTimestamp && state.timelineDate < this.latestTimestamp) {
+				return ((state.timelineDate - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+			}
+			return -1;
 		},
 	},
 	methods: {
@@ -561,6 +587,20 @@ export default {
 			this.colHeaderTooltip.visible = false;
 			this.colHeaderTooltip.ready = false;
 		},
+		onTimelineHover(event) {
+			const rect = event.currentTarget.getBoundingClientRect();
+			this.timelineHoverX = event.clientX - rect.left;
+			const fraction = this.timelineHoverX / (this.timelineWidth - 1);
+			let ts = this.startTimestamp + fraction * this.timelineSpan;
+			ts = dataStore.floorToMidnight(ts);
+			if (ts < this.earliestTimestamp) ts = this.earliestTimestamp;
+			if (ts > this.latestTimestamp) ts = this.latestTimestamp;
+			state.timelineDate = ts;
+		},
+		onTimelineHoverOut() {
+			this.timelineHoverX = -1;
+			state.timelineDate = null;
+		},
 		getTimelineRef() {
 			const ref = this.$refs.timelineref;
 			return Array.isArray(ref) ? ref[0] : ref;
@@ -630,6 +670,7 @@ export default {
 	.tableview
 		--headerheight 38px
 		--rowheight 28px
+		// --rowheight 32px
 		--cellpad 0 8px
 		--line 1px solid #00000018
 		--tablefontsize 12px
@@ -664,6 +705,8 @@ export default {
 				opacity 1
 	.table-col.rightspacer
 		flex-basis 12px
+	.table-col.timeline
+		position relative
 	.table-col.timeline
 	.table-col.spacer
 		flex-grow 1
@@ -743,46 +786,52 @@ export default {
 		flex-basis var(--rowheight)
 		flex-shrink 0
 		flex-grow 0
-		border-right var(--line)
 		height var(--rowheight)
 		padding var(--cellpad)
 		display flex
 		align-items center
-		border-bottom var(--line)
 		font-size var(--tablefontsize)
 		cursor default
 		position relative
+		&:before
+			content ''
+			inset 0
+			display block
+			position absolute
+			border-bottom var(--line)
+			border-right var(--line)
+			z-index 1
+			pointer-events none
+		&.selected.name
+			font-weight bold
+			padding-right 0
+			.label
+				text-overflow unset 
 		&.selected
-			background var(--activecolorgrey)
-			border-bottom 1px solid transparent
-			// background var(--activecolorgreybrighter)
-			// border-right 1px solid transparent
-			// &:after
-			// 	content ''
-			// 	z-index 2
-			// 	display block
-			// 	position absolute
-			// 	top calc( 100% )
-			// 	left 0
-			// 	right -1px
-			// 	height 8px
-			// 	background linear-gradient(to bottom, rgba(0, 0, 0, 0.18), transparent)
-			// &:before
-			// 	content ''
-			// 	z-index 2
-			// 	display block
-			// 	position absolute
-			// 	left 0
-			// 	top 0
-			// 	right -1px
-			// 	height 12px
-				// border-bottom 1px solid #00000030
-				// border-bottom 1px solid #ffffff44
-				// background linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent)
+			background var(--activecolorgreybrighter)
+			&:after
+				content ''
+				z-index 2
+				display block
+				position absolute
+				inset 0
+				top -1px
+				pointer-events none
+				border-top 1px solid #00000066
+				border-bottom 1px solid #00000066
+	.table-data.firstrow.selected:after
+		top 0
 	.table-data.attribute
 		font-size var(--tablefontsize)
 	.table-data.timeline
 		border-right none
+	.timeline-col-hoverline
+		position absolute
+		top var(--rowheight)
+		border-left 1px dotted #000
+		pointer-events none
+		opacity .6
+		z-index 5
 	.table-data.attribute
 		padding 0
 	.label
@@ -826,7 +875,6 @@ export default {
 	box-shadow 0 2px 8px rgba(0,0,0,.2)
 	opacity 0
 	transition opacity 0.15s linear
-	// border-top-left-radius 0
 	&.ready
 		opacity 1
 

@@ -1,11 +1,11 @@
 <template>
 
-	<div class="filterbar" :class="{ small: small }" v-if="hasIncludeFilter || hasExcludeFilter">
+	<div class="filterbar" :class="{ intableview }" v-if="hasIncludeFilter || hasExcludeFilter">
 
 			<template v-if="hasIncludeFilter">
 				
 				<div class="include filteritems">
-					<template v-if="small">
+					<template v-if="intableview">
 						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritemsmall"/>
 					</template>
 					<template v-else>
@@ -19,7 +19,7 @@
 				
 				<div class="label ohne">ohne</div>
 				<div class="exclude filteritems">
-					<template v-if="small">
+					<template v-if="intableview">
 						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritemsmall"/>
 					</template>
 					<template v-else>
@@ -30,10 +30,10 @@
 				
 			</template>
 			
-			<div v-if="!narrow" class="label before">
+			<!-- <div v-if="!intableview" class="label before">
 				{{filteredDevicesCount}}
 				{{filteredDevicesCount == 1 ? 'Standort' : 'Standorte'}}&nbsp;
-			</div>
+			</div> -->
 
 
 		<div v-if="hasIncludeFilter || hasExcludeFilter" class="iconbutton close" @click="clearFilter"></div>
@@ -52,7 +52,7 @@ export default {
 		FilterItem
 	},
 	props: {
-		small: Boolean,
+		intableview: Boolean,
 		narrow: Boolean,
 	},
 	computed: {
@@ -92,7 +92,7 @@ export default {
 	position relative
 	padding 0
 	padding-right 20px
-	min-width 284px
+	min-width 250px
 	font-size 9pt
 	border-radius 21px
 	background var(--menuinactivebg)
@@ -101,22 +101,24 @@ export default {
 	align-items center
 	justify-content flex-start
 	margin 0
-.filterbar.small
+
+.filterbar.intableview
 	min-width unset
 	height 30px
-	border 1px solid #00000018
-	filter: drop-shadow(0 1px 1px rgba(0,0,0,.075));
-	// padding-right 0
+	border 1px solid #00000020
+	filter: drop-shadow(0.5px 1px 1px rgba(0,0,0,.075));
+	padding-right 24px
 	.label
 		margin-left 0 
 		margin-right 6px
 	.iconbutton.close
-		background-size 85%
-		opacity .6
+		background-size 91%
+		opacity .4
 		top 2px
 		right 2px
 		&:hover
 			opacity .8
+
 .filteritems
 	display inline-flex
 	align-items center
@@ -146,9 +148,9 @@ export default {
 
 .iconbutton.close
 	position absolute
-	right 3px
+	right 8px
 	top 9px
-	background-size 90%
+	background-size 95%
 	opacity .5
 	&:hover
 		opacity .8

@@ -545,6 +545,7 @@ const dataStore = {
 		let count = 0;
 		const nfk_level = [0, 0, 0, 0, 0, 0]; // how many devices fall into each nfk category on a given day
 		let trockenstress = 0; // how many devices are nfk < 30% on a given day
+		let trocken = 0; // how many devices are nfk < 50% on a given day
 
 		for (let i = 0; i < state.devices.length; i++) {
 			if (!deviceAllowed[i]) continue;
@@ -558,6 +559,7 @@ const dataStore = {
 			count++;
 
 			if (v < 30) trockenstress++;
+			if (v < 50) trocken++;
 
 			// categorize value
 			if (v < 0) nfk_level[0]++;
@@ -573,7 +575,8 @@ const dataStore = {
 			nfk_avg: count ? sum / count : null,
 			count,
 			nfk_level,
-			trockenstress
+			trockenstress,
+			trocken
 		};
 	},
 

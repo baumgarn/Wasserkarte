@@ -1,17 +1,20 @@
 <template>
-	
-	<div class="interpretation" v-if="averages && averages.nfk_avg != null" :class="{ 'filteractive': filterActive, 'full':fullView }" @click="toggleFull">
-		<!-- :style="'background:'+dataModel.get_nfk_color(averages.nfk_avg)" -->
+
+	<div class="interpretation" v-if="averages && averages.nfk_avg != null" :class="{ 'filteractive': filterActive, 'full':fullView, intableview }" @click="toggleFull">
+
 		 <div class="inforow">
 
-			 <div class="trocken" v-if="!isNaN(trockenstress)">
-				 <span class="value">{{ trockenstress }}</span>
+			 <div class="trocken" v-if="!isNaN(trocken)">
+				 <span class="value">{{ trocken }}</span>
 				 <span class="unit">%</span>
-				 <span class="label">&nbsp;Trockenstress</span>
+				 <span class="label">&nbsp;Trocken</span>
+			</div>
+			<div class="count">
+				<span class="value">{{ averages.count }}</span> 
+				<div v-if="!intableview" class="pinicon"></div>
+				<span v-else class="label">Standorte</span>
 			</div>
 			 <div class="date">{{displayDate}}</div>
-			 <!-- <div class="count">{{ averages.count }} 
-				<div class="pinicon"></div></div> -->
 		</div>
 
 		<template v-if="fullView">
@@ -83,6 +86,7 @@ export default {
 	components: {
 	},
 	props: {
+		intableview: false,
 	},
 	computed: {
 		telemetryLoaded() {
@@ -142,6 +146,12 @@ export default {
 				return Math.round(p);
 			}
 		},
+		trocken() {
+			if (this.averages) {
+				const p = this.averages.trocken / this.averages.count * 100;
+				return Math.round(p);
+			}
+		},
 		displayDate() {
 			if (this.timelineDate) {	
 				// timeline date is displayed as minus one day as the timestamp is midnight end of the day
@@ -170,10 +180,15 @@ export default {
 			return i;
 		},
 		toggleFull() {
-			this.fullView = !this.fullView;
+			if (! this.intableview) {
+				this.fullView = !this.fullView;
+			}
 		},
 	},
 	mounted() {
+		if (this.telemetryLoaded) {
+			this.getNfkDailyAverages()
+		}  
 	},
 	watch: {
 		telemetryLoaded() {
@@ -194,9 +209,7 @@ export default {
 .interpretation
 	position relative
 	padding 0
-	min-width 210px
-	background #fff
-	background #e8e8e8
+	width 210px
 	background #f8f8f8
 	display flex
 	flex-direction column
@@ -209,6 +222,38 @@ export default {
 	transition background linear .05s
 	&:hover
 		background #f0f0f0
+
+.interpretation.intableview
+	display inline-flex
+	// width 500px
+	width unset
+	background #fff
+	flex-direction row
+	justify-content center
+	align-items center
+	cursor default
+	.inforow
+		width 270px
+	.nfkbar
+		width 210px
+	&.filteractive
+		margin-left 6px
+		&:after
+			display none !important
+
+.interpretation.filteractive
+	padding-top 12px
+	margin-top -12px
+
+// .interpretation.filteractive:after
+// 	content ''
+// 	position absolute
+// 	left 0
+// 	top 0
+// 	right 0
+// 	height 6px
+// 	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0))
+
 
 .nfktable
 	display flex
@@ -259,14 +304,6 @@ export default {
 	.segment:last-of-type
 		flex-grow 1
 
-.interpretation.filteractive:after
-	content ''
-	position absolute
-	left 0
-	top 0
-	right 0
-	height 6px
-	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0))
 
 .inforow
 	height 30px
@@ -281,47 +318,69 @@ export default {
 	height 27px
 	padding-top 4px
 
-.count
-	flex-basis 19.5%
-	text-align right
-	.pinicon
-		display inline-block
-		width 1em
-		height 1em 
-		background-size 100% 100%
-		background-position center
-		background-repeat no-repeat
-		background-image url(/img/sensor.png)
-		opacity .6
-		top .125em
-		margin-left -.05em
-		filter grayscale(1)
-		position relative
+
 
 .trocken
-	flex-basis 50px
-	text-align right
-	padding-right .8em
+	flex-grow 1
+	text-align left
 	.value
 		display inline-block
 		width 2em
 		text-align right
 		opacity 1
-		font-size 10.5pt
+		font-size 11pt
 		color #000
 	.unit
 		margin-left .2em
+		opacity .7
 	.label
 		opacity 1
 		font-size 8.5pt
 		margin-left .09em
-		// font-weight bold
+
+.intableview .trocken .value
+	font-size 10pt
+
+.count
+	text-align right
+	.value
+		font-weight normal
+	.label
+		display inline-block
+		margin-left .4em
+		font-size 8.5pt
+	.pinicon
+		display inline-block
+		width 1em
+		height 1em 
+		background-size 100%
+		background-position center
+		background-repeat no-repeat
+		background-image url(/img/sensor.png)
+		opacity .6
+		top .16em
+		margin-left -.05em
+		margin-left .2em
+		filter grayscale(1)
+		position relative
 
 .date
-	flex-grow 1
+	flex-basis 72px
+	flex-grow 0
+	flex-shrink 0
 	margin-right 1.1em
 	font-size 8pt
 	text-align right
+
+.intableview .date
+	font-size 8.5pt
+	flex-basis 85px
+
+.intableview .nfkbar
+	margin-left 8px
+	margin-top 1px
+	.segment
+		height 9px
 
 
 </style>

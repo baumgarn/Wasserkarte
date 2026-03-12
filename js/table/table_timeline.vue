@@ -1,22 +1,8 @@
 <template>
 
-	<div class="timeline" ref="timeline" :class="[{selected}, timelineStyle]" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
+	<div class="timeline" ref="timeline" :class="[{selected}, {showdepths: showDepths}]" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 
 		<canvas ref="heatmap"></canvas>
-
-		<!-- <div class="hoverline" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition ) + 'px' }"></div> -->
-
-		<!-- <DateAxis
-		v-if="dateAxis"
-		:chartWidth="timelineWidth"
-		:frameWidth="timelineWidth"
-		:startTimestamp="startTimestamp"
-		:numberOfDays
-		:insideTimeline="true"
-		:firstItemPadding
-		:monthsOnly="true"
-		></DateAxis> -->
-		<!-- {{ device }} -->
 
 	</div>
 
@@ -136,8 +122,8 @@ export default {
 			const i = this.schema.indexOf('nfk_80cm');
 			return (i >= 0) ? i : null;
 		},
-		timelineStyle() {
-			return state.tableview_timelinestyle;
+		showDepths() {
+			return state.tableview_showdepths;
 		},
 	},
 	methods: {
@@ -162,7 +148,7 @@ export default {
 				this.dayWidth = this.timelineWidth / this.timelineSpan;
 				const ctx = canvas.getContext('2d');
 
-				if (this.timelineStyle === 'nfk_schichten') {
+				if (this.showDepths) {
 					const allDepthIndices = [this.nfk10_index, this.nfk30_index, this.nfk60_index, this.nfk80_index];
 
 					// In gaps mode: keep 4 fixed slots, missing depths stay empty.
@@ -283,7 +269,7 @@ export default {
 				this.drawHeatmap()
 			})
 		},
-		timelineStyle() {
+		showDepths() {
 			nextTick(()=>{
 				this.drawHeatmap()
 			})
@@ -318,12 +304,14 @@ export default {
 		display block
 		width 100%
 		height 100%
-		height calc(100% + 1px)
+		// height calc(100%)
+		// margin-top -1px
 		overflow hidden
 		canvas
-			height calc(100% + 1px)
+			display block
+			height 100%
 			image-rendering pixelated
-		&.nfk_schichten 
+		&.showdepths 
 			height 100%
 			canvas
 				height 100%

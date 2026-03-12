@@ -43,6 +43,10 @@ export default {
 	flex-shrink 1
 	min-width 0
 	pointer-events none
+.filterbar
+	z-index 1
+	filter drop-shadow(0 3px 2px #00000022)
+
 .statusbar
 	display flex
 	flex-direction column

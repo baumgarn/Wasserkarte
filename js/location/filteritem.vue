@@ -239,14 +239,15 @@ export default {
 	height 42px
 	padding-right 0
 	padding-left 0
+	.name
+		font-size 10pt
+		opacity .9
 	.bg
 		display none
 	.filtericon
-		width 36px
-		height 36px
 		position relative
 		margin 3px
-		margin-right .2em
+		margin-right 6px
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.statusbaritemsmall
