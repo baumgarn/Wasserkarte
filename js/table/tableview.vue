@@ -1,9 +1,8 @@
 <template>
-	<div class="tableview" tabindex="0" @keydown="onKeydown" @mousemove="onMouseMove" @mouseleave="hideTooltip">
+	<div class="tableview" :class="{ narrowview }" tabindex="0" @keydown="onKeydown" @mousemove="onMouseMove" @mouseleave="hideTooltip">
 
 		<div class="tableview-header">
-			<FilterBar :intableview="true" :narrow="(tableWidth < 400)"/>
-			<Interpretation :intableview="true"/>
+			<StatusBar :intableview="true" :containerWidth="tableWidth"/>
 		</div>
 
 		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content">
@@ -143,15 +142,14 @@ import PopoverMenuMulti from '@/ui/popovermenu.vue'
 import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
 import DateAxis from '@/charts/dateaxis.vue'
-import FilterBar from '@/map/statusbar_filter.vue';
-import Interpretation from '@/map/statusbar_interpretation.vue';
+import StatusBar from '@/map/statusbar.vue';
 
 export default {
 	name: 'TableView',
 	setup() {
 		return {state}
 	},
-	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, FilterBar, Interpretation},
+	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, StatusBar},
 	props: {
 		type: Boolean,
 		sideview: {
@@ -177,6 +175,9 @@ export default {
 	computed: {
 		devices() {
 			return state.devices;
+		},
+		narrowview() {
+			return (this.tableWidth < 700)
 		},
 		columns() {
 			let cols = [];
@@ -670,7 +671,6 @@ export default {
 	.tableview
 		--headerheight 38px
 		--rowheight 28px
-		// --rowheight 32px
 		--cellpad 0 8px
 		--line 1px solid #00000018
 		--tablefontsize 12px
@@ -683,12 +683,14 @@ export default {
 		background #fff
 		display flex
 		flex-direction column
+		background #f4f4f4
 		.tableview-header
 			flex-basis var(--headerheight)
 			flex-shrink 0
 			display flex
 			justify-content center
 			align-items center
+			padding 4px 70px
 		.windowbuttons.tablesettings
 			margin-right 4px
 		.table-content
@@ -703,6 +705,8 @@ export default {
 				opacity 0
 			.table-colheader:before
 				opacity 1
+	.tableview.narrowview .tableview-header
+		padding 4px
 	.table-col.rightspacer
 		flex-basis 12px
 	.table-col.timeline
@@ -793,6 +797,7 @@ export default {
 		font-size var(--tablefontsize)
 		cursor default
 		position relative
+		background #fff
 		&:before
 			content ''
 			inset 0
