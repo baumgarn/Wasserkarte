@@ -7,6 +7,8 @@ dist/
 # Vite/Cache
 .vite/
 
+.claude/
+
 # Environment variables
 .env
 

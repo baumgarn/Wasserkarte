@@ -6,10 +6,13 @@
 
 		<template v-if="type=='statusbaritem'">
 			
-			<FilterIcon :obj :size="36"/>
+			<FilterIcon :obj :size="32"/>
 			
 			<div class="name">
 				{{ obj.name }}
+			</div>
+
+			<div class="iconbutton light close" @click="close">
 			</div>
 			
 		</template>
@@ -20,6 +23,9 @@
 			
 			<div class="name">
 				{{ obj.name }}
+			</div>
+
+			<div class="iconbutton light close" @click="close">
 			</div>
 			
 		</template>
@@ -121,6 +127,8 @@ export default {
 			state.hoverFilter = null;
 		},
 		click(event) {
+			if (this.type == 'statusbaritem' || this.type == 'statusbaritemsmall') return;
+
 			if (!this.includeActive) {
 				if (! event.shiftKey) {
 					state.includeFilter = [];
@@ -147,6 +155,10 @@ export default {
 			}
 			event.stopPropagation();
 		},
+		close(event) {
+			state.includeFilter = state.includeFilter.filter(item => item.name !== this.obj.name);
+			state.excludeFilter = state.excludeFilter.filter(item => item.name !== this.obj.name);
+		}
 	},
 	computed: {
 		includeActive() {
@@ -233,38 +245,54 @@ export default {
 
 .filteritem.statusbaritem
 	display inline-flex
-	border none
+	border 1px solid #00000011 !important
 	box-shadow none
-	pointer-events none
-	height 42px
-	padding-right 0
+	height 38px
+	cursor default
 	padding-left 0
 	.name
 		font-size 10pt
 		opacity .9
+		margin-right 6px
 	.bg
 		display none
+	.close
+		opacity .25
+		background-size 110%
+		margin-right 5px
+		&:hover
+			opacity .8
 	.filtericon
 		position relative
-		margin 3px
+		margin 2px
 		margin-right 6px
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.statusbaritemsmall
-	height 28px
+	height 30px
 	border-radius none
-	border none
-	box-shadow none
+	border none !important
+	cursor default
+	box-shadow 0 2px 3px rgba(0,0,0,.11)
 	padding-right 0
 	padding-left 0
-	pointer-events none
+	.name 
+		margin-right 4px
 	.bg
 		display none
 	.filtericon
 		width 24px
 		height 24px
 		position relative
-		margin 2px
+		margin 3px
+	.close
+		opacity .25
+		width 24px
+		height 24px
+		background-size 100%
+		margin-right 3px
+		&:hover
+			opacity .8
 		// filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.small

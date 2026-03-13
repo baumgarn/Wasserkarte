@@ -132,18 +132,6 @@
 			<div class="glossar-item">
 
 				<h4 class="glossar-item-header">
-					Trockenstress
-				</h4>
-
-				<div class="glossar-item-content">
-					Standorte mit einer nutzbaren Feldkapazität von unter 30% werden in der Statusanzeige der Wasserkarte als Trockenstress einbezogen. Die Statusanzeige soll eine Tendenz sichtbar machen, ist aber nicht als objektive Messung zu verstehen, da sie von der sich im Laufe der Zeit verändernden Anzahl und Auswahl der Sensorstandorte abhängt.
-				</div>
-
-			</div>
-
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
 					Welkepunkt
 				</h4>
 

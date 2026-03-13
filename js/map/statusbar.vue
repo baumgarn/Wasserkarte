@@ -1,59 +1,51 @@
 <template>
 
-	<div class="statusbarouter">
+	<div class="statusbarouter" :class="{ intableview, narrowview, verynarrowview }">
 
-		<div class="statusbar" :class="{ intableview, narrowview }">
+		<div class="statusbar" >
 
 			<div class="filteritems" v-if="hasIncludeFilter || hasExcludeFilter">
 
 				<template v-if="hasIncludeFilter">
 					
-					<div class="include">
-						<template v-if="intableview">
-							<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritemsmall"/>
-						</template>
-						<template v-else>
-							<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritem"/>
-						</template>
-					</div>
+					<template v-if="intableview">
+						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritemsmall"/>
+					</template>
+					<template v-else>
+						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritem"/>
+					</template>
 					
 				</template>
 				
 				<template v-if="hasExcludeFilter">
 					
-					<div class="label ohne">ohne</div>
-					<div class="exclude">
-						<template v-if="intableview">
-							<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritemsmall"/>
-						</template>
-						<template v-else>
-							<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritem"/>
-						</template>
+					<template v-if="intableview">
+						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritemsmall"/>
+					</template>
+					<template v-else>
+						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritem"/>
+					</template>
 
-					</div>
-					
 				</template>
-
-				<div v-if="hasIncludeFilter || hasExcludeFilter" class="iconbutton close" @click="clearFilter"></div>
 
 			</div>
 
-			<div class="interpretation" :class="{ 'filteractive': filterActive, 'full':fullView }" @click="toggleFull">
+			<div class="stats" :class="{ 'filteractive': filterActive, 'full':fullView }" @click="toggleFull">
 
 				<div class="inforow">
 
-					<div class="trocken">
+					<div class="trocken infoitem">
 						<span v-if="averages && averages.nfk_avg != null" class="value">{{ trocken }}</span>
 						<span v-else class="no value">–</span>
 						<span class="unit">%</span>
 						<span class="label">&nbsp;Trocken</span>
 					</div>
-					<div class="devicecount">
+					<div class="devicecount infoitem">
 						<span class="value">{{ averages.count }}</span> 
-						<div v-if="!intableview" class="pinicon"></div>
-						<span v-else class="label">Standorte</span>
+						<!-- <div v-if="!intableview" class="pinicon"></div> -->
+						<span class="label">Standorte</span>
 					</div>
-					<div class="date">{{displayDate}}</div>
+					<div class="date infoitem">{{displayDate}}</div>
 				</div>
 
 				<template v-if="fullView">
@@ -114,7 +106,7 @@ import dataStore from '@/datastore.js';
 import FilterItem from '@/location/filteritem.vue';
 
 export default {
-	name: 'Interpretation',
+	name: 'stats',
 	setup() {
 		return {dataModel};
 	},
@@ -133,6 +125,12 @@ export default {
 	computed: {
 		telemetryLoaded() {
 			return state.telemetryLoaded;
+		},
+		narrowview() {
+			return (this.intableview && this.containerWidth < 700)
+		},
+		verynarrowview() {
+			return (this.intableview && this.containerWidth < 400)
 		},
 		narrowview() {
 			return (this.intableview && this.containerWidth < 700)
@@ -285,50 +283,39 @@ export default {
 	font-size 9pt
 	border-top none
 	padding 0 6px
-	filter drop-shadow(0 3px 2px #00000022)
 	> *
 		pointer-events all
 
-.statusbar.intableview
+.intableview .statusbar
 	filter none
 	flex-direction row
 	margin-top 0
 	padding 0
 
-.statusbar.narrowview
+.narrowview .statusbar
 	flex-direction column
 
 // FILTER
 
 .filteritems
-	height 42px
 	z-index 1
-	filter drop-shadow(0 3px 2px #00000022)
-	position relative
-	padding 0
-	padding-right 20px
-	min-width 250px
-	font-size 9pt
-	border-radius 21px
-	background var(--menuinactivebg)
-	background #fff
-	display block
+	filter drop-shadow(0 3px 2px #00000018)
+	display flex
+	flex-direction column
 	align-items center
-	justify-content flex-start
-	margin 0
 
 .intableview .filteritems
-	min-width unset
-	height 30px
-	border 1px solid #00000020
-	filter: drop-shadow(0.5px 1px 1px rgba(0,0,0,.075));
-	padding-right 24px
-	margin 0 0
-	margin-right 12px
-	
+	filter none
+	flex-direction row
+	margin-right 4px
+	gap 3px
+
 
 .narrowview .filteritems
 	margin-right 0
+	max-width 270px
+	flex-wrap wrap
+	justify-content center
 
 .iconbutton.close
 	position absolute
@@ -352,56 +339,139 @@ export default {
 		opacity .8
 
 
-
-/// INTERPRETATION
+// STATS
 	
-.interpretation
+.stats
 	position relative
 	padding 0
-	width 210px
+	margin 0
 	background #f8f8f8
 	display flex
 	flex-direction column
 	align-items center
-	justify-content flex-start
-	margin 0
-	font-size 9pt
+	justify-content center
+	font-size 8.5pt
 	color rgba(0,0,0,0.7)
+	box-shadow 0 2px 4px #00000033
 	cursor pointer
-	transition background linear .05s
+	transition background linear .1s
 	&:hover
 		background #f0f0f0
 
-.intableview .interpretation
+.intableview .stats
 	display inline-flex
-	// width 500px
-	width unset
 	background #fff
 	flex-direction row
 	justify-content center
 	align-items center
 	cursor default
+	box-shadow none
 	background transparent
-	.inforow
-		width 270px
 
-
-.narrowview .interpretation
+.narrowview .stats
 	flex-direction column
+.verynarrowview .stats:first-child
+	margin-top 28px
 
-.interpretation.filteractive
-	padding-top 12px
-	margin-top -12px
+// .stats
+	// border-top 1px solid #00000022
 
-// .interpretation.filteractive:after
-// 	content ''
-// 	position absolute
-// 	left 0
-// 	top 0
-// 	right 0
-// 	height 6px
-// 	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0))
+.stats.filteractive
+	border-top 6px solid #00000018
+	margin-top -5px
 
+.intableview .stats.filteractive
+	border-top none
+	margin-top 0
+
+
+// INFO ROW
+
+.inforow
+	margin 6px 0 6px
+	display flex
+	width 275px
+	align-items baseline
+	justify-content center
+	gap 0
+	user-select none
+
+// .stats.filteractive .inforow
+
+.infoitem 
+	height 18px
+	flex-grow 1
+	flex-shrink 0
+	flex-basis 33%
+	padding-top 2px
+	padding-right 9px
+	overflow hidden
+	// border 1px solid #00000022
+	text-align right
+
+.infoitem + .infoitem
+	border-left 1px solid #00000011
+
+.trocken
+	.value
+		display inline-block
+		width 1.8em
+		text-align right
+		opacity 1
+		font-size 10pt
+		margin-top -1em
+		color #000
+	.no.value
+		opacity .4
+	.unit
+		margin-left .2em
+		opacity .7
+	.label
+		opacity 1
+		font-size 8.5pt
+		margin-left .09em
+
+.intableview .trocken .value
+	font-size 10pt
+
+.devicecount
+	.value
+		font-weight normal
+	.label
+		display inline-block
+		margin-left .4em
+
+
+
+// NFK BAR
+
+.nfkbar
+	display flex
+	width 100%
+	background #ddd
+	height 6px
+	.segment
+		height 100%
+	.segment:last-of-type
+		flex-grow 1
+
+.intableview .nfkbar
+	margin-left 8px
+	margin-top 1px
+	overflow hidden
+	filter drop-shadow(0 3px 2px #00000011)
+	// height 6px
+	width 210px
+
+.narrowview .nfkbar
+	margin-left 0
+	margin-bottom 6px
+	// height 6px
+	width 250px
+
+
+
+// NFK TABLE
 
 .nfktable
 	display flex
@@ -444,102 +514,6 @@ export default {
 			flex-grow 1
 
 
-.nfkbar
-	display flex
-	width 100%
-	background #ddd
-	height 7px
-	.segment
-		height 100%
-	.segment:last-of-type
-		flex-grow 1
-
-.intableview .nfkbar
-	margin-left 8px
-	margin-top 1px
-	overflow hidden
-	// height 6px
-	width 210px
-
-.narrowview .nfkbar
-	margin-left 0
-	margin-bottom 6px
-	// height 6px
-	width 250px
-
-.inforow
-	height 30px
-	display flex
-	width 100%
-	padding-top 6px
-	align-items baseline
-	justify-content flex-start
-	user-select none
-
-.interpretation.filteractive .inforow
-	height 27px
-	padding-top 4px
-
-
-
-.trocken
-	flex-grow 1
-	text-align left
-	.value
-		display inline-block
-		width 2em
-		text-align right
-		opacity 1
-		font-size 11pt
-		color #000
-	.no.value
-		opacity .4
-	.unit
-		margin-left .2em
-		opacity .7
-	.label
-		opacity 1
-		font-size 8.5pt
-		margin-left .09em
-
-.intableview .trocken .value
-	font-size 10pt
-
-.devicecount
-	text-align right
-	.value
-		font-weight normal
-	.label
-		display inline-block
-		margin-left .4em
-		font-size 8.5pt
-	.pinicon
-		display inline-block
-		width 1em
-		height 1em 
-		background-size 100%
-		background-position center
-		background-repeat no-repeat
-		background-image url(/img/sensor.png)
-		opacity .6
-		top .16em
-		margin-left -.05em
-		margin-left .2em
-		filter grayscale(1)
-		position relative
-
-.date
-	flex-basis 72px
-	flex-grow 0
-	flex-shrink 0
-	margin-right 1.1em
-	font-size 8pt
-	text-align right
-
-.intableview .date
-	font-size 8.5pt
-	flex-basis 85px
-
 
 
 
@@ -549,24 +523,30 @@ export default {
 
 
 <style lang="stylus">
-.is-mobile .statusbarouter
-	flex-basis 100vw
 
-@media (max-width: 1250px) 
-	.sidebaropen .topbar .statusbarouter
-		position fixed
-		top calc(var(--menubariconsize) + 8px)
-		left 0px
-		right 600px
+	.is-mobile .statusbarouter
+		flex-basis 100vw
 
-@media (min-width: 1250px) 
-	.wrapper:not(.sidebaropen) .topbar .statusbarouter
-		position fixed
-		left 0px
-		right 0px
+	@media (max-width: 1250px) 
+		.sidebaropen .topbar .statusbarouter
+			position fixed
+			top calc(var(--menubariconsize) + 8px)
+			left 0px
+			right 600px
+		.is-mobile .topbar .statusbarouter
+			position fixed
+			top 12px
+			left 0
+			right 0
 
-.is-mobile .statusbarouter
-	.statusbar
+
+	@media (min-width: 1250px) 
+		.wrapper:not(.sidebaropen) .topbar .statusbarouter
+			position fixed
+			left 0px
+			right 0px
+
+	.is-mobile .topbar .statusbarouter .statusbar
 		margin-top 0 
 
 </style>
