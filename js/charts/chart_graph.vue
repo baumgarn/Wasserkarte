@@ -3,11 +3,6 @@
 		<div class="chartheader">
 			<h3>{{ title }}</h3>
 
-			<!-- <div v-if="daysSinceLastTelemetry > 2" class="latestdate warning">
-				Keine Telemetrie seit
-				{{ displayutil.formatDateShort(getLastTimestamp()) }}
-				({{ daysSinceLastTelemetry }} Tage)
-			</div> -->
 		</div>
 
 		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
@@ -211,6 +206,10 @@ export default {
 			}));
 		},
 		rowHeight() {
+			if (state.sidebarFullView) {
+				return 500
+			}
+
 			return 460
 		}, 
 		colorScheme() {

@@ -4,7 +4,7 @@
 		ref="box"
 		class="beschreibung_container"
 		:class="{
-			expanded: state.expanded,
+			expanded: expanded,
 			clickable: (state.expanded || hasOverflow) && !forceExpanded
 		}"
 		@click="toggle"
@@ -13,97 +13,128 @@
 	</div>
 </template>
 
-<script setup>
-	import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed } from 'vue'
-	import { state } from '@/state.js'
+<script>
+import { nextTick } from 'vue'
+import { state } from '@/state.js'
 
-	const props = defineProps({
-		device: { type: Object, required: true }
-	})
+export default {
+	props: {
+		device: {
+			type: Object,
+			required: true
+		},
+		alwaysExpanded: {
+			type: Boolean,
+			default: false
+		}
+	},
 
-	const beschreibung = computed(() => {
-		return props.device.attributes.Beschreibung;
-	})
+	data() {
+		return {
+			box: null,
+			hasOverflow: false,
+			forceExpanded: false,
+			state
+		}
+	},
 
+	computed: {
+		beschreibung() {
+			return this.device.attributes.Beschreibung
+		},
+		expanded() {
+			return this.alwaysExpanded || state.expanded
+		}
+	},
 
-	const box = ref(null)
-	const hasOverflow = ref(false)
+	methods: {
+		updateForceExpanded() {
+			this.forceExpanded = window.matchMedia('(max-width: 900px)').matches
 
-	// Track if we are in "forced expanded" mode via matchMedia
-	const forceExpanded = ref(false)
+			if (this.forceExpanded) {
+				this.state.expanded = true
+			}
+		},
 
-	function updateForceExpanded() {
-		forceExpanded.value = window.matchMedia('(max-width: 900px)').matches
-		if (forceExpanded.value) {
-			state.expanded = true
+		measure() {
+			if (!this.$refs.box) return
+
+			if (this.state.expanded || this.forceExpanded) {
+				this.hasOverflow = false
+				return
+			}
+
+			this.hasOverflow =
+				(this.$refs.box.scrollWidth - this.$refs.box.clientWidth) > 1
+		},
+
+		async toggle() {
+			if (this.forceExpanded) return
+
+			if (this.state.expanded || this.hasOverflow) {
+				this.state.expanded = !this.state.expanded
+				await nextTick()
+				this.measure()
+			}
+		}
+	},
+
+	async mounted() {
+		this.updateForceExpanded()
+		window.addEventListener('resize', this.updateForceExpanded)
+
+		await nextTick()
+		this.measure()
+
+		window.addEventListener('resize', this.measure, { passive: true })
+	},
+
+	beforeUnmount() {
+		window.removeEventListener('resize', this.updateForceExpanded)
+		window.removeEventListener('resize', this.measure)
+	},
+
+	watch: {
+		beschreibung: {
+			async handler() {
+				await nextTick()
+				this.measure()
+			}
+		},
+
+		'state.expanded': {
+			async handler() {
+				await nextTick()
+				this.measure()
+			}
 		}
 	}
-
-	function measure() {
-		if (!box.value) return
-		if (state.expanded || forceExpanded.value) {
-			hasOverflow.value = false
-			return
-		}
-		hasOverflow.value = (box.value.scrollWidth - box.value.clientWidth) > 1
-	}
-
-	function toggle() {
-		// On small screens, always expanded → no toggle
-		if (forceExpanded.value) return
-		if (state.expanded || hasOverflow.value) {
-			state.expanded = !state.expanded
-			nextTick(measure)
-		}
-	}
-
-	onMounted(async () => {
-		updateForceExpanded()
-		window.addEventListener('resize', updateForceExpanded)
-		await nextTick()
-		measure()
-		window.addEventListener('resize', measure, { passive: true })
-	})
-
-	onBeforeUnmount(() => {
-		window.removeEventListener('resize', updateForceExpanded)
-		window.removeEventListener('resize', measure)
-	})
-
-	watch(() => props.beschreibung, async () => {
-		await nextTick()
-		measure()
-	})
-	watch(() => state.expanded, async () => {
-		await nextTick()
-		measure()
-	})
+}
 </script>
 
 <style lang="stylus" scoped>
+.beschreibung_container
+	max-width 100%
+	white-space nowrap
+	overflow hidden
+	text-overflow ellipsis
+	cursor default
+	min-width 0
+	font-size 9pt
+	margin 8px 0 17px
+
+	&.clickable
+		cursor pointer
+
+	&.expanded
+		white-space normal
+		overflow visible
+		text-overflow clip
+
+@media (max-width: 900px)
 	.beschreibung_container
-		max-width 100%
-		white-space nowrap
-		overflow hidden
-		text-overflow ellipsis
-		cursor default
-		min-width 0
-		font-size 9pt
-		margin 8px 0 17px
-
-		&.clickable
-			cursor pointer
-
-		&.expanded
-			white-space normal
-			overflow visible
-			text-overflow clip
-
-	/* Always expanded on small screens */
-	@media (max-width: 900px)
-		.beschreibung_container
-			white-space normal
-			overflow visible
-			text-overflow clip
-			cursor default !important
+		white-space normal
+		overflow visible
+		text-overflow clip
+		cursor default !important
 </style>

@@ -405,7 +405,7 @@
 								
 				<OberbodenUebersicht :device :hoverData />
 				<SoilProperties :device />
-				<Beschreibung :device />
+				<Beschreibung :device :alwaysExpanded="true" />
 				
 
 			</div>
@@ -582,21 +582,24 @@
 		display flex
 		flex-direction row
 		gap 24px
-		height 322px
+		height 340px
 		.left
-			flex-basis calc(50% - 12px)
+			// flex-basis calc(55% - 12px)
+			flex-basis 600px
 			flex-grow 0
 			flex-shrink 0
 			min-width: 0
+			.beschreibung_container
+				margin-top 12px
 		.right
-			flex-basis calc(50% - 12px)
-			flex-grow 0
+			// flex-basis calc(45% - 12px)
+			flex-grow 1
 			flex-shrink 0
 			min-width: 0
 	#mapcontainer
 		width 100%
 		margin 0 0 0
-		height 320px
+		height 340px
 		// border 1px solid red
 		border-radius var(--chartborderradius)
 		// filter var(--dropshadowfilter)

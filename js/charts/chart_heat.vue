@@ -257,6 +257,9 @@ export default {
 			if (this.chartHeight) {
 				return this.chartHeight;
 			}
+			if (state.sidebarFullView) {
+				return 125 - this.rowMargin
+			}
 			return 115 - this.rowMargin
 		}, 
 		hasSoilAttributes() {
@@ -794,6 +797,7 @@ export default {
 	position absolute
 
 // .schichten .hoverline
+	// border 1px solid red
 // 	bottom 20px
 // 	top -20px
 

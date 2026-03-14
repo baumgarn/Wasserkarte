@@ -320,7 +320,7 @@ export default {
 			return {
 				left: this.colHeaderTooltip.x + 'px',
 				top: this.colHeaderTooltip.y + 'px',
-				transform: 'translateX(-50%) translateY(calc(-100% - 4px))',
+				transform: 'translateX(-50%) translateY(calc(-100% - 2px))',
 			};
 		},
 		minTimelineWidth() {
@@ -669,7 +669,7 @@ export default {
 
 <style scoped lang="stylus">
 	.tableview
-		--headerheight 38px
+		--headerheight 42px
 		--rowheight 28px
 		--cellpad 0 8px
 		--line 1px solid #00000018
@@ -690,7 +690,7 @@ export default {
 			display flex
 			justify-content center
 			align-items center
-			padding 4px 70px
+			padding 5px 0 4px
 		.windowbuttons.tablesettings
 			margin-right 4px
 		.table-content
@@ -705,8 +705,6 @@ export default {
 				opacity 0
 			.table-colheader:before
 				opacity 1
-	.tableview.narrowview .tableview-header
-		padding 4px
 	.table-col.rightspacer
 		flex-basis 12px
 	.table-col.timeline
@@ -759,7 +757,7 @@ export default {
 		&.sortby::after
 			content ''
 			position absolute
-			right 6px
+			right 5px
 			opacity .7
 			margin-left 5px 
 			margin-top 2px 
@@ -904,7 +902,7 @@ export default {
 		content ''
 		opacity .8
 		position absolute
-		left 50%
+		left calc(50% - 0.5px)
 		transform translateX(-50%)
 		top 100%
 		border-left 5px solid transparent

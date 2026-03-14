@@ -4,11 +4,11 @@
 
 		<div class="statusbar" >
 
-			<div class="filteritems" v-if="hasIncludeFilter || hasExcludeFilter">
+			<div class="filteritems" v-if="filterCount >= 0">
 
 				<template v-if="hasIncludeFilter">
 					
-					<template v-if="intableview">
+					<template v-if="intableview || filterCount > 1">
 						<FilterItem v-for="item in includeFilter" :obj="item" type="statusbaritemsmall"/>
 					</template>
 					<template v-else>
@@ -19,7 +19,7 @@
 				
 				<template v-if="hasExcludeFilter">
 					
-					<template v-if="intableview">
+					<template v-if="intableview || filterCount > 1">
 						<FilterItem v-for="item in excludeFilter" :obj="item" type="statusbaritemsmall"/>
 					</template>
 					<template v-else>
@@ -48,7 +48,24 @@
 					<div class="date infoitem">{{displayDate}}</div>
 				</div>
 
-				<template v-if="fullView">
+				<template v-if="!fullView">
+					
+					<div class="nfkbar">
+						<template v-for="(percentage, index) in levelPercentages" :key="index">
+							<div
+							v-if="percentage > 0"
+							class="segment"
+							:style="{
+								flexBasis: percentage + '%',
+								backgroundColor: levelColors[index]
+							}">
+							</div>
+						</template>
+					</div>
+
+				</template>
+
+				<template v-else>
 				
 					<div class="nfktable" v-if="levelPercentages && levelPercentages.length">
 						<template v-for="(percentage, index) in levelPercentages" :key="index">
@@ -75,22 +92,7 @@
 
 				</template>
 				
-				<template v-else>
-					
-					<div class="nfkbar">
-						<template v-for="(percentage, index) in levelPercentages" :key="index">
-							<div
-							v-if="percentage > 0"
-							class="segment"
-							:style="{
-								flexBasis: percentage + '%',
-								backgroundColor: levelColors[index]
-							}">
-							</div>
-						</template>
-					</div>
-
-				</template>
+				
 
 			</div>
 		</div>
@@ -126,14 +128,11 @@ export default {
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
-		narrowview() {
-			return (this.intableview && this.containerWidth < 700)
-		},
 		verynarrowview() {
 			return (this.intableview && this.containerWidth < 400)
 		},
 		narrowview() {
-			return (this.intableview && this.containerWidth < 700)
+			return (this.intableview && this.containerWidth < 800)
 		},
 		timelineDate() {
 			return state.timelineDate;
@@ -204,6 +203,9 @@ export default {
 		},
 		hasExcludeFilter() {
 			return (state.excludeFilter.length > 0);
+		},
+		filterCount() {
+			return state.includeFilter.length + state.excludeFilter.length
 		},
 		filteredDevices() {
 			return state.filteredDevices
@@ -279,10 +281,10 @@ export default {
 	min-width: 0
 	flex-shrink 1
 	flex-wrap wrap
-	margin-top 8px
 	font-size 9pt
 	border-top none
 	padding 0 6px
+	margin-top 6px
 	> *
 		pointer-events all
 
@@ -291,9 +293,12 @@ export default {
 	flex-direction row
 	margin-top 0
 	padding 0
+	margin 0 50px
 
 .narrowview .statusbar
 	flex-direction column
+.verynarrowview .statusbar
+	margin 0
 
 // FILTER
 
@@ -303,13 +308,17 @@ export default {
 	display flex
 	flex-direction column
 	align-items center
+	gap 0.5px
 
 .intableview .filteritems
 	filter none
 	flex-direction row
-	margin-right 4px
+	display inline-flex
 	gap 3px
-
+	min-width 200px
+	justify-content flex-end
+	// flex-basis 200px
+	// background red
 
 .narrowview .filteritems
 	margin-right 0
@@ -317,26 +326,8 @@ export default {
 	flex-wrap wrap
 	justify-content center
 
-.iconbutton.close
-	position absolute
-	background-size 91%
-	width 28px
-	height 28px
-	top 50%
-	transform translate(0, -50%)
-	right 4px
-	opacity .4
-	&:hover
-		opacity .8
-
-.intableview .close
-	position absolute
-	width 22px
-	height 22px
-	background-size 100%
-	opacity .4
-	&:hover
-		opacity .8
+.verynarrowview .filteritems
+	margin-top 24px
 
 
 // STATS
@@ -369,7 +360,9 @@ export default {
 	background transparent
 
 .narrowview .stats
+	// padding-top 8ox
 	flex-direction column
+
 .verynarrowview .stats:first-child
 	margin-top 28px
 
@@ -390,20 +383,24 @@ export default {
 .inforow
 	margin 6px 0 6px
 	display flex
-	width 275px
+	height 19px
+	// width 275px
 	align-items baseline
 	justify-content center
+	padding-top 3px
 	gap 0
 	user-select none
+
+.intableview .inforow 
+	margin 6px 6px
 
 // .stats.filteractive .inforow
 
 .infoitem 
 	height 18px
-	flex-grow 1
+	flex-grow 0
 	flex-shrink 0
-	flex-basis 33%
-	padding-top 2px
+	width 92px
 	padding-right 9px
 	overflow hidden
 	// border 1px solid #00000022
@@ -413,6 +410,7 @@ export default {
 	border-left 1px solid #00000011
 
 .trocken
+.trockenstress
 	.value
 		display inline-block
 		width 1.8em
@@ -423,6 +421,7 @@ export default {
 		color #000
 	.no.value
 		opacity .4
+		font-weight normal
 	.unit
 		margin-left .2em
 		opacity .7
@@ -456,18 +455,20 @@ export default {
 		flex-grow 1
 
 .intableview .nfkbar
-	margin-left 8px
 	margin-top 1px
 	overflow hidden
 	filter drop-shadow(0 3px 2px #00000011)
 	// height 6px
-	width 210px
+	width 180px
+	margin-right 20px
 
 .narrowview .nfkbar
 	margin-left 0
+	margin-right 0
 	margin-bottom 6px
 	// height 6px
-	width 250px
+	margin-top 0
+	width calc( 100% - 28px)
 
 
 
@@ -499,8 +500,8 @@ export default {
 			display flex
 			font-size 8pt
 			padding-top 1px
-			padding-right 6px
-			padding-left 4px
+			padding-right 7px
+			padding-left 7px
 		.value
 			display inline-block
 			width 2.7em
@@ -530,8 +531,8 @@ export default {
 	@media (max-width: 1250px) 
 		.sidebaropen .topbar .statusbarouter
 			position fixed
-			top calc(var(--menubariconsize) + 8px)
 			left 0px
+			top 48px
 			right 600px
 		.is-mobile .topbar .statusbarouter
 			position fixed
