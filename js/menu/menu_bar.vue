@@ -11,14 +11,14 @@
 		<div
 			v-if="(item.key != 'info' || !state.isMobile) && (item.key != 'error' || showErrorMenu)"
 			:key="item.key"
-			class="menubaritem hastooltip"
+			class="menubaritem"
 			:class="[item.key, { active: state.menuOpen[item.key] }, item.class]"
-			v-click-hide-tooltip
+			v-tooltip
+			:tooltipcontent="item.tooltip"
+			:tooltipdisabled="isGroupActive || isSoloActive"
+			tooltipside="bottom"
+			tooltipalign="left"
 			@click="handleClick(item)">
-
-			<div class="tooltip">
-				{{ item.tooltip }}
-			</div>
 
 			<div class="icon" :class="item.key" :style="item.iconStyle || {}"></div>
 
@@ -46,10 +46,6 @@ export default {
 	},
 	setup() {
 		return {state};
-	},
-	data() {
-		return {
-		};
 	},
 	computed: {
 		menuItems() {

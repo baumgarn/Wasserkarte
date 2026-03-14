@@ -2,7 +2,7 @@
 
 	<div class="statusbarouter" :class="{ intableview, narrowview, verynarrowview }">
 
-		<div class="statusbar" >
+		<div class="statusbar">
 
 			<div class="filteritems" v-if="filterCount >= 0">
 
@@ -30,11 +30,25 @@
 
 			</div>
 
-			<div class="stats" :class="{ 'filteractive': filterActive, 'full':fullView }" @click="toggleFull">
+			<div class="stats" :class="{ 'filteractive': filterActive, 'full':fullView }" @click="toggleFull"
+			>
+			
+			<div class="inforow">
+			
 
-				<div class="inforow">
+					<div class="trocken infoitem"
 
-					<div class="trocken infoitem">
+						v-tooltip
+						tooltipcontent="Anteil der Standorte bei denen zu wenig Wasser für Pflanzen verfügbar ist (nFK < 50%)"
+						tooltipside="bottom"
+						tooltipalign="left"
+						tooltipalignoffset="0"
+						:tooltipoffset="intableview? -2 : 3"
+						tooltipwidth="276"
+						:tooltiparrowsize="intableview? '':'12 10'"
+						tooltiparrowposition="50"
+						:tooltipdisabled="fullView"
+						>
 						<span v-if="averages && averages.nfk_avg != null" class="value">{{ trocken }}</span>
 						<span v-else class="no value">–</span>
 						<span class="unit">%</span>
@@ -215,6 +229,10 @@ export default {
 		},
 		filterActive() {
 			return (state.includeFilter.length > 0 || state.excludeFilter.length > 0)
+		},
+		infoTipId() {
+			const uid = this.$ && this.$.uid ? this.$.uid : '0';
+			return `statusbar-info-tip-${uid}`;
 		},
 	},
 	methods: {

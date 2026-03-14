@@ -8,6 +8,11 @@
 			v-if="item.type === 'select'"
 			class="item select"
 			:class="{ active: isActive(item) }"
+			v-tooltip
+			:tooltipcontent="item.tooltip"
+			:tooltipdisabled="!item.tooltip"
+			tooltipside="left"
+			tooltipoffset="10"
 			@click="select(item)"
 			>
 				<div v-if="!item.icon" class="icon"></div>
@@ -17,6 +22,11 @@
 			<div
 			v-else-if="item.type === 'action'"
 			class="item action"
+			v-tooltip
+			:tooltipcontent="item.tooltip"
+			:tooltipdisabled="!item.tooltip"
+			tooltipside="left"
+			tooltipoffset="10"
 			@click="runAction(item)"
 			>
 				<div v-if="item.icon" class="icon" :class="item.icon"></div>
@@ -27,6 +37,14 @@
 				v-else-if="item.type === 'boolean'"
 				class="item boolean"
 				:class="{ active: state[item.stateProp] }"
+				v-tooltip
+				:tooltipcontent="item.tooltip"
+				:tooltipdisabled="!item.tooltip"
+				:tooltiphideonclick="false"
+				tooltipside="left"
+				tooltipdelay="300"
+				tooltipwidth="200"
+				tooltipoffset="0"
 				@click="toggleBoolean(item)"
 			>
 				<div v-if="!item.icon" class="icon"></div>

@@ -1,5 +1,5 @@
 <template>
-	<div class="tableview" :class="{ narrowview }" tabindex="0" @keydown="onKeydown" @mousemove="onMouseMove" @mouseleave="hideTooltip">
+	<div class="tableview" :class="{ narrowview }" tabindex="0" @keydown="onKeydown">
 
 		<div class="tableview-header">
 			<StatusBar :intableview="true" :containerWidth="tableWidth"/>
@@ -11,7 +11,7 @@
 				
 				<template v-if="tableview_compact && (col.type == 'attribute')">
 				
-					<div class="table-colheader compact" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click="col.sortable && sortBy(col.key)" :colheaderinfo="col.name"></div>
+					<div class="table-colheader compact" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click="col.sortable && sortBy(col.key)" v-tooltip :tooltipcontent="col.name" tooltipside="top" tooltipoffset="-5"></div>
 					
 				</template>
 
@@ -48,13 +48,19 @@
 
 				<template v-for="(row, rowIndex) in filteredSortedTableData">
 
-					<div
-						class="table-data"
-						:class="[col.type, col.key, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: rowIndex === 0 }]"
-						@click="selectDevice(row.device, $event)"
-						:hoverinfo="getDataHoverInfo(col, row)"
-						v-on="col.type === 'timeline' ? { mousemove: onTimelineHover, mouseleave: onTimelineHoverOut } : {}"
-						>
+						<div
+							class="table-data"
+							:class="[col.type, col.key, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: rowIndex === 0 }]"
+							@click="selectDevice(row.device, $event)"
+							v-tooltip
+							:tooltipcontent="getDataHoverInfo(col, row)"
+							tooltipside="right"
+							tooltipoffset="10"
+							tooltipfollowcursor="true"
+							tooltiphandover="true"
+							tooltipdelay="350"
+							v-on="col.type === 'timeline' ? { mousemove: onTimelineHover, mouseleave: onTimelineHoverOut } : {}"
+							>
 
 						<template v-if="col.key === 'name'">
 							
@@ -105,11 +111,6 @@
 		</div>
 		
 		
-
-		<div class="mouse-tooltip" v-show="tooltip.visible" :class="{ ready: tooltip.ready }" :style="tooltipStyle">{{ tooltip.text }}</div>
-
-		<div class="colheader-tooltip" v-show="colHeaderTooltip.visible" :class="{ ready: colHeaderTooltip.ready }" :style="colHeaderTooltipStyle">{{ colHeaderTooltip.text }}</div>
-
 		<div class="windowbuttons plain left row">
 			<div class="iconbutton close" v-on:click="close()"></div>
 		</div>
@@ -125,8 +126,10 @@
 		:items="filterMenuItems" />
 
 		<div class="windowbuttons plain row tablesettings">
-			<div class="iconbutton light filter" ref="filterbuttonref" :class="{ active: $refs.filterpopupref?.isOpen }" v-on:click="openFilterPopup()"></div>
-			<div class="iconbutton light settings" :class="{ active: $refs.settingspopupref?.isOpen }" v-on:click="openSettingsPopup()" ref="settingsbuttonref"></div>
+			<div class="iconbutton light filter" ref="filterbuttonref" :class="{ active: $refs.filterpopupref?.isOpen }" v-on:click="openFilterPopup()"
+				v-tooltip tooltipcontent="Filter" tooltipside="bottom" :tooltipdisabled="$refs.filterpopupref?.isOpen || $refs.settingspopupref?.isOpen"></div>
+			<div class="iconbutton light settings" :class="{ active: $refs.settingspopupref?.isOpen }" v-on:click="openSettingsPopup()" ref="settingsbuttonref"
+				v-tooltip tooltipcontent="Einstellungen" tooltipside="bottom" tooltipalign="right" tooltipalignoffset="-2" :tooltipdisabled="$refs.filterpopupref?.isOpen || $refs.settingspopupref?.isOpen"></div>
 		</div>
 
 	</div>
@@ -143,6 +146,7 @@ import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
 import DateAxis from '@/charts/dateaxis.vue'
 import StatusBar from '@/map/statusbar.vue';
+import { hideTooltip } from '@/tooltip.js';
 
 export default {
 	name: 'TableView',
@@ -165,8 +169,6 @@ export default {
 			earliestTimestamp: 0,
 			latestTimestamp: 0,
 			popoverMenuPosition: { top: 32, right: 8 },
-			tooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
-			colHeaderTooltip: { visible: false, ready: false, text: '', x: 0, y: 0 },
 			timelineWidth: 0,
 			tableWidth: 0,
 			timelineHoverX: -1,
@@ -257,7 +259,7 @@ export default {
 				{type:'thinline'},
 				// {type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
 				// {type:'select', label:'Schichten nFK', value:'nfk_schichten', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
-				{type:'boolean', label:'Schichten anzeigen', stateProp:'tableview_showdepths'},
+				{type:'boolean', label:'Schichten anzeigen', stateProp:'tableview_showdepths', tooltip:'Zeigt Farbbalken für jede gemessene Schichttiefe anstelle eines Durchschnittswertes'},
 				{type:'thinline'},
 				{type:'boolean', label:'Datenlücken anzeigen', stateProp:'showDataGaps'},
 			)
@@ -309,19 +311,6 @@ export default {
 		_90d() {
 			const DAY = 24 * 60 * 60 * 1000;
 			return this.latestTimestamp - (90 * DAY);
-		},
-		tooltipStyle() {
-			return {
-				left: (this.tooltip.x + 10) + 'px',
-				top: (this.tooltip.y + 10) + 'px',
-			};
-		},
-		colHeaderTooltipStyle() {
-			return {
-				left: this.colHeaderTooltip.x + 'px',
-				top: this.colHeaderTooltip.y + 'px',
-				transform: 'translateX(-50%) translateY(calc(-100% - 2px))',
-			};
 		},
 		minTimelineWidth() {
 			return 356;
@@ -419,17 +408,7 @@ export default {
 		},
 		onScroll(e) {
 			this.isScrollTop = e.target.scrollTop === 0;
-			this._clearTooltipTimer();
-			this._clearColHeaderTooltipTimer();
-			this.tooltip.visible = false;
-			this.tooltip.ready = false;
-			this.colHeaderTooltip.visible = false;
-			this.colHeaderTooltip.ready = false;
-			this._clearScrollEndTimer();
-			this._scrollEndTimer = setTimeout(() => {
-				this._scrollEndTimer = null;
-				this._checkTooltipAtCursor();
-			}, 150);
+			hideTooltip();
 		},
 		sortBy(key) {
 			if (this.sortKey === key) {
@@ -456,138 +435,6 @@ export default {
 			const val = row[col.key];
 			return val ? `${val.name}` : col.name;
 		},
-		_clearTooltipTimer() {
-			if (this._tooltipTimer) {
-				clearTimeout(this._tooltipTimer);
-				this._tooltipTimer = null;
-			}
-		},
-		_clearScrollEndTimer() {
-			if (this._scrollEndTimer) {
-				clearTimeout(this._scrollEndTimer);
-				this._scrollEndTimer = null;
-			}
-		},
-		_clearColHeaderTooltipTimer() {
-			if (this._colHeaderTooltipTimer) {
-				clearTimeout(this._colHeaderTooltipTimer);
-				this._colHeaderTooltipTimer = null;
-			}
-		},
-		_checkTooltipAtCursor() {
-			const el = document.elementFromPoint(this.tooltip.x, this.tooltip.y);
-			if (!el || !this.$el.contains(el)) return;
-			let node = el;
-			let hoverText = null;
-			let colHeaderText = null;
-			let colHeaderEl = null;
-			while (node && node !== this.$el) {
-				if (node.hasAttribute?.('colheaderinfo')) {
-					colHeaderText = node.getAttribute('colheaderinfo') || null;
-					colHeaderEl = node;
-					break;
-				}
-				if (node.hasAttribute?.('hoverinfo')) {
-					hoverText = node.getAttribute('hoverinfo') || null;
-					break;
-				}
-				node = node.parentElement;
-			}
-			if (colHeaderText && colHeaderEl) {
-				const rect = colHeaderEl.getBoundingClientRect();
-				this.colHeaderTooltip.text = colHeaderText;
-				this.colHeaderTooltip.x = rect.left + rect.width / 2;
-				this.colHeaderTooltip.y = rect.top;
-				this.colHeaderTooltip.visible = true;
-				if (!this._colHeaderTooltipTimer) {
-					this._colHeaderTooltipTimer = setTimeout(() => {
-						this._colHeaderTooltipTimer = null;
-						this.colHeaderTooltip.ready = true;
-					}, 400);
-				}
-			} else if (hoverText) {
-				this.tooltip.text = hoverText;
-				this.tooltip.visible = true;
-				if (!this._tooltipTimer) {
-					this._tooltipTimer = setTimeout(() => {
-						this._tooltipTimer = null;
-						this.tooltip.ready = true;
-					}, 600);
-				}
-			}
-		},
-		onMouseMove(e) {
-			this._clearScrollEndTimer();
-			this.tooltip.x = e.clientX;
-			this.tooltip.y = e.clientY;
-
-			let el = e.target;
-			let hoverText = null;
-			let colHeaderText = null;
-			let colHeaderEl = null;
-			while (el && el !== this.$el) {
-				if (el.hasAttribute('colheaderinfo')) {
-					colHeaderText = el.getAttribute('colheaderinfo') || null;
-					colHeaderEl = el;
-					break;
-				}
-				if (el.hasAttribute('hoverinfo')) {
-					hoverText = el.getAttribute('hoverinfo') || null;
-					break;
-				}
-				el = el.parentElement;
-			}
-
-			if (colHeaderText && colHeaderEl) {
-				const rect = colHeaderEl.getBoundingClientRect();
-				this.colHeaderTooltip.text = colHeaderText;
-				this.colHeaderTooltip.x = rect.left + rect.width / 2;
-				this.colHeaderTooltip.y = rect.top;
-				this.colHeaderTooltip.visible = true;
-				if (!this._colHeaderTooltipTimer && !this.colHeaderTooltip.ready) {
-					this._colHeaderTooltipTimer = setTimeout(() => {
-						this._colHeaderTooltipTimer = null;
-						this.colHeaderTooltip.ready = true;
-					}, 400);
-				}
-				// suppress cursor tooltip while over colheader
-				this._clearTooltipTimer();
-				this.tooltip.visible = false;
-				this.tooltip.ready = false;
-			} else {
-				this._clearColHeaderTooltipTimer();
-				this.colHeaderTooltip.visible = false;
-				this.colHeaderTooltip.ready = false;
-			}
-
-			if (hoverText) {
-				this.tooltip.text = hoverText;
-				if (this.tooltip.ready) {
-					// already visible — switch content instantly, no delay
-				} else {
-					this.tooltip.visible = true;
-					if (!this._tooltipTimer) {
-						this._tooltipTimer = setTimeout(() => {
-							this._tooltipTimer = null;
-							this.tooltip.ready = true;
-						}, 600);
-					}
-				}
-			} else if (!colHeaderText) {
-				this._clearTooltipTimer();
-				this.tooltip.visible = false;
-				this.tooltip.ready = false;
-			}
-		},
-		hideTooltip() {
-			this._clearTooltipTimer();
-			this._clearScrollEndTimer();
-			this._clearColHeaderTooltipTimer();
-			this.tooltip.visible = false;
-			this.tooltip.ready = false;
-			this.colHeaderTooltip.visible = false;
-			this.colHeaderTooltip.ready = false;
-		},
 		onTimelineHover(event) {
 			const rect = event.currentTarget.getBoundingClientRect();
 			this.timelineHoverX = event.clientX - rect.left;
@@ -598,9 +445,10 @@ export default {
 			if (ts > this.latestTimestamp) ts = this.latestTimestamp;
 			state.timelineDate = ts;
 		},
-		onTimelineHoverOut() {
+		onTimelineHoverOut(event) {
 			this.timelineHoverX = -1;
 			state.timelineDate = null;
+			hideTooltip(event?.currentTarget);
 		},
 		getTimelineRef() {
 			const ref = this.$refs.timelineref;
@@ -637,9 +485,7 @@ export default {
 	beforeUnmount() {
 		if (this._tableResizeObserver) this._tableResizeObserver.disconnect();
 		if (this._resizeObserver) this._resizeObserver.disconnect();
-		this._clearTooltipTimer();
-		this._clearScrollEndTimer();
-		this._clearColHeaderTooltipTimer();
+		hideTooltip();
 	},
 	watch: {
 		selectedDevice: {
@@ -862,51 +708,5 @@ export default {
 		white-space nowrap
 		flex-grow 1
 		font-weight: normal
-
-.mouse-tooltip
-	position fixed
-	background var(--infobg)
-	backdrop-filter: blur(10px);
-	color #fff
-	font-size 9pt
-	padding: 4px 6px 4px
-	border-radius: 3px;
-	font-weight normal
-	pointer-events none
-	z-index 9999
-	white-space nowrap
-	box-shadow 0 2px 8px rgba(0,0,0,.2)
-	opacity 0
-	transition opacity 0.15s linear
-	&.ready
-		opacity 1
-
-.colheader-tooltip
-	position fixed
-	background var(--infobg)
-	backdrop-filter: blur(10px);
-	color #fff
-	font-size 9pt
-	padding 4px 6px
-	border-radius 3px
-	font-weight normal
-	pointer-events none
-	z-index 9999
-	white-space nowrap
-	filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
-	opacity 0
-	transition opacity 0.15s linear
-	&.ready
-		opacity 1
-	&:after
-		content ''
-		opacity .8
-		position absolute
-		left calc(50% - 0.5px)
-		transform translateX(-50%)
-		top 100%
-		border-left 5px solid transparent
-		border-right 5px solid transparent
-		border-top 7px solid var(--infobg)
 
 </style> 

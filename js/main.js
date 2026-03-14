@@ -3,10 +3,12 @@ import OpenLayersMap from "vue3-openlayers";
 import App from '@/app.vue';
 import router from '@/router.js';
 import { createApp } from 'vue';
+import { tooltipDirective } from '@/tooltip.js';
 
 export const app = createApp(App);
 app.use(OpenLayersMap);
 app.use(router);
+app.directive('tooltip', tooltipDirective);
 
 
 

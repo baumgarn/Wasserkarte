@@ -30,7 +30,13 @@
 					</template>
 				</div>
 
-				<div class="datarow wassergehalt hastooltip">
+				<div
+					class="datarow wassergehalt"
+					v-tooltip
+					tooltipcontent="Die gesamte Menge Wasser im Oberboden 1m² bis 60 cm."
+					tooltipside="left"
+					tooltipoffset="6"
+					tooltipwidth="210">
 
 					<div class="icon">
 					</div>
@@ -48,13 +54,15 @@
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
 
-					<div class="tooltip left opaque">
-						Die gesamte Menge Wasser im Oberboden 1m&sup2; bis 60 cm.
-					</div>
-
 				</div>
 				
-				<div class="datarow pflanzenverfuegbar hastooltip">
+				<div
+					class="datarow pflanzenverfuegbar"
+					v-tooltip
+					tooltipcontent="Das tatsächlich für die Wurzeln der Pflanzen erreichbare Wasser."
+					tooltipside="left"
+					tooltipoffset="6"
+					tooltipwidth="210">
 
 					<div class="icon"></div>
 					
@@ -73,13 +81,15 @@
 						<span class="unit"><span class="smaller">nFK</span> %</span>
 					</div>
 
-					<div class="tooltip left opaque">
-						Das tatsächlich für die Wurzeln der Pflanzen erreichbare Wasser. 
-					</div>
-
 				</div>
 				
-				<div class="datarow totwasser hastooltip">
+				<div
+					class="datarow totwasser"
+					v-tooltip
+					tooltipcontent="Ein Teil des Wassers ist zu stark an den Boden gebunden und nicht für Pflanzen erreichbar."
+					tooltipside="left"
+					tooltipoffset="6"
+					tooltipwidth="210">
 
 					<div class="icon"></div>
 
@@ -99,14 +109,15 @@
 					</div>
 
 
-					<div class="tooltip left opaque">
-						Ein Teil des Wassers ist zu stark an den Boden gebunden und nicht für Pflanzen erreichbar.
-					</div>
-
-
 				</div>
 
-				<div class="datarow gesamtkapazitaet hastooltip" >
+				<div
+					class="datarow gesamtkapazitaet"
+					v-tooltip
+					tooltipcontent="So viel Wasser kann der Boden gegen die Schwerkraft speichern. Überschüssiges Wasser fließt ins Grundwasser ab."
+					tooltipside="left"
+					tooltipoffset="6"
+					tooltipwidth="210">
 
 					<div class="icon"></div>
 
@@ -125,11 +136,6 @@
 					</div>
 
 
-					<div class="tooltip left opaque">
-						So viel Wasser kann der Boden gegen die Schwerkraft speichern. Überschüssiges Wasser fließt ins Grundwasser ab.
-					</div>
-
-					
 				</div>
 
 				<div class="hinweis">

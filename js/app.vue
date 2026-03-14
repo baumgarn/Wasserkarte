@@ -5,6 +5,7 @@
 			<component :is="Component" />
 		</keep-alive>
 	</router-view>
+	<AppTooltip />
 
 </template>
 
@@ -15,10 +16,13 @@ import { fetchWMSCapabilities } from './wmsutils.js';
 import { state } from './state.js';
 import { config } from './config.js';
 import { useRoute, useRouter } from 'vue-router';
-import { nextTick } from 'vue';
+import AppTooltip from '@/ui/app_tooltip.vue';
 
 
 export default {
+	components: {
+		AppTooltip,
+	},
 	setup() {
 		const route = useRoute();
 		const router = useRouter();
