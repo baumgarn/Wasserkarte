@@ -55,13 +55,38 @@ localStorageState('showDataGaps', false);
 
 localStorageState('tableview_compact', true);
 localStorageState('tableview_attributes', true);
+localStorageState('tableview_bookmarksontop', true);
 localStorageState('tableview_timelinerange', 'all');
 localStorageState('tableview_timelinestyle', 'nfk_avg');
 localStorageState('tableview_showdepths', false);
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 
+// BOOKMARKS
 
+localStorageState('bookmarks', []);
+
+export function isBookmarked(device) {
+	const deviceId = device && device.id;
+	if (deviceId == null) return false;
+	return state.bookmarks.includes(deviceId);
+}
+
+export function toggleBookmark(device) {
+	const deviceId = device && device.id;
+	if (deviceId == null) return false;
+
+	if (isBookmarked(device)) {
+		state.bookmarks = state.bookmarks.filter((id) => id !== deviceId);
+		return false;
+	}
+
+	state.bookmarks = [...state.bookmarks, deviceId];
+	return true;
+}
+
+
+// LOCAL STORAGE
 
 // Stores and retrieves state property in local storage
 function localStorageState(key, defaultValue) {
@@ -83,6 +108,8 @@ export function computedState(key, getter, options = {}) {
 		state[key] = val;
 	}, { immediate: false, ...options });
 }
+
+// FILTER
 
 // watch filter and create the filteredDevices array
 watch(
@@ -106,6 +133,7 @@ watch(
 	},
 	{ immediate: true, deep: true }
 );
+
 
 
 // on load, reset attribute marker styles to bodenfeuchte farbkreis

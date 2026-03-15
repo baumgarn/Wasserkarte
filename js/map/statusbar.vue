@@ -36,7 +36,7 @@
 			<div class="inforow">
 			
 
-					<div class="trocken infoitem"
+					<div class="trocken infoitem" :class="{'novalue': !(averages && averages.nfk_avg != null)}"
 
 						v-tooltip
 						tooltipcontent="Anteil der Standorte bei denen zu wenig Wasser für Pflanzen verfügbar ist (nFK < 50%)"
@@ -44,15 +44,16 @@
 						tooltipalign="left"
 						tooltipalignoffset="0"
 						:tooltipoffset="intableview? -2 : 3"
-						tooltipwidth="276"
+						tooltipwidth="264"
 						:tooltiparrowsize="intableview? '':'12 10'"
 						tooltiparrowposition="50"
 						:tooltipdisabled="fullView"
 						>
-						<span v-if="averages && averages.nfk_avg != null" class="value">{{ trocken }}</span>
-						<span v-else class="no value">–</span>
-						<span class="unit">%</span>
-						<span class="label">&nbsp;Trocken</span>
+							<span v-if="averages && averages.nfk_avg != null" class="value">{{ trocken }}</span>
+							<span v-else class="no value">–</span>
+							<span class="unit">%</span>
+							<span class="label">&nbsp;Trocken</span>
+							
 					</div>
 					<div class="devicecount infoitem">
 						<span class="value">{{ averages.count }}</span> 
@@ -334,7 +335,11 @@ export default {
 	display inline-flex
 	gap 3px
 	min-width 200px
-	justify-content flex-end
+	justify-content center
+	flex-wrap wrap
+	:first-child 
+		margin-left: auto
+
 	// flex-basis 200px
 	// background red
 

@@ -57,7 +57,7 @@ export default {
 	position fixed
 	left 0
 	top 0
-	--app-tooltip-radius 3px
+	--app-tooltip-radius 6px
 	--app-tooltip-pad-y 4px
 	--app-tooltip-pad-x 6px
 	width max-content

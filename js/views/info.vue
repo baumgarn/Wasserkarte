@@ -108,7 +108,7 @@
 					<p>
 						Projektleitung Wassermeisterei: Daniel Diehl<br>
 						Projektleitung Zukunftsschusterei: Malte Specht<br>
-						Design und Programmierung Wasserkarte: Nikolaus Baumgarten<br>
+						Design und Programmierung Wasserkarte: <a href="http://nikkki.net" target="_blank">Nikolaus Baumgarten</a><br>
 					</p>
 						<div class="settings-item">
 						<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
@@ -354,7 +354,8 @@ export default {
 
 	.infoschicht 
 		padding 12px 24px
-
+		a
+			font-weight normal
 	.legenditem
 		display flex
 		flex-direction row

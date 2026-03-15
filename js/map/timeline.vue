@@ -361,7 +361,7 @@ export default {
 			text-align center
 			padding 3px 0 2px
 			white-space nowrap
-			border-radius 4px
+			border-radius 6px
 			z-index 100
 			overflow visible
 		.timelinehovertriangle

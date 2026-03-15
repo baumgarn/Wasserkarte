@@ -608,6 +608,17 @@ input[type=radio] {
 .iconbutton.light.active {
   opacity: 0.8;
 }
+.iconbutton.bookmark {
+  background-image: url("/img/bookmarkfill.svg");
+  background-size: 110%;
+  opacity: 0.2;
+}
+.iconbutton.bookmark.active {
+  opacity: 0.8;
+}
+.iconbutton.more {
+  background-image: url("/img/morev.png");
+}
 .iconbutton.more {
   background-image: url("/img/morev.png");
 }
@@ -626,6 +637,7 @@ input[type=radio] {
 .iconbutton.switchfullwindow {
   background-image: url("/img/dock_left.png");
   background-size: 94%;
+  background-size: 90%;
 }
 .sidebar.fullwidth .iconbutton.switchfullwindow {
   background-image: url("/img/dock_right.png");

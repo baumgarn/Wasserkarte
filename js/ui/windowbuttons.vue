@@ -2,27 +2,28 @@
 
 	<div class="windowbuttons">
 		<div class="windowbuttonsinner">
+
 			<div class="iconbutton close" v-on:click="closefunc()"></div>
-			<div
-				v-if="showswitch"
+	
+			<div class="iconbutton bookmark"
 				v-tooltip
-				:tooltipcontent="switchTooltipContent"
+				:tooltipcontent="isBookmarkedDevice? 'Bookmark entfernen':'Bookmark setzen'"
 				tooltipside="left"
-				tooltipoffset="2"
-				class="iconbutton switchfullwindow"
-				v-on:click="switchSidebarWidth()"
-			></div>
+				:class="{ active: isBookmarkedDevice }" v-on:click="togglebookmark()"></div>
 
 			<div class="iconbutton more" ref="toggleMore" v-on:click="openMore()"></div>
+
 			<PopoverMenu ref="moreRef" :items="moreItems" />
+			
 		</div>
+		
 	</div>
 
 </template>
 
 <script>
 
-import { state } from '@/state.js';
+import { state, isBookmarked, toggleBookmark } from '@/state.js';
 import dataStore from '@/dataStore.js';
 import PopoverMenu from '@/ui/popovermenu.vue';
 
@@ -46,9 +47,6 @@ export default {
 		sidebarFullView() {
 			return state.sidebarFullView;
 		},
-		switchTooltipContent() {
-			return this.sidebarFullView ? 'Schmale Ansicht' : 'Weite Ansicht';
-		},
 		showswitch() {
 			return this.$route.name != 'standort' && this.$route.name != 'embed' && this.$route.name != 'iframe' && this.$route.name != 'qrcode';
 		},
@@ -56,6 +54,14 @@ export default {
 			var items = [];
 			const router = this.$router;
 			const device = this.device;
+			if (this.$route.name != 'qrcode' && this.$route.name != 'embed') {
+				items.push({ 
+					type: 'action', 
+					label: this.sidebarFullView ? 'Schmale Ansicht' : 'Weite Ansicht', 
+					action: (s) => {
+						this.switchSidebarWidth();
+				}});
+			}
 			if (this.$route.name != 'embed') {
 				items.push({ 
 					type: 'action', 
@@ -86,9 +92,15 @@ export default {
 			}
 			return items;
 		},
+		isBookmarkedDevice() {
+			return isBookmarked(this.device);
+		},
 	
 	},
 	methods: {
+		togglebookmark() {
+			toggleBookmark(this.device);
+		},
 		closefunc() {
 			if (this.close) {
 				this.close();

@@ -34,9 +34,7 @@
 					</div>
 										
 				</div>
-
-
-
+				
 				<a v-if="!state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten desktop"><img src="/img/klimadaten.png" ></a>
 
 				<a v-else-if="state.isMobile" href="http://badbelzig-klimadaten.de" class="klimadaten mobile"><img src="/img/klimadaten.png" ></a>

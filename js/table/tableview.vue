@@ -11,7 +11,7 @@
 				
 				<template v-if="tableview_compact && (col.type == 'attribute')">
 				
-					<div class="table-colheader compact" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click="col.sortable && sortBy(col.key)" v-tooltip :tooltipcontent="col.name" tooltipside="top" tooltipoffset="-5"></div>
+					<div class="table-colheader compact" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]" @click.stop="onHeaderClick(col)" v-tooltip :tooltipcontent="col.name" tooltipside="top" tooltipoffset="-5"></div>
 					
 				</template>
 
@@ -38,7 +38,7 @@
 				
 				<template v-else>
 				
-					<div class="table-colheader" :class="{ sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }" @click="col.sortable && sortBy(col.key)">
+					<div class="table-colheader" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc, active: col.key === 'bookmark' && state.tableview_bookmarksontop, bookmarks: col.key === 'bookmark' && state.tableview_bookmarksontop }]" @click.stop="onHeaderClick(col)">
 
 						{{ col.name }}
 
@@ -50,8 +50,8 @@
 
 						<div
 							class="table-data"
-							:class="[col.type, col.key, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: rowIndex === 0 }]"
-							@click="selectDevice(row.device, $event)"
+							:class="[col.type, col.key, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: rowIndex === 0, bookmarked: col.key === 'bookmark' && isBookmarked(row.device) }]"
+							@click="onCellClick(col, row, $event)"
 							v-tooltip
 							:tooltipcontent="getDataHoverInfo(col, row)"
 							tooltipside="right"
@@ -65,6 +65,12 @@
 						<template v-if="col.key === 'name'">
 							
 							<div class="label">{{ row.name }}</div>	
+
+						</template>
+
+						<template v-if="col.key === 'bookmark'">
+
+								<div class="table-bookmark-icon"></div>
 
 						</template>
 
@@ -137,7 +143,7 @@
 </template>
 
 <script>
-import { state } from '@/state.js';
+import { state, isBookmarked, toggleBookmark } from '@/state.js';
 import dataStore from '@/datastore.js';
 import { dataModel } from '@/datamodel.js'
 import ColorDot from '@/menu/colordot.vue';
@@ -184,6 +190,7 @@ export default {
 		columns() {
 			let cols = [];
 
+			cols.push({ key: 'bookmark', name: '', type: 'bookmark' })
 			cols.push({ key: 'name', name: 'Standort', sortable: true, width: 250 })
 				
 			if (this.tableview_attributes) {
@@ -216,12 +223,20 @@ export default {
 		},
 		sortedTableData() {
 			const key = this.sortKey;
+			const dir = this.sortAsc ? 1 : -1;
 			return [...this.tableData].sort((a, b) => {
+				if (state.tableview_bookmarksontop) {
+					const aBookmarked = state.bookmarks.includes(a.device?.id) ? 1 : 0;
+					const bBookmarked = state.bookmarks.includes(b.device?.id) ? 1 : 0;
+					if (aBookmarked !== bBookmarked) {
+						return bBookmarked - aBookmarked;
+					}
+				}
+
 				const av = a[key];
 				const bv = b[key];
 				const as = av && typeof av === 'object' ? (av.sort ?? av.name ?? '') : (av ?? '');
 				const bs = bv && typeof bv === 'object' ? (bv.sort ?? bv.name ?? '') : (bv ?? '');
-				const dir = this.sortAsc ? 1 : -1;
 				const aEmpty = as === '';
 				const bEmpty = bs === '';
 				if (aEmpty !== bEmpty) return aEmpty ? dir : -dir;
@@ -337,6 +352,22 @@ export default {
 		},
 	},
 	methods: {
+		onHeaderClick(col) {
+			if (col.key === 'bookmark') {
+				state.tableview_bookmarksontop = !state.tableview_bookmarksontop;
+				return;
+			}
+			if (!col.sortable) return;
+			this.sortBy(col.key);
+		},
+		onCellClick(col, row, event) {
+			if (col.key === 'bookmark') {
+				event?.stopPropagation();
+				toggleBookmark(row.device);
+				return;
+			}
+			this.selectDevice(row.device, event);
+		},
 		selectDevice(device) {
 			if (state.popupMenuOpen) return;
 			if (state.selectedDevice == device?.name) {
@@ -434,6 +465,9 @@ export default {
 			if (col.type !== 'attribute' || !this.tableview_compact) return null;
 			const val = row[col.key];
 			return val ? `${val.name}` : col.name;
+		},
+		isBookmarked(device) {
+			return isBookmarked(device);
 		},
 		onTimelineHover(event) {
 			const rect = event.currentTarget.getBoundingClientRect();
@@ -600,7 +634,19 @@ export default {
 			transition background linear .1s
 			&:hover
 				background var(--hovercolor)
+		&.sortable:hover:not(.sortby)::after
+			content ''
+			position absolute
+			right 5px
+			opacity .28
+			margin-left 5px 
+			margin-top 2px 
+			display block
+			border-left 5px solid transparent
+			border-right 5px solid transparent
+			border-top 8px solid currentColor
 		&.sortby::after
+		&.bookmarks::after
 			content ''
 			position absolute
 			right 5px
@@ -625,6 +671,45 @@ export default {
 		&:after
 			right 50%
 			margin-right -5px
+		&.sortable:hover:not(.sortby)::after
+			right 50%
+			margin-right -5px
+	.table-colheader.bookmark
+		padding 0
+		justify-content center
+		cursor pointer
+		background-color #fff
+		&:hover
+			background var(--hovercolor)
+		&:hover:not(.bookmarks)::after
+			content ''
+			width 16px
+			height 16px
+			position absolute
+			right 50%
+			top 54%
+			margin 0
+			margin-right -8px
+			transform translateY(-50%)
+			opacity .35
+			background-image url('/img/pinned.svg')
+			background-repeat no-repeat
+			background-size 100% 100%
+			background-position center
+		&.bookmarks::after
+			width 16px
+			height 16px
+			right 50%
+			top 54%
+			margin 0
+			margin-right -8px
+			transform translateY(-50%)
+			border none
+			opacity .7
+			background-image url('/img/pinned.svg')
+			background-repeat no-repeat
+			background-size 100% 100%
+			background-position center
 	.table-colfooter
 		flex-basis var(--rowheight)
 		flex-grow 1
@@ -674,6 +759,28 @@ export default {
 		font-size var(--tablefontsize)
 	.table-data.timeline
 		border-right none
+	.table-data.bookmark
+		padding 0
+		width var(--rowheight)
+		justify-content center
+		cursor pointer
+		&:hover .table-bookmark-icon
+			opacity .3
+		&.bookmarked .table-bookmark-icon
+			opacity .7
+		&.bookmarked:hover .table-bookmark-icon
+			opacity .7
+	.table-bookmark-icon
+		width 17px
+		height 17px
+		background-image url('/img/bookmarkfill.svg')
+		background-repeat no-repeat
+		background-size 100% 100%
+		background-position center
+		opacity 0
+		transition opacity linear .1s
+		position relative
+		z-index 2
 	.timeline-col-hoverline
 		position absolute
 		top var(--rowheight)

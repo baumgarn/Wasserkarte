@@ -15,7 +15,8 @@
 			:class="[item.key, { active: state.menuOpen[item.key] }, item.class]"
 			v-tooltip
 			:tooltipcontent="item.tooltip"
-			:tooltipdisabled="isGroupActive || isSoloActive"
+			:tooltipdisabled="isGroupActive"
+			tooltipalignoffset="5"
 			tooltipside="bottom"
 			tooltipalign="left"
 			@click="handleClick(item)">
