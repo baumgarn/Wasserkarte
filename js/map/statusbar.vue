@@ -348,6 +348,8 @@ export default {
 	max-width 270px
 	flex-wrap wrap
 	justify-content center
+	:first-child 
+		margin-left unset
 
 .verynarrowview .filteritems
 	margin-top 24px

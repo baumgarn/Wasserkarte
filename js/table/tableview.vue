@@ -9,7 +9,15 @@
 		
 			<div class="table-col" :class="col.class" :style="col.width ? { width: col.width + 'px', flexShrink: 0 } : col.minWidth ? { minWidth: col.minWidth + 'px' } : {}" v-for="col in columns" :key="col.key">
 				
-				<template v-if="tableview_compact && (col.type == 'attribute')">
+				<template v-if="col.type == 'bookmark'">
+
+					<div class="table-colheader bookmark" :class="{ active: state.tableview_bookmarksontop, bookmarks: state.tableview_bookmarksontop }" @click.stop="onHeaderClick(col)" 
+						v-tooltip :tooltipcontent="state.tableview_bookmarksontop? 'Bookmarks zuoberst aufheben' : 'Bookmarks zuoberst'" tooltipside="top" tooltipoffset="-5">
+					</div>
+
+				</template>
+
+				<template v-else-if="tableview_compact && (col.type == 'attribute')">
 				
 					<div class="table-colheader compact" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]" @click.stop="onHeaderClick(col)" v-tooltip :tooltipcontent="col.name" tooltipside="top" tooltipoffset="-5"></div>
 					
@@ -38,7 +46,7 @@
 				
 				<template v-else>
 				
-					<div class="table-colheader" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc, active: col.key === 'bookmark' && state.tableview_bookmarksontop, bookmarks: col.key === 'bookmark' && state.tableview_bookmarksontop }]" @click.stop="onHeaderClick(col)">
+					<div class="table-colheader" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]" @click.stop="onHeaderClick(col)">
 
 						{{ col.name }}
 
@@ -193,7 +201,7 @@ export default {
 			cols.push({ key: 'bookmark', name: '', type: 'bookmark' })
 			cols.push({ key: 'name', name: 'Standort', sortable: true, width: 250 })
 				
-			if (this.tableview_attributes) {
+			if (this.tableview_col_attributes) {
 				cols.push(
 					{ key: 'nutzung', name: 'Nutzungsart', sortable: true, type: 'attribute' },
 					{ key: 'wasser', name: 'Wasserhaushalt', sortable: true, type: 'attribute' },
@@ -264,8 +272,10 @@ export default {
 			let menu = [];
 			menu.push(
 				{type:'header', label:'Tabelle'},
+				{type:'boolean', label:'Bookmarks', stateProp:'tableview_col_bookmarks'},
+				{type:'boolean', label:'Standort Eigenschaften', stateProp:'tableview_col_attributes'},
+				{type:'thinline'},
 				{type:'boolean', label:'Kompakte Darstellung', stateProp:'tableview_compact'},
-				{type:'boolean', label:'Standorteigenschaften', stateProp:'tableview_attributes'},
 				{type:'divider'},
 				{type:'header', label:'Zeitachse'},
 				{type:'select', label:'Gesamte Zeit', value:'all', group:'timelinerange', stateProp:'tableview_timelinerange'},
@@ -286,8 +296,8 @@ export default {
 		filteredDevices() {
 			return state.filteredDevices;
 		},
-		tableview_attributes() {
-			return state.tableview_attributes
+		tableview_col_attributes() {
+			return state.tableview_col_attributes
 		},
 		tableview_compact() {
 			return state.tableview_compact

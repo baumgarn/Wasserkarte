@@ -272,8 +272,9 @@ export default {
 	height 30px
 	border-radius none
 	border none !important
+	// border 1px solid #00000011
 	cursor default
-	box-shadow 0 2px 3px rgba(0,0,0,.11)
+	box-shadow 0 2px 3px rgba(0,0,0,.14)
 	padding-right 0
 	padding-left 0
 	.name 
@@ -290,7 +291,7 @@ export default {
 		width 24px
 		height 24px
 		background-size 100%
-		margin-right 3px
+		margin-right 2px
 		&:hover
 			opacity .8
 		// filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));

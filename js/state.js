@@ -53,8 +53,9 @@ localStorageState('colorScheme', 'normal');
 localStorageState('filterFaultyValues', true);
 localStorageState('showDataGaps', false);
 
+localStorageState('tableview_col_bookmarks', true);
+localStorageState('tableview_col_attributes', true);
 localStorageState('tableview_compact', true);
-localStorageState('tableview_attributes', true);
 localStorageState('tableview_bookmarksontop', true);
 localStorageState('tableview_timelinerange', 'all');
 localStorageState('tableview_timelinestyle', 'nfk_avg');
