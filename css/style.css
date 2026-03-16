@@ -36,6 +36,7 @@ body.is-mobile {
 }
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
 }
 html,
 body {
@@ -328,6 +329,11 @@ button.ol-zoom-out {
   background-size: 80% 80%;
   opacity: 0.7;
   background-image: url("/img/transparentr.png");
+}
+.menuwindow-button.pinbookmarks:after {
+  background-size: 100% 100%;
+  opacity: 0.7;
+  background-image: url("/img/pinned.svg");
 }
 .itemrow {
   display: flex;
@@ -730,7 +736,7 @@ input[type=radio] {
 }
 hr {
   border: none;
-  border-bottom: var(--separatorline);
+  border-bottom: var(--thinline);
   margin: 0.8em var(--sidebartextmargin);
 }
 .chartouterframe {

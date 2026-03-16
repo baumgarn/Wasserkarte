@@ -5,139 +5,195 @@
 			<StatusBar :intableview="true" :containerWidth="tableWidth"/>
 		</div>
 
-		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" ref="content">
-		
-			<div class="table-col" :class="col.class" :style="col.width ? { width: col.width + 'px', flexShrink: 0 } : col.minWidth ? { minWidth: col.minWidth + 'px' } : {}" v-for="col in columns" :key="col.key">
-				
-				<template v-if="col.type == 'bookmark'">
+		<div class="table-content" :class="{ scrolltop: isScrollTop }" @scroll="onScroll" @mousemove="onContentMouseMove" @mouseleave="onTimelineHoverOut" @wheel.passive="onWheel" @click.self="unselectDevice" ref="content">
 
-					<div class="table-colheader bookmark" :class="{ active: state.tableview_bookmarksontop, bookmarks: state.tableview_bookmarksontop }" @click.stop="onHeaderClick(col)" 
-						v-tooltip :tooltipcontent="state.tableview_bookmarksontop? 'Bookmarks zuoberst aufheben' : 'Bookmarks zuoberst'" tooltipside="top" tooltipoffset="-5">
-					</div>
+			<div class="sticky-stack-shadow" :style="{ top: stickyShadowTop + 'px' }"></div>
 
-				</template>
+			<div class="table-grid" :style="rowGridStyle">
 
-				<template v-else-if="tableview_compact && (col.type == 'attribute')">
-				
-					<div class="table-colheader compact" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]" @click.stop="onHeaderClick(col)" v-tooltip :tooltipcontent="col.name" tooltipside="top" tooltipoffset="-5"></div>
-					
-				</template>
+				<div class="table-row table-row-header" :class="{ laststicky: pinnedRowsCount === 0, haspinned: pinnedRowsCount > 0 }">
+					<template v-for="col in columns" :key="'header-' + col.key">
 
-				<template v-else-if="col.type == 'timeline'">
-					
-					<div class="table-colheader timeline" ref="timelineref">
+						<template v-if="col.type == 'bookmark'">
+							<div
+								class="table-colheader bookmark"
+								:class="{ active: state.tableview_bookmarksontop, bookmarks: state.tableview_bookmarksontop }"
+								@click.stop="onHeaderClick(col)"
+								v-tooltip
+								:tooltipcontent="state.tableview_bookmarksontop? 'Bookmarks fixieren aufheben' : 'Bookmarks fixieren'"
+								tooltipside="top"
+								tooltipoffset="-5"></div>
+						</template>
 
-						<div class="dateaxiswrapper">
+						<template v-else-if="tableview_compact && (col.type == 'attribute')">
+							<div
+								class="table-colheader compact"
+								:class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]"
+								@click.stop="onHeaderClick(col)"
+								v-tooltip
+								:tooltipcontent="col.name"
+								tooltipside="top"
+								tooltipoffset="-5"></div>
+						</template>
 
-							<DateAxis
-							:chartWidth="timelineWidth"
-							:frameWidth="timelineWidth"
-							:startTimestamp
-							:numberOfDays
-							:insideTimeline="true"
-							:monthsOnly="true"
-							></DateAxis>
+						<template v-else-if="col.type == 'timeline'">
+							<div class="table-colheader timeline" ref="timelineHeaderRef">
+								<div class="dateaxiswrapper">
+									<DateAxis
+										:chartWidth="timelineWidth"
+										:frameWidth="timelineWidth"
+										:startTimestamp
+										:numberOfDays
+										:insideTimeline="true"
+										:monthsOnly="true"></DateAxis>
+								</div>
+							</div>
+						</template>
 
-						</div>
+						<template v-else>
+							<div
+								class="table-colheader"
+								:class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]"
+								@click.stop="onHeaderClick(col)">
+								{{ col.name }}
+							</div>
+						</template>
 
-					</div>
+					</template>
+				</div>
 
-				</template>
-				
-				<template v-else>
-				
-					<div class="table-colheader" :class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]" @click.stop="onHeaderClick(col)">
+				<div
+					v-for="(item, pinnedIndex) in pinnedVisibleRows"
+					:key="'pinned-' + item.key"
+					class="table-row table-body-row"
+					:class="{ selectedrow: isSelected(item.row.device), pinned: true, laststicky: pinnedIndex === (pinnedRowsCount - 1) }"
+					:style="getPinnedRowStyle(pinnedIndex)">
 
-						{{ col.name }}
+					<template v-for="col in columns" :key="'pinned-' + item.key + '-' + col.key">
 
-					</div>
-
-				</template>
-
-				<template v-for="(row, rowIndex) in filteredSortedTableData">
-
-						<div
-							class="table-data"
-							:class="[col.type, col.key, { selected: isSelected(row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: rowIndex === 0, bookmarked: col.key === 'bookmark' && isBookmarked(row.device) }]"
-							@click="onCellClick(col, row, $event)"
+							<div
+								class="table-data"
+								:class="[col.type, col.key, { selected: isSelected(item.row.device), compact: (col.type == 'attribute' && tableview_compact), bookmarked: col.key === 'bookmark' && isBookmarked(item.row.device) }]"
+							@click="onCellClick(col, item.row, $event)"
 							v-tooltip
-							:tooltipcontent="getDataHoverInfo(col, row)"
+							:tooltipcontent="getDataHoverInfo(col, item.row)"
 							tooltipside="right"
 							tooltipoffset="10"
 							tooltipfollowcursor="true"
 							tooltiphandover="true"
 							tooltipdelay="350"
-							v-on="col.type === 'timeline' ? { mousemove: onTimelineHover, mouseleave: onTimelineHoverOut } : {}"
-							>
+							v-on="col.type === 'timeline' ? { mousemove: onTimelineHover } : {}">
 
-						<template v-if="col.key === 'name'">
-							
-							<div class="label">{{ row.name }}</div>	
+							<template v-if="col.key === 'name'">
+								<div class="label">{{ item.row.name }}</div>
+							</template>
 
-						</template>
-
-						<template v-if="col.key === 'bookmark'">
-
+							<template v-if="col.key === 'bookmark'">
 								<div class="table-bookmark-icon"></div>
-
-						</template>
-
-						<template v-if="col.type == 'attribute'">
-
-							<template v-if="tableview_compact">
-
-								<FilterItem v-if="row[col.key]" :obj="row[col.key]" type="tablecompact"/>
-								
 							</template>
 
-							<template v-else>
-
-								<FilterItem v-if="row[col.key]" :obj="row[col.key]" type="table"/>
-
+							<template v-if="col.type == 'attribute'">
+								<template v-if="tableview_compact">
+									<FilterItem v-if="item.row[col.key]" :obj="item.row[col.key]" type="tablecompact"/>
+								</template>
+								<template v-else>
+									<FilterItem v-if="item.row[col.key]" :obj="item.row[col.key]" type="table"/>
+								</template>
 							</template>
 
-						</template>
+							<template v-if="col.type== 'timeline'">
+								<div class="timeline-inner">
+									<TableTimeline
+										:device="item.row.device"
+										:startTimestamp
+										:endTimestamp="latestTimestamp"
+										:selected="isSelected(item.row.device)"
+										:timelineWidth></TableTimeline>
+								</div>
+							</template>
 
-						<template v-if="col.type== 'timeline'">
+						</div>
 
-							<TableTimeline 
-								:device="row.device"
-								:startTimestamp
-								:endTimestamp="latestTimestamp"
-								:selected="isSelected(row.device)"
-								:timelineWidth
-							></TableTimeline>
-
-						</template>
-
+					</template>
 					</div>
 
-				</template>
+				<div
+					v-for="(item, regularIndex) in regularVisibleRows"
+					:key="'regular-' + item.key"
+					class="table-row table-body-row"
+					:class="{ selectedrow: isSelected(item.row.device) }">
 
-				<div class="table-colfooter" @click="unselectDevice">
+					<template v-for="col in columns" :key="'regular-' + item.key + '-' + col.key">
+
+							<div
+								class="table-data"
+								:class="[col.type, col.key, { selected: isSelected(item.row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: regularIndex === 0 && pinnedRowsCount === 0, bookmarked: col.key === 'bookmark' && isBookmarked(item.row.device) }]"
+							@click="onCellClick(col, item.row, $event)"
+							v-tooltip
+							:tooltipcontent="getDataHoverInfo(col, item.row)"
+							tooltipside="right"
+							tooltipoffset="10"
+							tooltipfollowcursor="true"
+							tooltiphandover="true"
+							tooltipdelay="350"
+							v-on="col.type === 'timeline' ? { mousemove: onTimelineHover } : {}">
+
+							<template v-if="col.key === 'name'">
+								<div class="label">{{ item.row.name }}</div>
+							</template>
+
+							<template v-if="col.key === 'bookmark'">
+								<div class="table-bookmark-icon"></div>
+							</template>
+
+							<template v-if="col.type == 'attribute'">
+								<template v-if="tableview_compact">
+									<FilterItem v-if="item.row[col.key]" :obj="item.row[col.key]" type="tablecompact"/>
+								</template>
+								<template v-else>
+									<FilterItem v-if="item.row[col.key]" :obj="item.row[col.key]" type="table"/>
+								</template>
+							</template>
+
+							<template v-if="col.type== 'timeline'">
+								<div class="timeline-inner">
+									<TableTimeline
+										:device="item.row.device"
+										:startTimestamp
+										:endTimestamp="latestTimestamp"
+										:selected="isSelected(item.row.device)"
+										:timelineWidth></TableTimeline>
+								</div>
+							</template>
+
+						</div>
+
+					</template>
 				</div>
-
-				<div v-if="col.type === 'timeline' && timelineHoverLinePos > 0" class="timeline-col-hoverline" :style="{ left: timelineHoverLinePos + 'px', height: `calc(${filteredSortedTableData.length} * var(--rowheight))` }"></div>
 
 			</div>
 
-			
+			<div
+				v-if="timelineHoverLinePos > 0"
+				class="timeline-col-hoverline"
+				:style="{ left: timelineHoverLinePos + 'px', height: `calc(${filteredSortedTableData.length} * var(--rowheight))` }"></div>
+
 		</div>
-		
-		
+
+
 		<div class="windowbuttons plain left row">
 			<div class="iconbutton close" v-on:click="close()"></div>
 		</div>
-		
-		<PopoverMenuMulti
-		class="tablesettingspopup"
-		ref="settingspopupref"
-		:items="settingsMenuItems" />
 
 		<PopoverMenuMulti
-		class="tablefilterpopup"
-		ref="filterpopupref"
-		:items="filterMenuItems" />
+			class="tablesettingspopup"
+			ref="settingspopupref"
+			:items="settingsMenuItems" />
+
+		<PopoverMenuMulti
+			class="tablefilterpopup"
+			ref="filterpopupref"
+			:items="filterMenuItems" />
 
 		<div class="windowbuttons plain row tablesettings">
 			<div class="iconbutton light filter" ref="filterbuttonref" :class="{ active: $refs.filterpopupref?.isOpen }" v-on:click="openFilterPopup()"
@@ -147,27 +203,25 @@
 		</div>
 
 	</div>
-
 </template>
 
 <script>
 import { state, isBookmarked, toggleBookmark } from '@/state.js';
 import dataStore from '@/datastore.js';
 import { dataModel } from '@/datamodel.js'
-import ColorDot from '@/menu/colordot.vue';
 import PopoverMenuMulti from '@/ui/popovermenu.vue'
 import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
 import DateAxis from '@/charts/dateaxis.vue'
 import StatusBar from '@/map/statusbar.vue';
-import { hideTooltip } from '@/tooltip.js';
+import { getActiveTooltipSource, hideTooltip } from '@/tooltip.js';
 
 export default {
 	name: 'TableView',
 	setup() {
-		return {state}
+		return { state }
 	},
-	components: {ColorDot, PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, StatusBar},
+	components: { PopoverMenuMulti, FilterItem, TableTimeline, DateAxis, StatusBar },
 	props: {
 		type: Boolean,
 		sideview: {
@@ -183,10 +237,12 @@ export default {
 			earliestTimestamp: 0,
 			latestTimestamp: 0,
 			popoverMenuPosition: { top: 32, right: 8 },
-			timelineWidth: 0,
 			tableWidth: 0,
 			timelineHoverX: -1,
-}
+			timelineWidthPx: 0,
+			timelineColumnOffsetPx: 0,
+			rowHeight: 28,
+		}
 	},
 	computed: {
 		devices() {
@@ -198,9 +254,12 @@ export default {
 		columns() {
 			let cols = [];
 
-			cols.push({ key: 'bookmark', name: '', type: 'bookmark' })
+			if (this.tableview_col_bookmarks) {
+				cols.push({ key: 'bookmark', name: '', type: 'bookmark' })
+			}
+
 			cols.push({ key: 'name', name: 'Standort', sortable: true, width: 250 })
-				
+
 			if (this.tableview_col_attributes) {
 				cols.push(
 					{ key: 'nutzung', name: 'Nutzungsart', sortable: true, type: 'attribute' },
@@ -209,9 +268,20 @@ export default {
 					{ key: 'humus', name: 'Humusgehalt', sortable: true, type: 'attribute' });
 			}
 
-			cols.push({ key: 'timeline', name: '', class: 'timeline', type:'timeline', minWidth: this.minTimelineWidth })
-
+			cols.push({ key: 'timeline', name: '', type: 'timeline' })
 			return cols;
+		},
+		timelineWidth() {
+			return Math.max(this.minTimelineWidth, this.timelineWidthPx || 0);
+		},
+		timelineColumnOffset() {
+			return this.timelineColumnOffsetPx || 0;
+		},
+		rowGridStyle() {
+			const tracks = this.columns.map(col => this.getColumnTrack(col));
+			return {
+				gridTemplateColumns: tracks.join(' ')
+			};
 		},
 		tableData() {
 			return this.devices.map(device => ({
@@ -233,9 +303,9 @@ export default {
 			const key = this.sortKey;
 			const dir = this.sortAsc ? 1 : -1;
 			return [...this.tableData].sort((a, b) => {
-				if (state.tableview_bookmarksontop) {
-					const aBookmarked = state.bookmarks.includes(a.device?.id) ? 1 : 0;
-					const bBookmarked = state.bookmarks.includes(b.device?.id) ? 1 : 0;
+				if (this.pinBookmarksActive) {
+					const aBookmarked = state.bookmarks.includes(a.device && a.device.id) ? 1 : 0;
+					const bBookmarked = state.bookmarks.includes(b.device && b.device.id) ? 1 : 0;
 					if (aBookmarked !== bBookmarked) {
 						return bBookmarked - aBookmarked;
 					}
@@ -250,6 +320,34 @@ export default {
 				if (aEmpty !== bEmpty) return aEmpty ? dir : -dir;
 				return dir * String(as).localeCompare(String(bs));
 			});
+		},
+		pinBookmarksActive() {
+			return this.tableview_col_bookmarks && state.tableview_bookmarksontop;
+		},
+		visibleRows() {
+			return this.filteredSortedTableData.map((row, rowIndex) => {
+				const rowId = row.device && (row.device.id || row.device.name) || row.name;
+				return {
+					key: String(rowId) + '-' + rowIndex,
+					row,
+					rowIndex,
+					bookmarked: this.isBookmarked(row.device),
+				};
+			});
+		},
+		pinnedVisibleRows() {
+			if (!this.pinBookmarksActive) return [];
+			return this.visibleRows.filter(item => item.bookmarked);
+		},
+		regularVisibleRows() {
+			if (!this.pinBookmarksActive) return this.visibleRows;
+			return this.visibleRows.filter(item => !item.bookmarked);
+		},
+		pinnedRowsCount() {
+			return this.pinnedVisibleRows.length;
+		},
+		stickyShadowTop() {
+			return this.rowHeight + (this.pinnedRowsCount * this.rowHeight);
 		},
 		filterMenuItems() {
 			let items = [];
@@ -271,22 +369,19 @@ export default {
 		settingsMenuItems() {
 			let menu = [];
 			menu.push(
-				{type:'header', label:'Tabelle'},
-				{type:'boolean', label:'Bookmarks', stateProp:'tableview_col_bookmarks'},
-				{type:'boolean', label:'Standort Eigenschaften', stateProp:'tableview_col_attributes'},
-				{type:'thinline'},
-				{type:'boolean', label:'Kompakte Darstellung', stateProp:'tableview_compact'},
-				{type:'divider'},
-				{type:'header', label:'Zeitachse'},
-				{type:'select', label:'Gesamte Zeit', value:'all', group:'timelinerange', stateProp:'tableview_timelinerange'},
-				{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timelinerange', stateProp:'tableview_timelinerange'},
-				{type:'select', label:'Letzte 180 Tage', value:'180d', group:'timelinerange', stateProp:'tableview_timelinerange'},
-				{type:'thinline'},
-				// {type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
-				// {type:'select', label:'Schichten nFK', value:'nfk_schichten', group:'timelinestyle', stateProp:'tableview_timelinestyle'},
-				{type:'boolean', label:'Schichten anzeigen', stateProp:'tableview_showdepths', tooltip:'Zeigt Farbbalken für jede gemessene Schichttiefe anstelle eines Durchschnittswertes'},
-				{type:'thinline'},
-				{type:'boolean', label:'Datenlücken anzeigen', stateProp:'showDataGaps'},
+				{ type: 'header', label: 'Tabelle' },
+				{ type: 'boolean', label: 'Bookmarks', stateProp: 'tableview_col_bookmarks' },
+				{ type: 'boolean', label: 'Standort Eigenschaften', stateProp: 'tableview_col_attributes' },
+				{ type: 'boolean', label: 'Kompakte Darstellung', stateProp: 'tableview_compact' },
+				{ type: 'divider' },
+				{ type: 'header', label: 'Zeitachse' },
+				{ type: 'select', label: 'Gesamte Zeit', value: 'all', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
+				{ type: 'select', label: 'Letzte 365 Tage', value: '365d', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
+				{ type: 'select', label: 'Letzte 180 Tage', value: '180d', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
+				{ type: 'thinline' },
+				{ type: 'boolean', label: 'Schichten anzeigen', stateProp: 'tableview_showdepths', tooltip: 'Zeigt Farbbalken für jede gemessene Schichttiefe anstelle eines Durchschnittswertes' },
+				{ type: 'thinline' },
+				{ type: 'boolean', label: 'Datenlücken anzeigen', stateProp: 'showDataGaps' },
 			)
 			return menu;
 		},
@@ -299,6 +394,9 @@ export default {
 		tableview_col_attributes() {
 			return state.tableview_col_attributes
 		},
+		tableview_col_bookmarks() {
+			return state.tableview_col_bookmarks
+		},
 		tableview_compact() {
 			return state.tableview_compact
 		},
@@ -310,11 +408,8 @@ export default {
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
-		filteredDevices() {
-			return state.filteredDevices;
-		},
 		numberOfDays() {
-			return  (this.latestTimestamp - this.startTimestamp) / (1000 * 60 * 60 * 24)
+			return (this.latestTimestamp - this.startTimestamp) / (1000 * 60 * 60 * 24)
 		},
 		startTimestamp() {
 			if (this.timelineRange == 'all') {
@@ -333,20 +428,16 @@ export default {
 			const DAY = 24 * 60 * 60 * 1000;
 			return this.latestTimestamp - (180 * DAY);
 		},
-		_90d() {
-			const DAY = 24 * 60 * 60 * 1000;
-			return this.latestTimestamp - (90 * DAY);
-		},
 		minTimelineWidth() {
 			return 356;
-			// return (this.numberOfDays * 2)
 		},
 		timelineSpan() {
 			return Math.max(1, this.latestTimestamp - this.startTimestamp);
 		},
 		timelineHoverLinePos() {
+			let pos = -1;
 			if (this.timelineHoverX > -1) {
-				let pos = this.timelineHoverX;
+				pos = this.timelineHoverX;
 				if (this.earliestTimestamp && this.latestTimestamp) {
 					const msPerDay = 24 * 60 * 60 * 1000;
 					const earliestX = ((this.earliestTimestamp - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
@@ -354,14 +445,71 @@ export default {
 					if (pos < earliestX) pos = earliestX;
 					if (pos > latestX) pos = latestX;
 				}
-				return pos;
 			} else if (state.timelineDate && state.timelineDate > this.startTimestamp && state.timelineDate < this.latestTimestamp) {
-				return ((state.timelineDate - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+				pos = ((state.timelineDate - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
 			}
-			return -1;
+			if (pos < 0) return -1;
+			return this.timelineColumnOffset + pos;
 		},
 	},
 	methods: {
+		getColumnTrack(col) {
+			if (col.type === 'bookmark') return '28px';
+			if (col.type === 'timeline') return `minmax(${this.minTimelineWidth}px, 1fr)`;
+			if (col.type === 'attribute') {
+				if (this.tableview_compact) return `${this.rowHeight}px`;
+				return 'max-content';
+			}
+			if (col.width) return `${col.width}px`;
+			return '120px';
+		},
+		updateTimelineMetrics() {
+			const content = this.$refs.content;
+			let timelineHeader = this.$refs.timelineHeaderRef;
+			if (Array.isArray(timelineHeader)) timelineHeader = timelineHeader[0];
+			if (!content || !timelineHeader) return;
+
+			const contentRect = content.getBoundingClientRect();
+			const timelineRect = timelineHeader.getBoundingClientRect();
+			const nextOffset = Math.max(0, (timelineRect.left - contentRect.left) + content.scrollLeft);
+			const nextWidth = Math.max(this.minTimelineWidth, timelineRect.width);
+
+			if (Math.abs(nextOffset - this.timelineColumnOffsetPx) > 0.5) {
+				this.timelineColumnOffsetPx = nextOffset;
+			}
+			if (Math.abs(nextWidth - this.timelineWidthPx) > 0.5) {
+				this.timelineWidthPx = nextWidth;
+			}
+		},
+		setTimelineHoverFromClientX(clientX) {
+			let timelineHeader = this.$refs.timelineHeaderRef;
+			if (Array.isArray(timelineHeader)) timelineHeader = timelineHeader[0];
+			if (!timelineHeader) return false;
+
+			const rect = timelineHeader.getBoundingClientRect();
+			if (clientX < rect.left || clientX > rect.right) return false;
+
+			this.timelineHoverX = clientX - rect.left;
+			const fraction = this.timelineHoverX / Math.max(1, this.timelineWidth - 1);
+			let ts = this.startTimestamp + fraction * this.timelineSpan;
+			ts = dataStore.floorToMidnight(ts);
+			if (ts < this.earliestTimestamp) ts = this.earliestTimestamp;
+			if (ts > this.latestTimestamp) ts = this.latestTimestamp;
+			state.timelineDate = ts;
+			return true;
+		},
+		clearTimelineHover(event) {
+			this.timelineHoverX = -1;
+			state.timelineDate = null;
+			hideTooltip(event && event.currentTarget);
+		},
+		getPinnedRowStyle(index) {
+			return {
+				position: 'sticky',
+				top: `${this.rowHeight + (this.rowHeight * index)}px`,
+				zIndex: 14,
+			};
+		},
 		onHeaderClick(col) {
 			if (col.key === 'bookmark') {
 				state.tableview_bookmarksontop = !state.tableview_bookmarksontop;
@@ -372,35 +520,27 @@ export default {
 		},
 		onCellClick(col, row, event) {
 			if (col.key === 'bookmark') {
-				event?.stopPropagation();
+				event && event.stopPropagation();
 				toggleBookmark(row.device);
 				return;
 			}
-			this.selectDevice(row.device, event);
+			this.selectDevice(row.device);
 		},
 		selectDevice(device) {
 			if (state.popupMenuOpen) return;
-			if (state.selectedDevice == device?.name) {
+			if (state.selectedDevice == (device && device.name)) {
 				state.selectedDevice = null;
 			} else {
-				state.selectedDevice = device?.name || null;
+				state.selectedDevice = device && device.name || null;
 				window.dispatchEvent(new CustomEvent('sidebar:open', { detail: device }));
 				window.dispatchEvent(new CustomEvent('device-selected', { detail: device }));
-				this.$nextTick(() => {
-					const el = this.$refs.items?.[this.selectedIndex];
-					el?.scrollIntoView({ block: 'nearest' });
-				});
 			}
 		},
 		unselectDevice() {
-			console.log('ddsd')
 			state.selectedDevice = null;
 		},
-		setSelectedDevice(device) {
-			state.selectedDevice = device?.name || null;
-		},
 		isFiltered(device) {
-			if (state.includeFilter.length == 0 && state.excludeFilter.length == 0) { 
+			if (state.includeFilter.length == 0 && state.excludeFilter.length == 0) {
 				return false
 			}
 			var isfiltered = true;
@@ -410,14 +550,6 @@ export default {
 				}
 			});
 			return isfiltered;
-		},
-		nfk(device) {
-			const nfk = dataModel.nfk(device);
-			if (isNaN(nfk)) return '–'
-			return parseFloat(nfk.toFixed(0));
-		},
-		nfk_color(device) {
-			return dataModel.get_nfk_color(this.nfk(device));
 		},
 		onKeydown(e) {
 			const data = this.filteredSortedTableData;
@@ -444,12 +576,26 @@ export default {
 					break;
 			}
 		},
-		getCols() {
-			return [this.$refs.col0, this.$refs.col1].filter(Boolean);
-		},
 		onScroll(e) {
 			this.isScrollTop = e.target.scrollTop === 0;
+			this.updateTimelineMetrics();
 			hideTooltip();
+		},
+		onWheel(event) {
+			this.updateTimelineMetrics();
+			this.setTimelineHoverFromClientX(event.clientX);
+		},
+		onContentMouseMove(event) {
+			this.updateTimelineMetrics();
+			if (!this.setTimelineHoverFromClientX(event.clientX)) {
+				this.clearTimelineHover(event);
+			}
+			const activeTooltipSource = getActiveTooltipSource();
+			if (!activeTooltipSource || !this.$el.contains(activeTooltipSource)) return;
+			const tooltipZone = event.target.closest('.table-data.attribute.compact, .table-colheader.compact, .table-colheader.bookmark');
+			if (!tooltipZone) {
+				hideTooltip();
+			}
 		},
 		sortBy(key) {
 			if (this.sortKey === key) {
@@ -480,58 +626,33 @@ export default {
 			return isBookmarked(device);
 		},
 		onTimelineHover(event) {
-			const rect = event.currentTarget.getBoundingClientRect();
-			this.timelineHoverX = event.clientX - rect.left;
-			const fraction = this.timelineHoverX / (this.timelineWidth - 1);
-			let ts = this.startTimestamp + fraction * this.timelineSpan;
-			ts = dataStore.floorToMidnight(ts);
-			if (ts < this.earliestTimestamp) ts = this.earliestTimestamp;
-			if (ts > this.latestTimestamp) ts = this.latestTimestamp;
-			state.timelineDate = ts;
+			this.setTimelineHoverFromClientX(event.clientX);
 		},
 		onTimelineHoverOut(event) {
-			this.timelineHoverX = -1;
-			state.timelineDate = null;
-			hideTooltip(event?.currentTarget);
-		},
-		getTimelineRef() {
-			const ref = this.$refs.timelineref;
-			return Array.isArray(ref) ? ref[0] : ref;
-		},
-		calculateTimelineWidth() {
-			const timelineref = this.getTimelineRef();
-			if (timelineref) {
-				const w = timelineref.getBoundingClientRect().width;
-				this.timelineWidth = Math.max(w, this.minTimelineWidth);
-			}
+			this.clearTimelineHover(event);
 		},
 	},
 	mounted() {
 		this.$el.focus();
 		this.earliestTimestamp = dataStore.earliestTimestamp;
 		this.latestTimestamp = dataStore.latestTimestamp;
+		const measureTarget = this.$refs.content || this.$el;
 		this._tableResizeObserver = new ResizeObserver(() => {
-			this.tableWidth = this.$el.getBoundingClientRect().width;
+			this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
+			this.$nextTick(() => this.updateTimelineMetrics());
 		});
-		this._tableResizeObserver.observe(this.$el);
-		this.tableWidth = this.$el.getBoundingClientRect().width;
-		this.$nextTick(() => {
-			const timelineref = this.getTimelineRef();
-			if (timelineref) {
-				this._resizeObserver = new ResizeObserver(() => {
-					this.calculateTimelineWidth();
-				});
-				this._resizeObserver.observe(timelineref);
-				this.calculateTimelineWidth();
-			}
-		});
+		this._tableResizeObserver.observe(measureTarget);
+		this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
+		this.$nextTick(() => this.updateTimelineMetrics());
 	},
 	beforeUnmount() {
 		if (this._tableResizeObserver) this._tableResizeObserver.disconnect();
-		if (this._resizeObserver) this._resizeObserver.disconnect();
 		hideTooltip();
 	},
 	watch: {
+		tableview_compact() {
+			this.$nextTick(() => this.updateTimelineMetrics());
+		},
 		selectedDevice: {
 			immediate: true,
 			handler(name) {
@@ -544,13 +665,15 @@ export default {
 			this.selectedIndex = this.filteredSortedTableData.findIndex(
 				d => d.device.name === state.selectedDevice
 			);
-			this.$nextTick(() => this.$el.focus());
+			this.$nextTick(() => {
+				this.$el.focus();
+				this.updateTimelineMetrics();
+			});
 		},
 		telemetryLoaded: {
-			handler(val) {
+			handler() {
 				this.earliestTimestamp = dataStore.earliestTimestamp;
 				this.latestTimestamp = dataStore.latestTimestamp;
-				this.$nextTick(() => this.calculateTimelineWidth());
 			}
 		},
 	},
@@ -561,19 +684,20 @@ export default {
 	.tableview
 		--headerheight 42px
 		--rowheight 28px
+		// --rowheight 36px
 		--cellpad 0 8px
 		--line 1px solid #00000018
 		--tablefontsize 12px
 		--hovercolor #e9edf3
+		--darklinecolor #777
 		*
 			box-sizing border-box
 		position absolute
 		inset 0
 		z-index 90
-		background #fff
+		background #f4f4f4
 		display flex
 		flex-direction column
-		background #f4f4f4
 		.tableview-header
 			flex-basis var(--headerheight)
 			flex-shrink 0
@@ -585,40 +709,55 @@ export default {
 			margin-right 4px
 		.table-content
 			flex-grow 1
-			overflow-x auto
-			overflow-y auto
-			display flex
-			flex-direction row
-			align-items flex-start
+			overflow auto
 			position relative
-			&.scrolltop .table-colheader:before
+			&.scrolltop .sticky-stack-shadow
 				opacity 0
-			.table-colheader:before
-				opacity 1
-	.table-col.rightspacer
-		flex-basis 12px
-	.table-col.timeline
+	.sticky-stack-shadow
+		position sticky
+		height 0
+		transition opacity linear .1s
+		pointer-events none
+		z-index 12
+		&:after
+			content ''
+			display block
+			height 8px
+			background linear-gradient(to bottom, rgba(0, 0, 0, 0.075), transparent)
+	.table-grid
+		display grid
+		min-width 100%
+		width max-content
+		grid-auto-flow row
+	.table-row
+		display grid
+		grid-column 1 / -1
+		grid-template-columns subgrid
+		background #fff
 		position relative
-	.table-col.timeline
-	.table-col.spacer
-		flex-grow 1
-		.table-colheader
-		.table-data
-			padding 0
-			// border-right none
-	.table-col
-		min-height 100%
-		display flex
-		flex-direction column
-	// 	margin-bottom var(--rowheight)
+	.table-row-header.haspinned::after
+	.table-body-row.pinned.laststicky::after
+		content ''
+		position absolute
+		left 0
+		right 0
+		bottom 0
+		height 1px
+		background var(--darklinecolor)
+		pointer-events none
+		z-index 4
+	// .table-body-row.pinned
+		// background #f8f8f8
+	.table-body-row.pinned .table-data.selected
+		background var(--activecolorgreybrighter)
+	.table-row-header
+		position sticky
+		top 0
+		z-index 19
 	.table-colheader
 		white-space nowrap
 		padding var(--cellpad)
-		position sticky
-		flex-basis var(--rowheight)
-		flex-shrink 0
-		flex-grow 0
-		top 0
+		height var(--rowheight)
 		user-select none
 		border-top var(--line)
 		border-bottom var(--line)
@@ -628,16 +767,7 @@ export default {
 		background #fff
 		font-weight bold
 		font-size var(--tablefontsize)
-		z-index 10
-		&:before
-			content ''
-			position absolute
-			left 0
-			top calc( 100% + 1px )
-			right 0
-			height 8px
-			transition opacity linear .1s
-			background linear-gradient(to bottom, rgba(0, 0, 0, 0.07), transparent)
+		position relative
 		&.sortable
 			cursor pointer
 			padding-right 20px
@@ -649,8 +779,8 @@ export default {
 			position absolute
 			right 5px
 			opacity .28
-			margin-left 5px 
-			margin-top 2px 
+			margin-left 5px
+			margin-top 2px
 			display block
 			border-left 5px solid transparent
 			border-right 5px solid transparent
@@ -661,8 +791,8 @@ export default {
 			position absolute
 			right 5px
 			opacity .7
-			margin-left 5px 
-			margin-top 2px 
+			margin-left 5px
+			margin-top 2px
 			display block
 			border-left 5px solid transparent
 			border-right 5px solid transparent
@@ -671,13 +801,14 @@ export default {
 		&.asc::after
 			border-top 8px solid currentColor
 		&.timeline
-			// min-width 400px
+			padding 0
 			border-right none
-			// overflow hidden
 		.dateaxiswrapper
 			position absolute
 			inset 0
 	.table-colheader.compact
+		border-right var(--line)
+		box-shadow inset -1px 0 0 rgba(0,0,0,0.12)
 		&:after
 			right 50%
 			margin-right -5px
@@ -720,15 +851,8 @@ export default {
 			background-repeat no-repeat
 			background-size 100% 100%
 			background-position center
-	.table-colfooter
-		flex-basis var(--rowheight)
-		flex-grow 1
-		width 100%
 	.table-data
 		white-space nowrap
-		flex-basis var(--rowheight)
-		flex-shrink 0
-		flex-grow 0
 		height var(--rowheight)
 		padding var(--cellpad)
 		display flex
@@ -736,7 +860,7 @@ export default {
 		font-size var(--tablefontsize)
 		cursor default
 		position relative
-		background #fff
+		// background #fff
 		&:before
 			content ''
 			inset 0
@@ -750,9 +874,10 @@ export default {
 			font-weight bold
 			padding-right 0
 			.label
-				text-overflow unset 
+				text-overflow unset
 		&.selected
 			background var(--activecolorgreybrighter)
+			z-index 2
 			&:after
 				content ''
 				z-index 2
@@ -761,69 +886,55 @@ export default {
 				inset 0
 				top -1px
 				pointer-events none
-				border-top 1px solid #00000066
-				border-bottom 1px solid #00000066
+				border-top 1px solid var(--darklinecolor)
+				border-bottom 1px solid var(--darklinecolor)
 	.table-data.firstrow.selected:after
 		top 0
 	.table-data.attribute
+		padding 0
 		font-size var(--tablefontsize)
+	.table-data.attribute .filteritem
+		margin-left -0.5px
+		margin-top -1px
 	.table-data.timeline
+		padding 0
 		border-right none
+		overflow visible
+	.timeline-inner
+		width 100%
+		height 100%
+		overflow hidden
 	.table-data.bookmark
 		padding 0
-		width var(--rowheight)
+		// width var(--rowheight)
 		justify-content center
 		cursor pointer
+		.table-bookmark-icon
+			width 16px
+			height 16px
+			background-image url('/img/bookmarkfill.svg')
+			background-repeat no-repeat
+			background-size 100% 100%
+			background-position center
+			opacity 0
+			transition opacity linear .1s
+			position relative
+			z-index 2
 		&:hover .table-bookmark-icon
 			opacity .3
 		&.bookmarked .table-bookmark-icon
 			opacity .7
 		&.bookmarked:hover .table-bookmark-icon
-			opacity .7
-	.table-bookmark-icon
-		width 17px
-		height 17px
-		background-image url('/img/bookmarkfill.svg')
-		background-repeat no-repeat
-		background-size 100% 100%
-		background-position center
-		opacity 0
-		transition opacity linear .1s
-		position relative
-		z-index 2
+			opacity .5
 	.timeline-col-hoverline
 		position absolute
 		top var(--rowheight)
 		border-left 1px dotted #000
 		pointer-events none
 		opacity .6
-		z-index 5
-	.table-data.attribute
-		padding 0
+		z-index 18
 	.label
-		text-overflow ellipsis
-		overflow: hidden;
-		white-space: nowrap;
-	.red
-		color: red
-	.menuitem
-		display: flex
-	.menu-title
-		flex-grow 1
-	.count
-		font-weight normal
-		display inline-block
-		margin-left .5em
-		opacity	.45
-		font-size 11pt
-	.menuitem
-		display flex
-		padding-right 2px
-	.title
 		text-overflow ellipsis
 		overflow hidden
 		white-space nowrap
-		flex-grow 1
-		font-weight: normal
-
-</style> 
+</style>

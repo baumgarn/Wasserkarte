@@ -327,7 +327,7 @@ export default {
 	display flex
 	flex-direction column
 	align-items center
-	gap 0.5px
+	// gap 0.5px
 
 .intableview .filteritems
 	filter none

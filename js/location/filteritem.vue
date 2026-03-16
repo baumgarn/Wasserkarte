@@ -277,6 +277,7 @@ export default {
 	box-shadow 0 2px 3px rgba(0,0,0,.14)
 	padding-right 0
 	padding-left 0
+	outline 1px solid rgba(0,0,0,.075)
 	.name 
 		margin-right 4px
 	.bg
@@ -398,6 +399,8 @@ export default {
 		opacity 0
 	.filtericon
 		margin-left 2px
+		flex-basis 20px 
+		flex-shrink 0
 	&.active
 		border none
 		.bg
@@ -410,8 +413,8 @@ export default {
 .filteritem.tablecompact
 	margin 0
 	padding 0
-	filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
 	transition filter .1s linear
+	// filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
 	filter brightness(1)
 	justify-content center
 	.filtericon

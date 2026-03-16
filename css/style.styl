@@ -64,6 +64,7 @@ body.is-mobile
 
 *
 	box-sizing border-box
+	scrollbar-width: thin
 
 
 html, body
@@ -266,6 +267,7 @@ menuwidth = 250px
 
 .menuwindow-content
 	overflow-y auto
+	// overscroll-behavior: none
 	// background #fff
 	overflow auto
 	margin 0
@@ -354,6 +356,10 @@ menuwidth = 250px
 		background-size 80% 80%
 		opacity .7
 		background-image url(/img/transparentr.png)
+	&.pinbookmarks:after
+		background-size 100% 100%
+		opacity .7
+		background-image url(/img/pinned.svg)
 
 
 .itemrow
@@ -854,7 +860,7 @@ input[type=radio]
 
 hr
 	border none
-	border-bottom var(--separatorline)
+	border-bottom var(--thinline)
 	margin .8em var(--sidebartextmargin)
 	
 .chartouterframe
