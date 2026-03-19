@@ -1,5 +1,6 @@
 import { reactive, watch, shallowRef } from 'vue';
 import { fromLonLat } from 'ol/proj.js';
+import { dataModel } from '@/datamodel.js'
 import { config } from '@/config.js';
 
 
@@ -82,10 +83,13 @@ export function toggleBookmark(device) {
 		return false;
 	}
 
+	dataModel.bookmarkfilter_obj.count = state.bookmarks.length;
 	state.bookmarks = [...state.bookmarks, deviceId];
 	return true;
 }
 
+
+dataModel.bookmarkfilter_obj.count = state.bookmarks.length;
 
 // LOCAL STORAGE
 

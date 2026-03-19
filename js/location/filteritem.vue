@@ -50,6 +50,10 @@
 				{{ obj.name }}
 			</div>
 
+			<div class="count">
+				{{ obj.count ? obj.count : 0 }}
+			</div>
+
 		</template>
 
 		<template v-else-if="type=='popovermenuitem'" :exclude="excludeActive">
@@ -62,8 +66,8 @@
 
 			<!-- <div class="count">
 				{{ obj.count ? obj.count : 0 }}
-			</div> -->
-			
+			</div>
+			 -->
 		</template>
 		
 		<template v-else-if="type=='table'">
@@ -391,6 +395,12 @@ export default {
 	font-weight normal
 	justify-content flex-start
 	padding 4px 12px 4px 4px
+	.count
+		z-index 1
+		opacity .45
+		font-size 8.5pt
+		margin-right -.4em
+		display none
 	.filtericon
 		margin 0
 		margin-left 0
@@ -407,6 +417,8 @@ export default {
 		.bg
 			background var(--activecolorgrey)
 			opacity 1
+
+.filteritem.popovermenuitem
 	&:hover .bg
 		background var(--activecolorgreybrighter)
 		opacity .8
@@ -416,6 +428,9 @@ export default {
 
 .filteritem.menuitem
 	border-radius 14px
+	&:hover 
+		.bg
+			background #fff
 	.filtericon
 		margin-left -1px
 

@@ -9,7 +9,7 @@
 
 			<div class="sticky-stack-shadow" :style="{ top: stickyShadowTop + 'px' }"></div>
 
-			<div class="table-grid" :style="rowGridStyle">
+			<div class="table-grid" :style="rowGridStyle" ref="tableGridRef">
 
 				<div class="table-row table-row-header" :class="{ laststicky: pinnedRowsCount === 0, haspinned: pinnedRowsCount > 0 }">
 					<template v-for="col in columns" :key="'header-' + col.key">
@@ -242,6 +242,7 @@ export default {
 			timelineWidthPx: 0,
 			timelineColumnOffsetPx: 0,
 			rowHeight: 28,
+			timelineMetricsRaf: null,
 		}
 	},
 	computed: {
@@ -460,6 +461,41 @@ export default {
 		},
 	},
 	methods: {
+		queueTimelineMetricsUpdate() {
+			if (this.timelineMetricsRaf != null) {
+				cancelAnimationFrame(this.timelineMetricsRaf);
+			}
+			this.timelineMetricsRaf = requestAnimationFrame(() => {
+				this.timelineMetricsRaf = null;
+				this.updateTimelineMetrics();
+				this.observeTimelineLayout();
+			});
+		},
+		observeTimelineLayout() {
+			const observer = this._timelineLayoutResizeObserver;
+			if (!observer) return;
+
+			if (this._observedTimelineHeaderEl) observer.unobserve(this._observedTimelineHeaderEl);
+			if (this._observedTableGridEl) observer.unobserve(this._observedTableGridEl);
+
+			let timelineHeader = this.$refs.timelineHeaderRef;
+			if (Array.isArray(timelineHeader)) timelineHeader = timelineHeader[0];
+			const tableGrid = this.$refs.tableGridRef;
+
+			if (timelineHeader) {
+				observer.observe(timelineHeader);
+				this._observedTimelineHeaderEl = timelineHeader;
+			} else {
+				this._observedTimelineHeaderEl = null;
+			}
+
+			if (tableGrid) {
+				observer.observe(tableGrid);
+				this._observedTableGridEl = tableGrid;
+			} else {
+				this._observedTableGridEl = null;
+			}
+		},
 		getColumnTrack(col) {
 			if (col.type === 'bookmark') return '28px';
 			if (col.type === 'timeline') return `minmax(${this.minTimelineWidth}px, 1fr)`;
@@ -589,11 +625,9 @@ export default {
 			hideTooltip();
 		},
 		onWheel(event) {
-			this.updateTimelineMetrics();
 			this.setTimelineHoverFromClientX(event.clientX);
 		},
 		onContentMouseMove(event) {
-			this.updateTimelineMetrics();
 			if (!this.setTimelineHoverFromClientX(event.clientX)) {
 				this.clearTimelineHover(event);
 			}
@@ -646,19 +680,34 @@ export default {
 		const measureTarget = this.$refs.content || this.$el;
 		this._tableResizeObserver = new ResizeObserver(() => {
 			this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
-			this.$nextTick(() => this.updateTimelineMetrics());
+			this.$nextTick(() => this.queueTimelineMetricsUpdate());
+		});
+		this._timelineLayoutResizeObserver = new ResizeObserver(() => {
+			this.queueTimelineMetricsUpdate();
 		});
 		this._tableResizeObserver.observe(measureTarget);
+		this.observeTimelineLayout();
 		this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
-		this.$nextTick(() => this.updateTimelineMetrics());
+		this.$nextTick(() => this.queueTimelineMetricsUpdate());
 	},
 	beforeUnmount() {
 		if (this._tableResizeObserver) this._tableResizeObserver.disconnect();
+		if (this._timelineLayoutResizeObserver) this._timelineLayoutResizeObserver.disconnect();
+		if (this.timelineMetricsRaf != null) cancelAnimationFrame(this.timelineMetricsRaf);
 		hideTooltip();
 	},
 	watch: {
 		tableview_compact() {
-			this.$nextTick(() => this.updateTimelineMetrics());
+			this.$nextTick(() => this.queueTimelineMetricsUpdate());
+		},
+		tableview_col_attributes() {
+			this.$nextTick(() => this.queueTimelineMetricsUpdate());
+		},
+		tableview_col_bookmarks() {
+			this.$nextTick(() => this.queueTimelineMetricsUpdate());
+		},
+		timelineRange() {
+			this.$nextTick(() => this.queueTimelineMetricsUpdate());
 		},
 		selectedDevice: {
 			immediate: true,
@@ -674,7 +723,7 @@ export default {
 			);
 			this.$nextTick(() => {
 				this.$el.focus();
-				this.updateTimelineMetrics();
+				this.queueTimelineMetricsUpdate();
 			});
 		},
 		telemetryLoaded: {
