@@ -5,8 +5,13 @@
 			
 			<!-- <div class="filter"> -->
 
-				<div class="filteritems">
+			<div class="filteritems">
 
+				<!-- <h4>Spezial</h4> -->
+				<template v-if="state.bookmarks.length > 0">
+					<FilterItem :obj="dataModel.bookmarkfilter_obj" type="menuitem"/>
+				</template>
+						
 				<h4>Wasserhaushalt</h4>
 
 				<FilterItem :obj="dataModel.regenabhängig_obj" type="menuitem"/>
@@ -31,6 +36,11 @@
 					<FilterItem v-for="item in dataModel.usage_table" :obj="item" type="menuitem"/>
 				</div>
 
+				<hr>
+				<div class="note">
+					<div>SHIFT + Klick – Mehrfachauswahl</div>
+					<div>ALT + Klick – Ausschließen</div>
+				</div>
 			</div>
 
 		<!-- </div> -->
@@ -51,7 +61,7 @@ export default {
 		FilterItem,
 	},
 	setup() {
-		return {dataModel}
+		return {dataModel, state}
 	},
 	data() {
 		return {}
@@ -96,7 +106,7 @@ export default {
 		flex-direction column
 		gap 0
 		margin 0
-		h4:first-of-type
+		h4:first-child
 			border-top none
 			margin-top 0
 

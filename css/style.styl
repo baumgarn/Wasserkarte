@@ -276,6 +276,7 @@ menuwidth = 250px
 		font-weight bold
 		padding-top 6px
 		margin 2em 4px .5em
+		margin .5em 4px .5em
 		display block
 		color var(--menusectionheadercolor)
 		font-size 80%
@@ -286,6 +287,13 @@ menuwidth = 250px
 		border-top none
 		margin-top 0
 		padding-top 6px
+	.note
+		// opacity .8
+		font-size 9pt
+		margin-bottom 6px
+		em
+			font-style normal
+			// font-weight bold
 
 
 // MENU ITEM
@@ -837,6 +845,10 @@ input[type=radio]
 		margin-left -6px
 		background-position center center
 		background-size 100% 100%
+	.note
+		pointer-events none
+	.note + .note
+		margin-top -.5em
 	.boolean.active .icon
 		opacity .8
 		background-image url('/img/check.png')

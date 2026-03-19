@@ -24,7 +24,6 @@ $soil_table = [
 ];
 
 
-
 function expandSchema($schema) {
 	
 	$c = count($schema);

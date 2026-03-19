@@ -57,6 +57,12 @@
 				v-html="item.label"
 			></div>
 
+			<div
+				v-else-if="item.type === 'note'"
+				class="item note"
+				v-html="item.label"
+			></div>
+
 
 			<div
 				v-else-if="item.type === 'thinline'"

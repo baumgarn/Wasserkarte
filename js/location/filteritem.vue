@@ -1,14 +1,15 @@
 <template>
-	<div class="filteritem" :class="[{ active: includeActive, exclude: excludeActive, hover: isHover}, type]"
+	<div class="filteritem" :class="[{ active: includeActive, exclude: excludeActive, hover: isHover}, type, filterNameClass]"
 	     @mouseleave="mouseLeave" @mouseenter="mouseEnter" @click="click">
 		
 		<div class="bg"></div>
 
 		<template v-if="type=='statusbaritem'">
 			
-			<FilterIcon :obj :size="32"/>
+			<FilterIcon :obj :size="32" :exclude="excludeActive"/>
 			
 			<div class="name">
+				<span v-if="excludeActive" class="notname">Nicht</span>
 				{{ obj.name }}
 			</div>
 
@@ -19,9 +20,10 @@
 
 		<template v-else-if="type=='statusbaritemsmall'">
 			
-			<FilterIcon :obj :size="24"/>
+			<FilterIcon :obj :size="24" :exclude="excludeActive"/>
 			
 			<div class="name">
+				<span v-if="excludeActive" class="notname">Nicht</span>
 				{{ obj.name }}
 			</div>
 
@@ -42,7 +44,7 @@
 		
 		<template v-else-if="type=='menuitem'">
 			
-			<FilterIcon :obj :size="22"/>
+			<FilterIcon :obj :size="22" :exclude="excludeActive" />
 			
 			<div class="name">
 				{{ obj.name }}
@@ -50,7 +52,7 @@
 
 		</template>
 
-		<template v-else-if="type=='popovermenuitem'">
+		<template v-else-if="type=='popovermenuitem'" :exclude="excludeActive">
 
 			<FilterIcon :obj :size="20"/>
 			
@@ -99,6 +101,19 @@
 import FilterIcon from '@/location/filtericon.vue';
 import { state } from '@/state.js';
 
+function toFilterNameClass(name) {
+	if (!name) return null;
+
+	return 'filter-' + String(name)
+		.toLowerCase()
+		.replace(/ä/g, 'ae')
+		.replace(/ö/g, 'oe')
+		.replace(/ü/g, 'ue')
+		.replace(/ß/g, 'ss')
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+}
+
 export default {
 	props: {
 		obj: {
@@ -132,6 +147,7 @@ export default {
 			if (!this.includeActive) {
 				if (! event.shiftKey) {
 					state.includeFilter = [];
+					state.excludeFilter = [];
 				}
 				state.includeFilter.push(this.obj);
 			} else {
@@ -141,6 +157,7 @@ export default {
 			if (!this.excludeActive) {
 				if (event.altKey) {
 					if (! event.shiftKey) {
+						state.includeFilter = [];
 						state.excludeFilter = [];
 					}
 					state.excludeFilter.push(this.obj);
@@ -161,8 +178,13 @@ export default {
 		}
 	},
 	computed: {
+		filterName() {
+			return this.obj && this.obj.name ? this.obj.name : null;
+		},
+		filterNameClass() {
+			return toFilterNameClass(this.filterName);
+		},
 		includeActive() {
-			// if (this.type == 'table' || this.type == 'tablecompact') return false
 			let included = false;
 			state.includeFilter.forEach(item => {
 				if (item.name == this.obj.name) {
@@ -172,7 +194,6 @@ export default {
 			return included;
 		},
 		excludeActive() {
-			// if (this.type == 'table' || this.type == 'tablecompact') return false
 			let excluded = false;
 			state.excludeFilter.forEach(element => {
 				if (element.name == this.obj.name) {
@@ -180,6 +201,9 @@ export default {
 				}
 			});
 			return excluded;
+		},
+		not() {
+			return this.excludeActive;
 		},
 		isActive() {
 			return (state.activeFilter?.name == this.obj.name);
@@ -218,6 +242,14 @@ export default {
 		margin-right 8px
 		margin-left 3px
 		z-index 1
+	.notname
+		opacity .4
+		margin-right .15em
+		// color var(--warningred)
+		text-transform uppercase
+		// font-size 80%
+		// display none
+		// opacity .6
 	.filtericon
 		z-index 1
 	&:hover .bg
@@ -240,6 +272,12 @@ export default {
 		height 32px
 		padding 0 10px
 		border 2px solid var(--bordercolor)
+
+.filteritem.pill.exclude
+	border 1px solid #00000011
+	.bg
+		display none
+
 .name
 	white-space nowrap
 
@@ -267,6 +305,12 @@ export default {
 		margin 2px
 		margin-right 6px
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
+
+.filteritem.statusbaritemsmall.filter-bookmarks .name
+	margin-left -.05em
+.filteritem.statusbaritem.filter-bookmarks .name
+	margin-left -.2em
+
 
 .filteritem.statusbaritemsmall
 	height 30px

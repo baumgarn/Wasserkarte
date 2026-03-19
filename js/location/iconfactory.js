@@ -35,6 +35,27 @@ export const IconFactory = {
 		return Promise.all(promises);
 	},
 
+	createCanvas(size) {
+		const dpr = window.devicePixelRatio || 1;
+		const px = size * dpr;
+		const canvas = document.createElement('canvas');
+		canvas.width = px;
+		canvas.height = px;
+
+		const ctx = canvas.getContext('2d');
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+		return { canvas, ctx, dpr };
+	},
+
+	drawCircle(ctx, size, fillStyle) {
+		const radius = size / 2;
+		ctx.beginPath();
+		ctx.arc(radius, radius, radius, 0, Math.PI * 2);
+		ctx.fillStyle = fillStyle;
+		ctx.fill();
+	},
+
 	async getShortcodeIcon(obj, size) {
 		
 		if (!size) size = this.size
@@ -43,24 +64,12 @@ export const IconFactory = {
 
 		if (this.cache.has(key)) return this.cache.get(key);
 
-		const dpr = window.devicePixelRatio || 1;
-		const px = size * dpr; // already multiplied by dpr
-		const canvas = document.createElement('canvas');
-		canvas.width = px;
-		canvas.height = px;
-		const ctx = canvas.getContext('2d');
+		const { canvas, ctx } = this.createCanvas(size);
 
-		ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale canvas to handle DPR
+		const cx = size / 2;
+		const cy = size / 2;
 
-		let maxRadius = 0;
-		const cx = px / (2 * dpr);
-		const cy = px / (2 * dpr);
-
-		const radius = (px / 2) / dpr;
-		ctx.beginPath();
-		ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-		ctx.fillStyle = obj.color || '#ccc';
-		ctx.fill();
+		this.drawCircle(ctx, size, obj.color || '#ccc');
 
 		if (obj.short) {
 			const fontsize = size * 0.5;

@@ -351,6 +351,10 @@ export default {
 		},
 		filterMenuItems() {
 			let items = [];
+			if (state.bookmarks.length > 0 ) {
+				items.push({ type: 'filteritem', obj: dataModel.bookmarkfilter_obj });
+				items.push({ type: 'divider' });
+			}  
 			items.push({ type: 'header', label: 'Wasserhaushalt' });
 			items.push({ type: 'filteritem', obj: dataModel.regenabhängig_obj });
 			items.push({ type: 'filteritem', obj: dataModel.bewaessert_obj });
@@ -364,6 +368,9 @@ export default {
 			items.push({ type: 'divider' });
 			items.push({ type: 'header', label: 'Nutzungsart' });
 			Object.values(dataModel.usage_table).forEach(item => items.push({ type: 'filteritem', obj: item }));
+			items.push({ type: 'thinline' });
+			items.push({ type: 'note', label: 'SHIFT + Klick - Mehrfachauswahl' });
+			items.push({ type: 'note', label: 'ALT + Klick - Ausschließen' });
 			return items;
 		},
 		settingsMenuItems() {

@@ -56,7 +56,7 @@ localStorageState('showDataGaps', false);
 localStorageState('tableview_col_bookmarks', true);
 localStorageState('tableview_col_attributes', true);
 localStorageState('tableview_compact', true);
-localStorageState('tableview_bookmarksontop', true);
+localStorageState('tableview_bookmarksontop', false);
 localStorageState('tableview_timelinerange', 'all');
 localStorageState('tableview_timelinestyle', 'nfk_avg');
 localStorageState('tableview_showdepths', false);
@@ -112,21 +112,43 @@ export function computedState(key, getter, options = {}) {
 
 // FILTER
 
+function deviceMatchesFilter(device, filter) {
+	if (!filter) return true;
+	if (filter.bookmark) return isBookmarked(device);
+
+	const keywords = device.filterKeywords || [];
+	return keywords.includes(filter.name);
+}
+
+function removeBookmarkFilters(filters) {
+	return filters.filter(filter => !filter || !filter.bookmark);
+}
+
+watch(
+	() => state.bookmarks.length,
+	(bookmarkCount) => {
+		if (bookmarkCount > 0) return;
+
+		state.includeFilter = removeBookmarkFilters(state.includeFilter);
+		state.excludeFilter = removeBookmarkFilters(state.excludeFilter);
+	},
+	{ immediate: true }
+);
+
 // watch filter and create the filteredDevices array
 watch(
-	[() => state.includeFilter, () => state.excludeFilter],
-	([include, exclude]) => {
-		state.filteredDevices = state.devices.filter(device => {
-			const keywords = device.filterKeywords || [];
+	[() => state.devices, () => state.includeFilter, () => state.excludeFilter, () => state.bookmarks],
+	([devices, include, exclude]) => {
+		state.filteredDevices = devices.filter(device => {
 
-			// included: ALL includeFilter names must exist in keywords
+			// included: ALL includeFilter items must match
 			const included = include.length
-				? include.every(f => keywords.includes(f.name))
+				? include.every(filter => deviceMatchesFilter(device, filter))
 				: true;
 
-			// excluded: device is excluded if ANY excludeFilter name exists in keywords
+			// excluded: device is excluded if ANY excludeFilter item matches
 			const excluded = exclude.length
-				? exclude.every(f => !keywords.includes(f.name))
+				? exclude.every(filter => !deviceMatchesFilter(device, filter))
 				: true;
 
 			return included && excluded;

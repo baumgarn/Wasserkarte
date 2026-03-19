@@ -1,12 +1,28 @@
 <template>
 
-	<div v-if="icon" class="filtericon" :style="{ backgroundImage: `url(${icon})`, width: size+'px', height: size+'px' }"></div>
+	<div v-if="icon"
+		 class="filtericon"
+		 :class="[filterNameClass, { excluded: exclude }]"
+		 :style="{ backgroundImage: `url(${icon})`, width: size+'px', height: size+'px' }"></div>
 
 </template>
 
 <script>
 import { IconFactory } from '@/location/iconfactory.js';
 import { state } from '@/state.js';
+
+function toFilterNameClass(name) {
+	if (!name) return null;
+
+	return 'filter-' + String(name)
+		.toLowerCase()
+		.replace(/ä/g, 'ae')
+		.replace(/ö/g, 'oe')
+		.replace(/ü/g, 'ue')
+		.replace(/ß/g, 'ss')
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+}
 
 export default {
 	props: {
@@ -18,6 +34,10 @@ export default {
 			type: Number,
 			default: 30,
 			required: false
+		},
+		exclude: {
+			type: Boolean,
+			default: false
 		}
 	},
 	data() {
@@ -48,14 +68,14 @@ export default {
 
 			if (!this.obj) return;
 
-			if (this.obj.img) {
-				if (token === this._loadToken) {
-					this.icon = '/img/' + this.obj.img;
-				}
-				return;
-			}
-
 			try {
+				if (this.obj.img) {
+					if (token === this._loadToken) {
+						this.icon = '/img/' + this.obj.img;
+					}
+					return;
+				}
+
 				if (this.obj.short != null) {
 					const url = await IconFactory.getShortcodeIcon(this.obj, this.size);
 					if (token === this._loadToken) this.icon = url;
@@ -81,6 +101,12 @@ export default {
 		},
 	},
 	computed: {
+		filterName() {
+			return this.obj && this.obj.name ? this.obj.name : null;
+		},
+		filterNameClass() {
+			return toFilterNameClass(this.filterName);
+		},
 		borderColor() {
 			return this.obj.borderColor;
 		},
@@ -97,8 +123,24 @@ export default {
 <style lang="stylus" scoped>
 .filtericon
 	display inline-flex
+	position relative
 	background-size contain
 	background-position center
 	background-repeat no-repeat
+	&.excluded::after
+		content ''
+		position absolute
+		left 0
+		top 50%
+		width 100%
+		height 11%
+		background var(--warningred)
+		opacity .8
+		transform translateY(-50%) rotate(-45deg)
+		transform-origin center
+		pointer-events none
 
+.filtericon.filter-bookmarks
+	opacity .65
+	background-size 85%
 </style>

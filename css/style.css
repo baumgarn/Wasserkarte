@@ -246,6 +246,7 @@ button.ol-zoom-out {
   font-weight: bold;
   padding-top: 6px;
   margin: 2em 4px 0.5em;
+  margin: 0.5em 4px 0.5em;
   display: block;
   color: var(--menusectionheadercolor);
   font-size: 80%;
@@ -257,6 +258,13 @@ button.ol-zoom-out {
   border-top: none;
   margin-top: 0;
   padding-top: 6px;
+}
+.menuwindow-content .note {
+  font-size: 9pt;
+  margin-bottom: 6px;
+}
+.menuwindow-content .note em {
+  font-style: normal;
 }
 .menuitem {
   cursor: pointer;
@@ -715,6 +723,12 @@ input[type=radio] {
   margin-left: -6px;
   background-position: center center;
   background-size: 100% 100%;
+}
+.popover-menu .note {
+  pointer-events: none;
+}
+.popover-menu .note + .note {
+  margin-top: -0.5em;
 }
 .popover-menu .boolean.active .icon {
   opacity: 0.8;

@@ -132,14 +132,24 @@ export const dataModel = {
 		img: 'regenabhaengig.svg'
 	},
 
+	bookmarkfilter_obj : {
+		sort: 0,
+		name: 'Bookmarks',
+		img: 'bookmarkfill.svg',
+		bookmark: true,
+	},
+
 	get_usage_name (device) {
-		return this.usage_table[device.attributes.Nutzungsart]?.name
+		const usage = this.usage_table[device.attributes.Nutzungsart];
+		return usage ? usage.name : undefined;
 	},
 	get_soil_name (device) {
-		return this.soil_table[device.attributes.Bodenart]?.name
+		const soil = this.soil_table[device.attributes.Bodenart];
+		return soil ? soil.name : undefined;
 	},
 	get_humus_name (device) {
-		return this.humus_table[device.attributes.Humusgehalt]?.name;
+		const humus = this.humus_table[device.attributes.Humusgehalt];
+		return humus ? humus.name : undefined;
 	},
 
 	get_usage_obj(device) {
@@ -295,7 +305,9 @@ export const dataModel = {
 	},
 
 	get_color_scheme(type) {
-		return this.color_schemes[type]?.[state.colorScheme] ?? this.color_schemes[type]?.['normal'];
+		const schemes = this.color_schemes[type];
+		if (!schemes) return undefined;
+		return schemes[state.colorScheme] || schemes.normal;
 	},
 
 	get_color_flat(value, colorTable) {
