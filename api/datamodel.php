@@ -9,7 +9,7 @@ $soil_table = [
 	"Sl2" => [
 		"name"  => "schwach lehmiger Sand",
 		"TW"    => ["h0-1" => 6, "h2" => 7, "h3" => 8, "h4" => 9],
-		"FK"    => ["h0-1" => 21, "h2" => 23, "h3" => 26, "h4" => 60]
+		"FK"    => ["h0-1" => 21, "h2" => 23, "h3" => 26, "h4" => 30]
 	],
 	"Sl3" => [
 		"name"  => "mittel lehmiger Sand",

@@ -72,12 +72,12 @@
 							Geologische Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
 						</div>
 					</div>
-					<div class="legenditem clickable" @click="openMenu('glossar', $event )">
+					<div class="legenditem clickable" @click="openMenu('bodenkunde', $event )">
 						<div class="legendimage">
-							<div class="icon glossar"></div>
+							<div class="icon bodenkunde"></div>
 						</div>
 						<div class="legendtext">
-							Glossar zu Bodenkundethemen
+							Bodenkunde Hintergrundinformationen
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">
@@ -221,7 +221,7 @@ export default {
 				state.menuOpen.bodenfeuchte = false;
 				state.menuOpen.filter = false;
 				state.menuOpen.karten = false;
-				state.menuOpen.glossar = false;
+				state.menuOpen.bodenkunde = false;
 				state.menuOpen.einstellungen = false;
 				if (state.isMobile) {
 					state.menuOpen.info = false;

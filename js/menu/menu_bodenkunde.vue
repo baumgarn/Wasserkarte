@@ -2,145 +2,173 @@
 	<div class="menuwindow glossar">
 
 		<div class="menuwindow-header">
-			<h3>Bodenkunde Glossar</h3>
+			<h3>Bodenkunde</h3>
 		</div>
 
 		<div class="menuwindow-content">
 
-
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
-					Bodenfeuchte 
-				</h4>
-
-				<div class="glossar-item-content">
-					ist das Wasser im Boden. Der Boden ist wie ein Schwamm – er kann Wasser aufsaugen und speichern. Das Wasser füllt die kleinen Hohlräume zwischen den festen Bestandteilen des Bodens.
-				</div>
-
-			</div>
-			
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
-					Bodenfeuchte in Volumen %
-				</h4>
-
-				<div class="glossar-item-content">
-					zeigt den prozentualen Anteil von Wasser im gesamten Bodenvolumen. Dieser kann nie 100% sein, da sich nur die Hohlräume, die sogenannten Bodenporen, zwischen den mineralischen Bodenteilchen mit Wasser füllen können.
-				</div>
-
-			</div>
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
-					Bodenporen 
-				</h4>
-
-				<div class="glossar-item-content">
-
-					sind winzige Hohlräume im Boden, gefüllt mit Wasser oder Luft. Große Poren lassen Wasser schnell durchsickern, kleine halten es zu fest. In den mittleren Poren steckt das Wasser, das Pflanzen nutzen können.
-
-					<table>
-						<tbody>
-
-							<tr>
-								<td>Grobporen</td><td>> 50μm</td><td>Wasser läuft hindurch</td>
-							</tr>
-							<tr>
-								<td>Mittelporen</td><td>2-50μm</td><td>Pflanzenverfügbarer Wasserspeicher</td>
-							</tr>
-							<tr>
-								<td>Feinporen</td><td>< 2μm</td><td>Wasser zu fest an Boden gebunden</td>
-							</tr>
-
-						</tbody>
-					</table>
-				</div>
-
+			<div class="article-section">
+				<h4 class="article-section-header headericon bodenfeuchte">Die gemessene Bodenfeuchte</h4>
+				<p>
+					Die Bodenfeuchte ist das Wasser im Boden. Das Wasser füllt die kleinen Hohlräume zwischen den festen Bestandteilen des Bodens. Die von den Sensoren gemessene Bodenfeuchte wird in <strong>Volumen (Vol %)</strong> angegeben, also der Wasseranteil im gesamten Bodenvolumen neben den anderen Bestandteilen wie mineralischer und organischer Substanz.
+				</p>
+				<p>
+					Die Bodenfeuchte-Sensoren auf der Wasserkarte messen für eine bessere Vergleichbarkeit in bis zu vier festen Schichttiefen: <strong>10cm</strong>, <strong>30cm</strong>, <strong>60cm</strong> und <strong>80cm</strong>. So lässt sich erkennen, ob nur der
+					Oberboden kurzfristig befeuchtet ist oder ob Wasser auch in tiefere Schichten vorgedrungen
+					ist.
+				</p>
 			</div>
 
-			<div class="glossar-item">
+			<section class="article-section">
+				<h4 class="article-section-header headericon pflanzenverfuegbar">Das pflanzenverfügbare Wasser – die nutzbare Feldkapazität (nFK %)</h4>
+				<p>
+ 					Die nutzbare Feldkapazität besagt wie viel Wasser im Boden die Pflanzen wirklich aufnehmen und nutzen können. Ein Teil des Wassers ist nicht für die Wurzeln der Pflanzen zu erreichen. Wie viel das ist, hängt stark von Bodenart und Humusgehalt ab.
+				</p>
+				<p>
+					Bei 
 
-				<h4 class="glossar-item-header">
-					Gesamtkapazität 
-				</h4>
+					<span class="nfkbg" :style="{ backgroundColor: dataModel.get_nfk_color_alpha(100, 0.9) }">100 <span class="lightsmall">nFK %</span></span> 
+					
+					ist die <strong>Feldkapazität</strong> erreicht, der Boden ist wassergesättigt. Das überschüssige Wasser läuft durch den Boden hindurch und versickert im Grundwasser.
+				</p>
+				<p>
+					Bei 
+					
+					<span class="nfkbg" :style="{ backgroundColor: dataModel.get_nfk_color_alpha(0, 0.9) }">0 <span class="lightsmall">nFK %</span></span> 
+					
+					ist der <strong>Welkepunkt</strong> erreicht, die Restmenge an Wasser steht den Pflanzen nicht mehr zu Verfügung, sie ist zu stark an den Boden gebunden. Das nicht pflanzenverfügbare Wasser wird auch als Totwasser bezeichnet.
+				</p>
+				
+				<p>
+					Die Nutzbare Feldkapazität wird auf der Wasserkarte rechnerisch aus der gemessenen <strong>Bodenfeuchte</strong> und den Standorteigenschaften <strong>Bodenart</strong> und <strong>Humusgehalt</strong> modelliert. Die farbliche Codierung der Elemente auf der Wasserkarte wird aus der berechneten nutzbare Feldkapazität generiert.
+				</p>
 
-				<div class="glossar-item-content">
-					Die Gesamtkapazität beschreibt, wie viel Wasser eine bestimmte Bodenart maximal speichern kann. Das ist die Wassermenge, die nach einem Regen im Boden bleibt, wenn alles überschüssige Wasser abgeflossen ist.
-				</div>
+				<table class="nfk-table">
+					<tbody>
+						<tr v-for="label in nfkLabels" :key="label.originalIndex" :style="{ backgroundColor: levelColors[label.originalIndex] }">
+							<td class="range">{{ getNfkRange(label.originalIndex) }}</td>
+							<td class="unit"><span class="lightsmall">nFK %</span></td>
+							<td class="name">{{ label.name }}</td>
+						</tr>
+					</tbody>
+				</table>
+				<p>
+					Die Interpretation in verschiedene Trockenheitsstufen erfolgt frei nach der Einteilung des <a href="https://www.dwd.de/DE/fachnutzer/landwirtschaft/dokumentationen/allgemein/bodenfeuchte_farbskala_doku.html?nn=16102&lsbId=606604" target="_blank">Deutschen Wetterdienst</a>. Es handelt sich lediglich um eine Annäherung, da unterschiedliche Pflanzenarten sehr unterschiedliche Anforderungen an die Bodenfeuchte haben können.
+				</p>
 
-			</div>
+			</section>
 
-			<div class="glossar-item">
+			<section class="article-section">
+				<h4 class="article-section-header">Bodenarten</h4>
+				<p>
+					Die Bodenart beschreibt die Mischung und Korngröße der mineralischen Bestandteile eines
+					Bodens. Grundsätzlich sind vor allem Sand, Schluff und Ton wichtig. Lehm ist keine eigene
+					Korngröße, sondern eine günstige Mischung aus diesen Anteilen.
+				</p>
 
-				<h4 class="glossar-item-header">
-					Humus
-				</h4>
+				<table class="soil-table">
+					<tbody>
+						<tr>
+							<td>Sand</td>
+							<td>grobe Körner, viele Grobporen</td>
+							<td>Wasser versickert schnell, geringe Speicherfähigkeit</td>
+						</tr>
+						<tr>
+							<td>Schluff</td>
+							<td>mittlere Korngröße, viele Mittelporen</td>
+							<td>oft gute Wasserspeicherung und gute Pflanzenverfügbarkeit</td>
+						</tr>
+						<tr>
+							<td>Ton</td>
+							<td>sehr feine Körner, viele Feinporen</td>
+							<td>hohe Wasserspeicherung, aber ein Teil ist fest gebunden</td>
+						</tr>
+						<tr>
+							<td>Lehm</td>
+							<td>Mischung aus Sand, Schluff und Ton</td>
+							<td>meist günstiges Verhältnis aus Speicherung, Durchlüftung und Verfügbarkeit</td>
+						</tr>
+					</tbody>
+				</table>
 
-				<div class="glossar-item-content">
-					bezeichnet abgestorbene Pflanzen- und Tierreste im Boden, die durch Mikroorganismen zersetzt wurden. Dadurch machen sie den Boden fruchtbar, speichern Wasser und Nährstoffe und sorgen dafür, dass der Boden gesund und lebendig bleibt.
-				</div>
+				<p>
+					Auf der Karte für den Fläming werden vor allem lehmbeeinflusste Sandböden und sandige Lehme
+					dargestellt. Diese Böden sind für die Region typisch, weil sie zwischen eher trockenen
+					Sandstandorten und besser wasserhaltenden Lehmböden liegen.
+				</p>
 
-			</div>
+				<table class="soil-table">
+					<tbody>
+						<tr>
+							<td>sandiger Sand</td>
+							<td>sehr sandig und durchlässig</td>
+							<td>trocknet schnell aus, geringe Wasserspeicherung</td>
+						</tr>
+						<tr>
+							<td>schwach lehmiger Sand</td>
+							<td>Sand mit geringem Lehmanteil</td>
+							<td>speichert Wasser etwas besser als reiner Sand</td>
+						</tr>
+						<tr>
+							<td>mittel lehmiger Sand</td>
+							<td>deutlich stärker lehmbeeinflusst</td>
+							<td>oft günstiger für pflanzenverfügbares Wasser</td>
+						</tr>
+						<tr>
+							<td>sandiger Lehm</td>
+							<td>lehmiger Boden mit spürbarem Sandanteil</td>
+							<td>höhere Wasserspeicherung bei meist guter Verfügbarkeit</td>
+						</tr>
+					</tbody>
+				</table>
 
-			<div class="glossar-item">
+				<p class="article-note">
+					Ein Boden mit hoher Gesamtfeuchte ist nicht automatisch gut versorgt: Entscheidend ist, wie viel
+					davon in den für Pflanzen nutzbaren Poren steckt.
+				</p>
+			</section>
 
-				<h4 class="glossar-item-header">
-					Nutzbare Feldkapazität (nFK %)
-				</h4>
+			<section class="article-section">
+				<h4 class="article-section-header">Humusgehalt</h4>
+				<p>
+					Humus besteht aus zersetzten organischen Resten und verbessert die Bodenstruktur. Er erhöht die
+					Wasserspeicherfähigkeit, stabilisiert das Porengefüge und unterstützt das Bodenleben.
+				</p>
+				<p>
+					Vor allem leichte, sandige Böden profitieren stark von höherem Humusgehalt, weil Humus Wasser
+					zusätzlich speichern kann. Im hier verwendeten Modell werden Humusklassen von <code>h0-1</code> bis <code>h4</code>
+					berücksichtigt. Höherer Humusgehalt verändert dabei sowohl die Feldkapazität als auch das
+					Totwasser der jeweiligen Bodenschicht.
+				</p>
+			</section>
 
-				<div class="glossar-item-content">
-					bezeichnet den Anteil des pflanzenverfügbaren Wassers in Prozent. Bei 100% nFK ist der Boden wassergesättigt. Das überschüssige Wasser läuft durch den Boden hindurch und versickert im Grundwasser. Bei 0% nFK ist der Welkepunkt erreicht, die Restmenge an Wasser steht den Pflanzen nicht mehr zu Verfügung, sie ist zu stark an den Boden gebunden. 
-				</div>
+			<section class="article-section">
+				<h4 class="article-section-header">Wasserhaushalt</h4>
+				<p>
+					Für eine bessere Vergleichbarkeit werden verschiedenen Standortarten unterschieden:
+				</p>
+				<ul class="article-list">
+					<li><Strong>Grundwassernah</Strong>: Standorte mit höherer Wasserversorgung aufgrund von Grundwassernähe.</li>
+					<li><Strong>Bewässert</Strong>: regelmäßig bewässerte Standorte.</li>
+					<li><Strong>Regenabhängig</Strong>: Standorte ohne Bewässerung und ohne nennenswerten Grundwassereinfluss.</li>
+				</ul>
+			</section>
 
-			</div>
-
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
-					Pflanzenverfügbar
-				</h4>
-
-				<div class="glossar-item-content">
-					besagt wie viel Wasser im Boden die Pflanzen wirklich aufnehmen und nutzen können. Ein Teil des Wassers ist nicht für die Wurzeln der Pflanzen zu erreichen. Wie viel das ist, hängt stark von Bodenart und Humusgehalt ab. Der pflanzenverfügbare Wasseranteil des Bodens wird als nutzbare Feldkapazität bezeichnet.
-				</div>
-
-			</div>
-
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
-					Trockenheitsstufen
-				</h4>
-
-				<div class="glossar-item-content">
-					Die Interpretation der nutzbaren Feldkapazität (nFK %) in verschiedene Trockenheitsstufen erfolgt frei nach der Einteilung des <a href="https://www.dwd.de/DE/fachnutzer/landwirtschaft/dokumentationen/allgemein/bodenfeuchte_farbskala_doku.html?nn=16102&lsbId=606604" target="_blank">Deutschen Wetterdienst</a>. Es handelt sich lediglich um eine Annäherung, da unterschiedliche Pflanzenarten sehr unterschiedliche Anforderungen an die Bodenfeuchte haben können.
-					<table class="nfk-table">
-						<tbody>
-							<tr v-for="label in nfkLabels" :key="label.originalIndex" :style="{ backgroundColor: levelColors[label.originalIndex] }">
-								<td class="range">{{ getNfkRange(label.originalIndex) }}</td>
-								<td class="name">{{ label.name }}</td>
-							</tr>
-						</tbody>
-					</table>
-
-				</div>
-
-			</div>
-
-			<div class="glossar-item">
-
-				<h4 class="glossar-item-header">
-					Welkepunkt
-				</h4>
-
-				<div class="glossar-item-content">
-					Nicht alles Wasser im Boden können Pflanzen aufnehmen. Ein Teil ist so fest an die Erde gebunden, dass Wurzeln es nicht mehr erreichen – dieses Wasser nennt man Totwasser. Der Welkepunkt ist die untere Grenze der nutzbaren Feldkapazität (nFK < 0 %), ab der Pflanzen zu welken beginnen, weil sie kein nutzbares Wasser mehr finden.
-				</div>
-
-			</div>
-			
+			<section class="article-section">
+				<h4 class="article-section-header">Modellierung</h4>
+				<p>
+					Die Berechnung erfolgt in <code>datamodel.php</code>.
+					Dort sind für jede unterstützte Bodenart und Humusklasse Werte für Feldkapazität (FK) und
+					Totwasser (TW) hinterlegt. Für jede gemessene Tiefe wird daraus die nutzbare Feldkapazität
+					berechnet.
+				</p>
+				<p class="formula">
+					nFK = ((Bodenfeuchte - Totwasser) / (Feldkapazität - Totwasser)) * 100
+				</p>
+				<p>
+					Die Modellierung der durschnittlichen nFK % und Vol % Werte für jeden Standort erfolgt unter einbeziehung der Schichttiefen 10cm bis 60cm da diese für den Großteil der Pflanzen am relevantesten sind. Es wird ein Annäherungswert aus den verfügbaren Schichttiefen gebildet.
+				</p>
+			</section>
 
 		</div>
 
@@ -154,17 +182,12 @@ import { state } from '../state.js'
 import { dataModel } from '@/datamodel.js'
 
 export default {
-	name: 'Glossar',
+	name: 'Bodenkunde',
 	components: {
 		
 	},
 	setup() {
 		return {state, dataModel};
-	},
-	data() {
-		return {
-			alpha: 0.4
-		}
 	},
 	computed: {
 		nfkLabels() {
@@ -193,12 +216,12 @@ export default {
 		getNfkRange(index) {
 			const labels = dataModel.nfk_labels;
 			if (index === 0) {
-				return '< 0 %';
+				return '< 0';
 			}
 			if (index === labels.length - 1) {
-				return '> ' + labels[index - 1].value + ' %';
+				return '> ' + labels[index - 1].value + '';
 			}
-			return labels[index - 1].value + ' - ' + labels[index].value + ' %';
+			return labels[index - 1].value + ' - ' + labels[index].value + '';
 		},
 	},
 	watch: {
@@ -215,46 +238,117 @@ export default {
 	width 440px
 	width 600px
 
+.article-intro
+	margin 0 0 20px
+	padding 4px 4px 0
+	font-size 12px
+	line-height 1.45
 
-
-.glossar-item
-	margin 0 0 16px
+.article-section
+	margin 0 0 18px
 	padding 4px 4px
 	font-size 12px
+	line-height 1.45
 
-.glossar-item-header
-	font-size 9.5pt
-	margin 0 0 8px
-	padding 6px 0 0
+.article-section-header
+	font-size 10pt
+	margin 0 0
+	padding 7px 0 0
+	text-transform none
+	display flex
+	align-items flex-end
+	// flex-direction column
 
-.glossar-item:first-of-type .glossar-item-header
+.headericon:before
+	content: ''
+	display block
+	width 32px
+	height 32px
+	top 3px
+	margin-right 6px
+	background-size contain
+	background-position center
+	background-repeat no-repeat
+	position relative
+
+.headericon.bodenfeuchte:before
+	background-image url(/img/tropfen_flat.png)
+	background-size 60% 90%
+	margin-right -5px
+	opacity .9
+	left -6px
+.headericon.pflanzenverfuegbar:before
+	background-image url(/img/plant.svg)
+	opacity .7
+
+
+.article-section:first-child h4
 	border-top none
-	margin-top 0
-.glossar-item:first-of-type
-	padding-top 0
+	margin-top -10px
+
+p
+	margin 1.3em 0
+
+h4 + p
+	margin-top 1em
+
+a
+	font-weight bold
+
+.nfkbg
+	display inline-block
+	padding .1em .5em
+	margin -.1em .1em
+	border-radius 6px
+
+.lightsmall
+	font-size 90%
+
+.article-note
+	font-style italic
+	color #444
+	margin-bottom 0
+
+.formula
+	font-family monospace
+	background #f5f5f5
+	padding 6px 8px
+	border-radius 3px
+
+.article-list
+	margin 10px 0 0
+	padding-left 18px
+	li
+		margin 0 0 6px
 
 table
 	border-spacing 0
 	border-bottom 1px solid #ddd
-	margin 12px 0 0
+	margin 20px 0
 	tr
 		padding 0
 	td
 		border-top 1px solid #ddd
 		padding 3px 0
 		margin 0
-		padding-right 12px
+		padding-right 16px
+
+table.soil-table
+	td:first-child
+		white-space nowrap
+		font-weight 600
 
 table.nfk-table
+	overflow hidden
+	border-radius 4px
 	border-bottom none
+	td:first-child
+		padding-left 10px 
 	tr
 		td
 			border-top none
 		td.range
-			// width 80px
 			text-align right
-			padding-right 16px
-			padding-left 8px
 		td.name
 			text-align left
 

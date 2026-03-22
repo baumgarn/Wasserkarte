@@ -59,7 +59,7 @@
 				<div
 					class="datarow pflanzenverfuegbar"
 					v-tooltip
-					tooltipcontent="Das tatsächlich für die Wurzeln der Pflanzen erreichbare Wasser."
+					tooltipcontent="Das tatsächlich für die Wurzeln der Pflanzen erreichbare Wasser, die nutzbare Feldkapazität (nFK %)"
 					tooltipside="left"
 					tooltipoffset="6"
 					tooltipwidth="210">
