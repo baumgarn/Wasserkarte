@@ -58,7 +58,7 @@ export default {
 				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },
 				{ title: 'Filter', tooltip: 'Filter nach Standorteigenschaften', key: 'filter', group: '1' },
 				{ title: 'Karten', tooltip: 'Karten der Landesvermessung\nund Geobasisinformation Brandenburg (LGB)', key: 'karten', group: '1' },
-				{ title: 'Glossar', tooltip: 'Bodenkunde Glossar', key: 'glossar', group: '1' },
+				{ title: 'Bodenkunde', tooltip: 'Hintergrund Bodenkunde', key: 'bodenkunde', group: '1' },
 				// { title: 'Bodenarten', tooltip: 'Bodenarten', key: 'bodenarten', group: '1' },
 				{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' },
 				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '2' },

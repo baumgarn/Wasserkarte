@@ -72,7 +72,7 @@
 		
 		<template v-else-if="type=='table'">
 			
-			<FilterIcon :obj :size="20"/>
+			<FilterIcon :obj :size="22"/>
 			
 			<div class="name">
 				{{ obj.name }}
@@ -447,46 +447,39 @@ export default {
 	cursor pointer
 	background transparent
 	justify-content flex-start
-	.filtericon
-		filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
-
 
 .filteritem.table
+	&.active
+	&:hover
+	&.active:hover
+		border none
 	.bg
+		opacity 0
+	&:hover .bg
 		transition opacity linear .1s
 		background var(--activecolorgreybrighter)
-		opacity 0
+		opacity 1
+	// &.active .bg
+		// opacity 0
 	.filtericon
-		margin-left 2px
-		flex-basis 20px 
+		flex-basis 22px 
 		flex-shrink 0
-	&.active
-		border none
-		.bg
-			background var(--activecolorgreybrighter)
-			opacity 0
-	&:hover 
-		.bg
-			opacity 1
 
 .filteritem.tablecompact
 	margin 0
 	padding 0
-	transition filter .1s linear
-	// filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
-	filter brightness(1)
 	justify-content center
 	.filtericon
-		filter none
-	.icon
-		width 24px
-		height 24px
-	&:hover
-		filter brightness(.9)
-	.bg
-		opacity 0 !important
+		filter brightness(1)
+		transition filter linear .15s
+	&:hover .filtericon
+		filter brightness(.85)
 	&.active
+	&:hover
+	&.active:hover
 		border none
+		.bg
+			display none !important
 
 
 </style>

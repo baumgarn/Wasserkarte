@@ -2,7 +2,7 @@
 
 	<div class="timeline" ref="timeline" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 
-		<canvas ref="heatmap"></canvas>
+		<img v-if="heatmapImageUrl" class="heatmap-image" :src="heatmapImageUrl" alt="" draggable="false">
 
 		<div class="hoverline" v-if="(hoverLinePosition > 0)" :style="{ left: (hoverLinePosition ) + 'px' }"></div>
 
@@ -12,7 +12,10 @@
 			{{ formattedHoverDate }}
 		</div>
 
-		<div class="selectedDeviceArea" v-if="selectedDeviceTelemetry" :style="{ left: (selectedDeviceStartPos ) + 'px', right: (selectedDeviceEndPos ) + 'px' }"></div>
+		<div
+			class="selectedDeviceArea"
+			v-if="selectedDeviceWidth > 0"
+			:style="{ left: selectedDeviceStartPos + 'px', width: selectedDeviceWidth + 'px' }"></div>
 
 		<DateAxis
 		v-if="dateAxis"
@@ -32,18 +35,37 @@
 </template>
 
 <script>
-import { nextTick } from 'vue';
 import { state } from '@/state.js';
 import { dataModel } from '@/dataModel.js'
 import dataStore from '@/datastore.js';
 import { displayutil } from '@/displayutil.js'
 import DateAxis from '@/charts/dateaxis.vue'
 
+const timelineImageCache = new Map();
+const LEVELS_IMAGE_HEIGHT = 64;
+const NFK_AVG_PIXELS_PER_DAY = 2;
+const LEVELS_PIXELS_PER_DAY = 4;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
+function buildTimelineImageCacheKey({
+	dailyAveragesFingerprint,
+	startTimestamp,
+	endTimestamp,
+	timelineStyle,
+	colorScheme,
+}) {
+	return [
+		dailyAveragesFingerprint ?? 'empty',
+		startTimestamp ?? 0,
+		endTimestamp ?? 0,
+		timelineStyle ?? 'nfk_avg',
+		colorScheme ?? 'normal',
+	].join('|');
+}
 
 export default {
 	name: 'TimelineInner',
-	components: {DateAxis},
+	components: { DateAxis },
 	setup() {
 		return {
 			state, displayutil,
@@ -54,43 +76,43 @@ export default {
 			selectedDeviceTelemetry: null,
 			hoverPosition: -1,
 			hoverDateWidth: 70,
-			timelineWidth: 0
+			timelineWidth: 0,
+			heatmapImageUrl: null,
+			heatmapRenderRaf: null,
+			dailyAveragesFingerprint: 'empty',
+			earliestTimestamp: 0,
+			latestTimestamp: 0,
+			selectedDeviceStartDate: 0,
+			selectedDeviceEndDate: 0,
+			selectedDeviceStartPos: 0,
+			selectedDeviceWidth: 0,
 		};
 	},
 	props: {
 		dailyAverages: Object,
 		startTimestamp: Number,
 		endTimestamp: Number,
-		dateAxis: {type: Boolean, default: true},
-		firstItemPadding: {type: Boolean, default: false},
-		label: {type: String, default: ''},
+		dateAxis: { type: Boolean, default: true },
+		firstItemPadding: { type: Boolean, default: false },
+		label: { type: String, default: '' },
 	},
 	computed: {
 		device() {
 			return dataStore.getDeviceByName(state.selectedDevice);
 		},
-		fullWidth() {
-			return (state.selectedDevice == null && !state.menuOpen.info) 
-		},
-		telemetryLoaded() {
-			return state.telemetryLoaded;
-		},
-		colorScheme() {
-			return state.colorScheme;
-		},
-		filteredDevices() {
-			return state.filteredDevices;
-		},
 		numberOfDays() {
 			return (this.endTimestamp - this.startTimestamp) / (1000 * 60 * 60 * 24);
-		},	
+		},
+		timelineSpan() {
+			return Math.max(1, this.endTimestamp - this.startTimestamp);
+		},
 		showDate() {
 			return (this.hoverPosition > -1 && this.hoverLinePosition > 0)
 		},
 		timelineDate() {
 			let ts = null;
 			if (this.hoverPosition > -1) {
-				const fraction = this.hoverPosition / (this.timelineWidth - 1);
+				const fraction = this.hoverPosition / Math.max(1, this.timelineWidth - 1);
 				ts = this.startTimestamp + fraction * this.timelineSpan;
 				ts = dataStore.floorToMidnight(ts);
 				if (ts < this.earliestTimestamp) ts = this.earliestTimestamp;
@@ -108,7 +130,6 @@ export default {
 			let pos;
 			if (this.hoverPosition > -1) {
 				pos = this.hoverPosition;
-				// Snap to data range boundaries
 				if (this.earliestTimestamp && this.latestTimestamp) {
 					const msPerDay = 24 * 60 * 60 * 1000;
 					const earliestX = ((this.earliestTimestamp - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
@@ -125,150 +146,160 @@ export default {
 			return pos;
 		},
 		hoverDatePosition() {
-			let pos = this.hoverLinePosition - (this.hoverDateWidth / 2)
+			let pos = this.hoverLinePosition - (this.hoverDateWidth / 2);
 			if (pos < 0) pos = 0;
 			if (pos > this.timelineWidth - this.hoverDateWidth) pos = this.timelineWidth - this.hoverDateWidth;
-			return pos
+			return pos;
 		},
 		formattedHoverDate() {
 			return displayutil.formatDateAggregated(this.timelineDate);
 		},
+		cacheKey() {
+			return buildTimelineImageCacheKey({
+				dailyAveragesFingerprint: this.dailyAveragesFingerprint,
+				startTimestamp: this.startTimestamp,
+				endTimestamp: this.endTimestamp,
+				timelineStyle: state.timelineStyle,
+				colorScheme: state.colorScheme,
+			});
+		},
 	},
 	methods: {
-		drawHeatmap() {
-			if (this.telemetryLoaded ) {
-				const timeline = this.$refs.timeline;
-				if (timeline) {
-					this.timelineWidth = timeline.getBoundingClientRect().width;
+		getPixelsPerDay() {
+			return state.timelineStyle === 'levels' ? LEVELS_PIXELS_PER_DAY : NFK_AVG_PIXELS_PER_DAY;
+		},
+		updateTimelineMetrics() {
+			const timeline = this.$refs.timeline;
+			if (!timeline) return;
+			this.timelineWidth = timeline.getBoundingClientRect().width;
+			this.updateSelectedDevicePositions();
+		},
+		buildDailyAveragesFingerprint(rows) {
+			if (!rows?.length) return 'empty';
+			let hash = 0;
+			for (let i = 0; i < rows.length; i++) {
+				const row = rows[i];
+				hash = (hash * 33 + (row.nfk_avg ?? -999)) % 2147483647;
+				const levels = row.nfk_level || [];
+				for (let j = 0; j < levels.length; j++) {
+					hash = (hash * 33 + (levels[j] || 0)) % 2147483647;
 				}
-				const canvas = this.$refs.heatmap;
-
-				const dpr = window.devicePixelRatio || 1;
-				canvas.style.width = this.timelineWidth + 'px';
-				canvas.width = Math.max(1, Math.floor(this.timelineWidth * dpr));
-
-				const rows = this.dailyAverages;
-				this.latestTimestamp = this.dailyAverages[this.dailyAverages.length-1].ts;
-				this.earliestTimestamp = this.dailyAverages[0].ts;
-
-				const msPerDay = 24 * 60 * 60 * 1000;
-
-				this.timelineSpan = Math.max(1, this.endTimestamp - this.startTimestamp);
-				this.dayWidth = this.timelineWidth / this.timelineSpan;
-
-				const ctx = canvas.getContext('2d');
-
-				// Check if we should draw levels or regular heatmap
-				if (state.timelineStyle === 'levels') {
-					// Draw vertical bars showing level distribution per day
-					const canvasHeight = timeline.getBoundingClientRect().height;
-					canvas.height = Math.max(1, Math.floor(canvasHeight * dpr));
-					canvas.style.height = canvasHeight + 'px';
-
-					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-					ctx.clearRect(0, 0, this.timelineWidth, canvasHeight);
-
-					const labels = dataModel.nfk_labels;
-					const levelColors = labels.map((label, index) => {
-						if (index === 0) {
-							return dataModel.get_nfk_color(0);
-						}
-						const prevValue = labels[index - 1].value;
-						const midpoint = prevValue + (label.value - prevValue) / 2;
-						return dataModel.get_nfk_color(midpoint);
-					});
-
-					// Helper to calculate percentages for a row
-					const getPercentages = (row) => {
-						if (!row.nfk_level || !row.nfk_level.length) return null;
-						const total = row.nfk_level.reduce((sum, v) => sum + v, 0);
-						if (total === 0) return null;
-						return row.nfk_level.map(count => count / total);
-					};
-
-					// Pre-calculate percentages for all rows
-					const rowPercentages = rows.map(getPercentages);
-
-					// Iterate through rows and draw interpolated segments between them
-					for (let i = 0; i < rows.length; i++) {
-						const row = rows[i];
-						const ts = row.ts;
-						const nextRow = i < rows.length - 1 ? rows[i + 1] : null;
-						const nextTs = nextRow ? nextRow.ts : ts + msPerDay;
-
-						const leftPerc = rowPercentages[i];
-						const rightPerc = nextRow ? rowPercentages[i + 1] : leftPerc;
-
-						if (!leftPerc) continue;
-
-						// Calculate pixel range for this segment
-						const startRel = ts - this.startTimestamp;
-						const endRel = nextTs - this.startTimestamp;
-						const startX = Math.floor((startRel / this.timelineSpan) * this.timelineWidth);
-						const endX = Math.ceil((endRel / this.timelineSpan) * this.timelineWidth);
-
-						// Draw each pixel in this segment
-						for (let x = startX; x < endX; x++) {
-							if (x < 0 || x >= this.timelineWidth) continue;
-
-							// Calculate interpolation factor
-							const t = rightPerc ? (x - startX) / (endX - startX) : 0;
-
-							// Interpolate percentages
-							let percentages;
-							if (rightPerc && rightPerc !== leftPerc) {
-								percentages = leftPerc.map((v1, idx) => v1 * (1 - t) + rightPerc[idx] * t);
-							} else {
-								percentages = leftPerc;
-							}
-
-							// Draw the column
-							let currentY = canvasHeight;
-							for (let levelIndex = 0; levelIndex < percentages.length; levelIndex++) {
-								const percentage = percentages[levelIndex];
-								if (percentage > 0) {
-									const segmentHeight = percentage * canvasHeight;
-									ctx.fillStyle = levelColors[levelIndex];
-									ctx.fillRect(x, currentY - segmentHeight, 1, segmentHeight);
-									currentY -= segmentHeight;
-								}
-							}
-						}
-					}
-				} else {
-					// Draw regular heatmap (single line)
-					canvas.height = Math.max(1, Math.round(dpr));
-					canvas.style.height = '';
-
-					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-					ctx.clearRect(0, 0, this.timelineWidth, 1);
-
-					for (let i = 0; i < rows.length; i++) {
-						const row = rows[i];
-						const ts = row.ts;
-						const nfk = row.nfk_avg;
-						const nextTs = (i < rows.length - 1) ? rows[i + 1].ts : ts + msPerDay;
-
-						const startRel = ts - this.startTimestamp;
-						const endRel = nextTs - this.startTimestamp;
-						const segX = startRel * this.dayWidth;
-						const segW = (endRel - startRel) * this.dayWidth + 1;
-
-						if (nfk != null) {
-							ctx.fillStyle = dataModel.get_nfk_color(nfk);
-							ctx.fillRect(segX, 0, segW, 1);
-						}
-					}
-				}
-
 			}
+			return [
+				rows.length,
+				rows[0].ts,
+				rows[rows.length - 1].ts,
+				hash,
+			].join(':');
+		},
+		queueRenderHeatmapImage() {
+			if (this.heatmapRenderRaf != null) {
+				cancelAnimationFrame(this.heatmapRenderRaf);
+			}
+			this.heatmapRenderRaf = requestAnimationFrame(() => {
+				this.heatmapRenderRaf = null;
+				this.renderHeatmapImage();
+			});
+		},
+		renderHeatmapImage() {
+			const rows = this.dailyAverages;
+			if (!state.telemetryLoaded || !rows?.length) {
+				this.heatmapImageUrl = null;
+				return;
+			}
+
+			const cachedImageUrl = timelineImageCache.get(this.cacheKey);
+			if (cachedImageUrl) {
+				this.heatmapImageUrl = cachedImageUrl;
+				return;
+			}
+
+			const msPerDay = 24 * 60 * 60 * 1000;
+			const pixelsPerDay = this.getPixelsPerDay();
+			const width = Math.max(1, Math.ceil(this.numberOfDays * pixelsPerDay));
+			const isLevels = state.timelineStyle === 'levels';
+			const height = isLevels ? LEVELS_IMAGE_HEIGHT : 1;
+			const canvas = this._heatmapCanvas || (this._heatmapCanvas = document.createElement('canvas'));
+			canvas.width = width;
+			canvas.height = height;
+
+			const ctx = canvas.getContext('2d');
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, width, height);
+
+			if (isLevels) {
+				const labels = dataModel.nfk_labels;
+				const levelColors = labels.map((label, index) => {
+					if (index === 0) return dataModel.get_nfk_color(0);
+					const prevValue = labels[index - 1].value;
+					const midpoint = prevValue + (label.value - prevValue) / 2;
+					return dataModel.get_nfk_color(midpoint);
+				});
+
+				const rowPercentages = rows.map(row => {
+					if (!row.nfk_level?.length) return null;
+					const total = row.nfk_level.reduce((sum, value) => sum + value, 0);
+					if (!total) return null;
+					return row.nfk_level.map(value => value / total);
+				});
+
+				for (let i = 0; i < rows.length; i++) {
+					const row = rows[i];
+					const nextRow = i < rows.length - 1 ? rows[i + 1] : null;
+					const nextTs = nextRow ? nextRow.ts : row.ts + msPerDay;
+					const leftPerc = rowPercentages[i];
+					const rightPerc = nextRow ? rowPercentages[i + 1] : leftPerc;
+					if (!leftPerc) continue;
+
+					const startRel = row.ts - this.startTimestamp;
+					const endRel = nextTs - this.startTimestamp;
+					const startX = Math.max(0, Math.floor((startRel / this.timelineSpan) * width));
+					const endX = Math.min(width, Math.ceil((endRel / this.timelineSpan) * width));
+
+					for (let x = startX; x < endX; x++) {
+						const t = rightPerc && endX > startX ? (x - startX) / (endX - startX) : 0;
+						const percentages = rightPerc && rightPerc !== leftPerc
+							? leftPerc.map((v1, idx) => v1 * (1 - t) + rightPerc[idx] * t)
+							: leftPerc;
+
+						let currentY = height;
+						for (let levelIndex = 0; levelIndex < percentages.length; levelIndex++) {
+							const percentage = percentages[levelIndex];
+							if (percentage <= 0) continue;
+							const segmentHeight = percentage * height;
+							ctx.fillStyle = levelColors[levelIndex];
+							ctx.fillRect(x, currentY - segmentHeight, 1, segmentHeight);
+							currentY -= segmentHeight;
+						}
+					}
+				}
+			} else {
+				for (let i = 0; i < rows.length; i++) {
+					const row = rows[i];
+					const nextTs = i < rows.length - 1 ? rows[i + 1].ts : row.ts + msPerDay;
+					if (row.nfk_avg == null) continue;
+
+					const startRel = row.ts - this.startTimestamp;
+					const endRel = nextTs - this.startTimestamp;
+					const startX = Math.max(0, Math.floor((startRel / this.timelineSpan) * width));
+					const endX = Math.min(width, Math.ceil((endRel / this.timelineSpan) * width));
+					const segW = Math.max(1, endX - startX);
+
+					ctx.fillStyle = dataModel.get_nfk_color(row.nfk_avg);
+					ctx.fillRect(startX, 0, segW, 1);
+				}
+			}
+
+			const imageUrl = canvas.toDataURL();
+			timelineImageCache.set(this.cacheKey, imageUrl);
+			this.heatmapImageUrl = imageUrl;
 		},
 		hover(event) {
 			const rect = this.$refs.timeline.getBoundingClientRect();
-			if (event.type === "mousemove") {
+			if (event.type === 'mousemove') {
 				this.hoverPosition = event.clientX - rect.left;
-			} else if (event.type === "touchmove" || event.type === "touchstart") {
-				this.hoverPosition = event.touches[0].clientX; - rect.left;
+			} else if (event.type === 'touchmove' || event.type === 'touchstart') {
+				this.hoverPosition = event.touches[0].clientX - rect.left;
 			}
 		},
 		hoverOut() {
@@ -279,59 +310,91 @@ export default {
 			if (!this.timelineWidth || !this.timelineSpan) return 0;
 			return ((ts - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
 		},
+		updateSelectedDevicePositions() {
+			if (!this.selectedDeviceTelemetry?.data?.length) {
+				this.selectedDeviceStartPos = 0;
+				this.selectedDeviceWidth = 0;
+				return;
+			}
+			const startPos = this.toTimelineX(this.selectedDeviceStartDate);
+			const endPos = this.toTimelineX(this.selectedDeviceEndDate);
+			const clippedStart = Math.max(0, Math.min(this.timelineWidth, startPos));
+			const clippedEnd = Math.max(0, Math.min(this.timelineWidth, endPos));
 
+			this.selectedDeviceStartPos = clippedStart;
+			this.selectedDeviceWidth = Math.max(0, clippedEnd - clippedStart);
+		},
+		processDailyAverages() {
+			const rows = this.dailyAverages || [];
+			if (!rows.length) {
+				this.dailyAveragesFingerprint = 'empty';
+				this.earliestTimestamp = 0;
+				this.latestTimestamp = 0;
+				this.heatmapImageUrl = null;
+				return;
+			}
+
+			this.earliestTimestamp = rows[0].ts;
+			this.latestTimestamp = rows[rows.length - 1].ts;
+			this.dailyAveragesFingerprint = this.buildDailyAveragesFingerprint(rows);
+			this.updateTimelineMetrics();
+			this.queueRenderHeatmapImage();
+		},
+		updateSelectedDeviceTelemetry() {
+			if (this.device) {
+				this.selectedDeviceTelemetry = dataStore.fetchTelemetryCache(this.device.id);
+				if (this.selectedDeviceTelemetry?.data?.length) {
+					this.selectedDeviceStartDate = dataStore.floorToMidnight(this.selectedDeviceTelemetry.data[0][0]);
+					this.selectedDeviceEndDate =
+						dataStore.floorToMidnight(this.selectedDeviceTelemetry.data[this.selectedDeviceTelemetry.data.length - 1][0]) + DAY_MS;
+					this.updateSelectedDevicePositions();
+					return;
+				}
+			}
+			this.selectedDeviceTelemetry = null;
+			this.selectedDeviceWidth = 0;
+		},
 	},
 	watch: {
 		dailyAverages() {
+			this.processDailyAverages();
 		},
-		telemetryLoaded() {
-			this.drawHeatmap();
+		startTimestamp() {
+			this.updateTimelineMetrics();
+			this.queueRenderHeatmapImage();
+			this.updateSelectedDevicePositions();
 		},
-		filteredDevices() {
-			this.drawHeatmap();
+		endTimestamp() {
+			this.updateTimelineMetrics();
+			this.queueRenderHeatmapImage();
+			this.updateSelectedDevicePositions();
 		},
-		fullWidth() {
-			nextTick(()=>{
-				this.drawHeatmap()
-			})	
+		'state.telemetryLoaded'() {
+			this.processDailyAverages();
 		},
-		colorScheme() {
-			this.drawHeatmap()
+		'state.colorScheme'() {
+			this.queueRenderHeatmapImage();
 		},
-		// timelineWidth() {
-		// 	nextTick(()=>{
-		// 		this.drawHeatmap()
-		// 	})
-		// },
 		'state.timelineStyle'() {
-			nextTick(()=>{
-				this.drawHeatmap()
-			})
+			this.queueRenderHeatmapImage();
 		},
 		device() {
-			this.$nextTick(async () => {
-				if (this.device) {
-					this.selectedDeviceTelemetry = await dataStore.fetchTelemetryCache(this.device.id);
-					if (this.selectedDeviceTelemetry && this.selectedDeviceTelemetry.data) {
-						this.selectedDeviceStartDate = this.selectedDeviceTelemetry.data[0][0]
-						this.selectedDeviceEndDate = this.selectedDeviceTelemetry.data[this.selectedDeviceTelemetry.data.length-1][0]
-						this.selectedDeviceStartPos = this.toTimelineX(this.selectedDeviceStartDate)
-						this.selectedDeviceEndPos = this.toTimelineX(this.selectedDeviceEndDate)
-					}
-				} else {
-					this.selectedDeviceTelemetry = null;
-				}
-			});
-
+			this.updateSelectedDeviceTelemetry();
 		}
 
 	},
 	mounted() {
-		window.addEventListener('resize', this.drawHeatmap);
-		this.drawHeatmap()
+		this.processDailyAverages();
+		this.updateSelectedDeviceTelemetry();
+		this.updateTimelineMetrics();
+		this._timelineResizeObserver = new ResizeObserver(() => {
+			this.updateTimelineMetrics();
+		});
+		if (this.$refs.timeline) this._timelineResizeObserver.observe(this.$refs.timeline);
 	},
 	beforeUnmount() {
-		window.removeEventListener('resize', this.drawHeatmap);
+		if (this._timelineResizeObserver) this._timelineResizeObserver.disconnect();
+		if (this.heatmapRenderRaf != null) cancelAnimationFrame(this.heatmapRenderRaf);
 	},
 };
 </script>
@@ -343,9 +406,17 @@ export default {
 		display block
 		width 100%
 		height var(--timelineheight);
-		canvas
+		.heatmap-image
+			position absolute
+			inset 0
+			display block
+			width 100%
 			height 100%
+			max-width none
+			object-fit fill
+			pointer-events none
 			background #eaeaea
+			image-rendering pixelated
 		.hoverline
 			border-left 1px dotted #000000
 			top -1px
@@ -373,6 +444,14 @@ export default {
 			border-right 6px solid transparent
 			opacity 1
 			z-index 101
+		.selectedDeviceArea
+			position absolute
+			top 0
+			height 2px
+			pointer-events none
+			background rgba(125,125,125,0.6)
+			z-index 2
+			display none
 		.label
 			position absolute
 			left 0.5vw

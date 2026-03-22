@@ -40,7 +40,7 @@
 
 <script>
 export default {
-	name: 'ChartTime',
+	name: 'DateAxis',
 	props: {
 		chartWidth: {
 			type: Number,
@@ -52,7 +52,7 @@ export default {
 		},
 		scrollLeft: {
 			type: Number,
-			required: true
+			default: 0
 		},
 		hoverPosition: {
 			type: Number,

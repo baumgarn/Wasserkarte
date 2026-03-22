@@ -1,38 +1,56 @@
 <template>
 
-	<div class="timeline" ref="timeline" :class="[{selected}, {showdepths: showDepths}]" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
+	<div class="timeline" :class="[{selected}, {showdepths: showDepths}]">
 
-		<canvas ref="heatmap"></canvas>
+		<img v-if="heatmapImageUrl" class="heatmap-image" :src="heatmapImageUrl" alt="" draggable="false">
 
 	</div>
 
 </template>
 
 <script>
-import { nextTick } from 'vue';
 import { state } from '@/state.js';
 import { config } from '@/config.js';
 import { dataModel } from '@/dataModel.js'
 import dataStore from '@/datastore.js';
-import { displayutil } from '@/displayutil.js'
-import DateAxis from '@/charts/dateaxis.vue'
 
+const timelineImageCache = new Map();
 
+function buildTimelineImageCacheKey({
+	deviceId,
+	telemetryFingerprint,
+	startTimestamp,
+	endTimestamp,
+	showDepths,
+	showDataGaps,
+	colorScheme,
+}) {
+	return [
+		deviceId ?? 'none',
+		telemetryFingerprint ?? 'empty',
+		startTimestamp ?? 0,
+		endTimestamp ?? 0,
+		showDepths ? 1 : 0,
+		showDataGaps ? 1 : 0,
+		colorScheme ?? 'normal',
+	].join('|');
+}
 
 export default {
 	name: 'TimelineInner',
-	components: {DateAxis},
 	setup() {
 		return {
-			state, displayutil,
+			state,
 		}
 	},
 	data() {
 		return {
-			selectedDeviceTelemetry: null,
-			hoverPosition: -1,
-			hoverDateWidth: 70,
-			schichten_gaps: false,
+			telemetryData: null,
+			heatmapSegments: null,
+			heatmapNumBands: 1,
+			heatmapImageUrl: null,
+			heatmapRenderRaf: null,
+			telemetryFingerprint: 'empty',
 		};
 	},
 	props: {
@@ -44,63 +62,8 @@ export default {
 		timelineWidth: Number,
 	},
 	computed: {
-		fullWidth() {
-			return (state.selectedDevice == null && !state.menuOpen.info) 
-		},
-		telemetryLoaded() {
-			return state.telemetryLoaded;
-		},
-		colorScheme() {
-			return state.colorScheme;
-		},
-		filteredDevices() {
-			return state.filteredDevices;
-		},
-		numberOfDays() {
-			return (this.endTimestamp - this.startTimestamp) / (1000 * 60 * 60 * 24);
-		},	
-		showDate() {
-			return (this.hoverPosition > -1 && this.hoverLinePosition > 0)
-		},
-		timelineDate() {
-			let ts = null;
-			if (this.hoverPosition > -1) {
-				const fraction = this.hoverPosition / (this.timelineWidth - 1);
-				ts = this.startTimestamp + fraction * this.timelineSpan;
-				ts = dataStore.floorToMidnight(ts);
-				if (ts < this.earliestTimestamp) ts = this.earliestTimestamp;
-				if (ts > this.latestTimestamp) ts = this.latestTimestamp;
-				if (ts > this.endTimestamp) ts = this.endTimestamp;
-
-				state.timelineDate = ts;
-				return state.timelineDate;
-			} else if (state.timelineDate && this.hoverPosition < 0) {
-				return state.timelineDate;
-			}
-			return null;
-		},
-		hoverLinePosition() {
-			let pos;
-			if (this.hoverPosition > -1) {
-				pos = this.hoverPosition;
-				// Snap to data range boundaries
-				if (this.earliestTimestamp && this.latestTimestamp) {
-					const msPerDay = 24 * 60 * 60 * 1000;
-					const earliestX = ((this.earliestTimestamp - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
-					const latestX = ((this.latestTimestamp + msPerDay - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
-					if (pos < earliestX) pos = earliestX;
-					if (pos > latestX) pos = latestX;
-				}
-			} else if (state.timelineDate && this.hoverPosition < 0 && state.timelineDate > this.startTimestamp && state.timelineDate < this.endTimestamp) {
-				const fraction = (state.timelineDate - this.startTimestamp) / this.timelineSpan;
-				pos = fraction * this.timelineWidth;
-			} else {
-				pos = -1;
-			}
-			return pos;
-		},
 		schema() {
-			return this.device.telemetrySchema.schema;
+			return this.device?.telemetrySchema?.schema || [];
 		},
 		nfkavg_index() {
 			const i = this.schema.indexOf('nfk_avg');
@@ -125,174 +88,187 @@ export default {
 		showDepths() {
 			return state.tableview_showdepths;
 		},
+		cacheKey() {
+			return buildTimelineImageCacheKey({
+				deviceId: this.device?.id,
+				telemetryFingerprint: this.telemetryFingerprint,
+				startTimestamp: this.startTimestamp,
+				endTimestamp: this.endTimestamp,
+				showDepths: this.showDepths,
+				showDataGaps: state.showDataGaps,
+				colorScheme: state.colorScheme,
+			});
+		},
 	},
 	methods: {
-		drawHeatmap() {
-			if (this.telemetryLoaded) {
+		queueRenderHeatmapImage() {
+			if (this.heatmapRenderRaf != null) {
+				cancelAnimationFrame(this.heatmapRenderRaf);
+			}
+			this.heatmapRenderRaf = requestAnimationFrame(() => {
+				this.heatmapRenderRaf = null;
+				this.renderHeatmapImage();
+			});
+		},
+		rebuildHeatmapSegments() {
+			if (!this.telemetryData || this.telemetryData.length === 0) {
+				this.heatmapSegments = [];
+				this.heatmapNumBands = this.showDepths ? 0 : 1;
+				return;
+			}
 
-				const canvas = this.$refs.heatmap;
+			const rows = this.telemetryData;
+			const msPerDay = 24 * 60 * 60 * 1000;
+			const limitGapLength = state.showDataGaps;
 
-				const dpr = window.devicePixelRatio || 1;
-				canvas.style.width = this.timelineWidth + 'px';
-				canvas.width = Math.max(1, Math.floor(this.timelineWidth * dpr));
+			if (this.showDepths) {
+				const depthIndices = [this.nfk10_index, this.nfk30_index, this.nfk60_index, this.nfk80_index]
+					.filter(index => index !== null);
+				const segments = [];
 
-				if (!this.telemetryData) return;
+				for (let bandIdx = 0; bandIdx < depthIndices.length; bandIdx++) {
+					const dataIndex = depthIndices[bandIdx];
+					let nextTs = null;
 
-				const rows = this.telemetryData;
-				this.latestTimestamp = this.telemetryData[this.telemetryData.length - 1][0];
-				this.earliestTimestamp = this.telemetryData[0][0];
-
-				const msPerDay = 24 * 60 * 60 * 1000;
-
-				this.timelineSpan = Math.max(1, this.endTimestamp - this.startTimestamp);
-				this.dayWidth = this.timelineWidth / this.timelineSpan;
-				const ctx = canvas.getContext('2d');
-
-				if (this.showDepths) {
-					const allDepthIndices = [this.nfk10_index, this.nfk30_index, this.nfk60_index, this.nfk80_index];
-
-					// In gaps mode: keep 4 fixed slots, missing depths stay empty.
-					// In compact mode: only render present depths, canvas height = number present.
-					const bands = this.schichten_gaps
-						? allDepthIndices.map((dataIndex, slotIdx) => ({ dataIndex, bandIdx: slotIdx }))
-						: allDepthIndices.reduce((acc, dataIndex) => {
-							if (dataIndex !== null) acc.push({ dataIndex, bandIdx: acc.length });
-							return acc;
-						}, []);
-
-					const numBands = this.schichten_gaps ? allDepthIndices.length : bands.length;
-
-					canvas.height = Math.max(numBands, Math.round(numBands * dpr));
-					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-					ctx.clearRect(0, 0, this.timelineWidth, numBands);
-
-					for (const { dataIndex, bandIdx } of bands) {
-						if (dataIndex === null) continue;
-
-						for (let i = 0; i < rows.length; i++) {
-							const row = rows[i];
-							const ts = row[0];
-							const nfk = row[dataIndex];
-							if (nfk == null) continue;
-
-							// Find the next row that has data for this specific depth
-							let nextTs = ts + msPerDay;
-							for (let j = i + 1; j < rows.length; j++) {
-								if (rows[j][dataIndex] != null) {
-									nextTs = rows[j][0];
-									break;
-								}
-							}
-							if (state.showDataGaps && (nextTs - ts) > config.dataGapLength) nextTs = ts + msPerDay;
-
-							const startRel = ts - this.startTimestamp;
-							const endRel = nextTs - this.startTimestamp;
-							const segX = startRel * this.dayWidth;
-							const segW = (endRel - startRel) * this.dayWidth + 1;
-
-							ctx.fillStyle = dataModel.get_nfk_color(nfk);
-							ctx.fillRect(segX, bandIdx, segW, 1);
-						}
-					}
-				} else {
-					canvas.height = Math.max(1, Math.round(dpr));
-					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-					ctx.clearRect(0, 0, this.timelineWidth, 1);
-
-					for (let i = 0; i < rows.length; i++) {
+					for (let i = rows.length - 1; i >= 0; i--) {
 						const row = rows[i];
 						const ts = row[0];
-						const nfk = row[this.nfkavg_index];
-						let nextTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
-						if (state.showDataGaps && (nextTs - ts) > config.dataGapLength) nextTs = ts + msPerDay;
+						const nfk = row[dataIndex];
+						if (nfk == null) continue;
 
-						const startRel = ts - this.startTimestamp;
-						const endRel = nextTs - this.startTimestamp;
-						const segX = startRel * this.dayWidth;
-						const segW = (endRel - startRel) * this.dayWidth + 1;
+						let endTs = nextTs ?? (ts + msPerDay);
+						if (limitGapLength && (endTs - ts) > config.dataGapLength) endTs = ts + msPerDay;
 
-						if (nfk != null) {
-							ctx.fillStyle = dataModel.get_nfk_color(nfk);
-							ctx.fillRect(segX, 0, segW, 1);
-						}
+						segments.push({ startTs: ts, endTs, nfk, bandIdx });
+						nextTs = ts;
 					}
 				}
 
+				this.heatmapSegments = segments;
+				this.heatmapNumBands = depthIndices.length;
+				return;
 			}
-		},
-		hover(event) {
-			const rect = this.$refs.timeline.getBoundingClientRect();
-			if (event.type === "mousemove") {
-				this.hoverPosition = event.clientX - rect.left;
-			} else if (event.type === "touchmove" || event.type === "touchstart") {
-				this.hoverPosition = event.touches[0].clientX; - rect.left;
+
+			const avgIndex = this.nfkavg_index;
+			const segments = [];
+
+			if (avgIndex !== null) {
+				for (let i = 0; i < rows.length; i++) {
+					const row = rows[i];
+					const ts = row[0];
+					const nfk = row[avgIndex];
+					if (nfk == null) continue;
+
+					let endTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
+					if (limitGapLength && (endTs - ts) > config.dataGapLength) endTs = ts + msPerDay;
+
+					segments.push({ startTs: ts, endTs, nfk, bandIdx: 0 });
+				}
 			}
+
+			this.heatmapSegments = segments;
+			this.heatmapNumBands = 1;
 		},
-		hoverOut() {
-			this.hoverPosition = -1;
-			state.timelineDate = null;
-		},
-		toTimelineX(ts) {
-			if (!this.timelineWidth || !this.timelineSpan) return 0;
-			return ((ts - this.startTimestamp) / this.timelineSpan) * this.timelineWidth;
+		renderHeatmapImage() {
+			if (!state.telemetryLoaded || !this.heatmapSegments || this.heatmapSegments.length === 0) {
+				this.heatmapImageUrl = null;
+				return;
+			}
+
+			const cachedImageUrl = timelineImageCache.get(this.cacheKey);
+			if (cachedImageUrl) {
+				this.heatmapImageUrl = cachedImageUrl;
+				return;
+			}
+
+			const msPerDay = 24 * 60 * 60 * 1000;
+			const width = Math.max(1, Math.ceil((this.endTimestamp - this.startTimestamp) / msPerDay) + 1);
+			const numBands = Math.max(1, this.heatmapNumBands || 1);
+			const canvas = this._heatmapCanvas || (this._heatmapCanvas = document.createElement('canvas'));
+			canvas.width = width;
+			canvas.height = numBands;
+
+			const ctx = canvas.getContext('2d');
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, width, numBands);
+
+			const visibleEndTs = this.endTimestamp + msPerDay;
+
+			for (let i = 0; i < this.heatmapSegments.length; i++) {
+				const segment = this.heatmapSegments[i];
+				const clippedStartTs = Math.max(segment.startTs, this.startTimestamp);
+				const clippedEndTs = Math.min(segment.endTs, visibleEndTs);
+				if (clippedEndTs <= clippedStartTs) continue;
+
+				const startDay = Math.max(0, Math.floor((clippedStartTs - this.startTimestamp) / msPerDay));
+				const endDay = Math.min(width, Math.ceil((clippedEndTs - this.startTimestamp) / msPerDay));
+				const segW = Math.max(1, endDay - startDay);
+
+				ctx.fillStyle = dataModel.get_nfk_color(segment.nfk);
+				ctx.fillRect(startDay, segment.bandIdx, segW, 1);
+			}
+
+			const imageUrl = canvas.toDataURL();
+			timelineImageCache.set(this.cacheKey, imageUrl);
+			this.heatmapImageUrl = imageUrl;
 		},
 		fetchTelemetry() {
-			if (!this.device) return;
+			if (!this.device) {
+				this.telemetryData = null;
+				this.heatmapSegments = [];
+				this.heatmapNumBands = this.showDepths ? 0 : 1;
+				this.heatmapImageUrl = null;
+				this.telemetryFingerprint = 'empty';
+				return;
+			}
 			this.telemetryData = dataStore.fetchTelemetryCache(this.device.id).data;
+			const rows = this.telemetryData || [];
+			const firstTs = rows.length ? rows[0][0] : 0;
+			const lastTs = rows.length ? rows[rows.length - 1][0] : 0;
+			this.telemetryFingerprint = [
+				rows.length,
+				firstTs,
+				lastTs,
+				this.schema.join(','),
+			].join(':');
+			this.rebuildHeatmapSegments();
 		}
 
 	},
 	watch: {
 		startTimestamp() {
-			this.drawHeatmap();
+			this.queueRenderHeatmapImage();
 		},
-		telemetryLoaded() {
+		endTimestamp() {
+			this.queueRenderHeatmapImage();
+		},
+		'state.telemetryLoaded'() {
 			this.fetchTelemetry();
-			this.drawHeatmap();
-		},
-		filteredDevices() {
-			this.drawHeatmap();
-		},
-		fullWidth() {
-			nextTick(()=>{
-				this.drawHeatmap()
-			})	
-		},
-		colorScheme() {
-			this.drawHeatmap()
+			this.queueRenderHeatmapImage();
 		},
 		'state.showDataGaps'() {
-			this.drawHeatmap()
+			this.rebuildHeatmapSegments();
+			this.queueRenderHeatmapImage();
 		},
-		timelineWidth() {
-			nextTick(()=>{
-				this.drawHeatmap()
-			})
+		'state.colorScheme'() {
+			this.queueRenderHeatmapImage();
 		},
 		showDepths() {
-			nextTick(()=>{
-				this.drawHeatmap()
-			})
+			this.rebuildHeatmapSegments();
+			this.queueRenderHeatmapImage();
 		},
 		device() {
-			this.$nextTick(async () => {
-				if (this.device) {
-					this.fetchTelemetry();
-					this.drawHeatmap();
-				} else {
-				}
-			});
-
+			this.fetchTelemetry();
+			this.queueRenderHeatmapImage();
 		}
 
 	},
 	mounted() {
-		window.addEventListener('resize', this.drawHeatmap);
 		this.fetchTelemetry();
-		this.drawHeatmap();
+		this.queueRenderHeatmapImage();
 	},
 	beforeUnmount() {
-		window.removeEventListener('resize', this.drawHeatmap);
+		if (this.heatmapRenderRaf != null) cancelAnimationFrame(this.heatmapRenderRaf);
 	},
 };
 </script>
@@ -306,14 +282,16 @@ export default {
 		height 100%
 		// height calc(100%)
 		// margin-top -1px
+		user-select none
 		overflow hidden
-		canvas
+		.heatmap-image
 			display block
+			width 100%
 			height 100%
 			image-rendering pixelated
 		&.showdepths 
 			height 100%
-			canvas
+			.heatmap-image
 				height 100%
 		.hoverline
 			border-left 1px dotted #000000

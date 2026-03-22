@@ -359,8 +359,10 @@ export const dataModel = {
 
 		// setzt die attribute totwasserbereich und feldkapazität
 
-		const humus = device.attributes.Humusgehalt;
+		let humus = device.attributes.Humusgehalt;
 		const boden = device.attributes.Bodenart;
+
+		if (humus == 'h0' || humus == 'h1') humus = 'h0-1'
 
 		if (!this.soil_table[boden] || !this.soil_table[boden].FK[humus] || !this.soil_table[boden].TW[humus]) {
 			console.warn("Unberücksichtigte Kombination aus Bodenart und Humusklasse:", boden, humus);

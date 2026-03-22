@@ -56,6 +56,8 @@ localStorageState('showDataGaps', false);
 
 localStorageState('tableview_col_bookmarks', true);
 localStorageState('tableview_col_attributes', true);
+localStorageState('tableview_col_nfkavg', true);
+localStorageState('tableview_col_von', true);
 localStorageState('tableview_compact', true);
 localStorageState('tableview_bookmarksontop', false);
 localStorageState('tableview_timelinerange', 'all');

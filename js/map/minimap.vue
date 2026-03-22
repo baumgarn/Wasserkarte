@@ -1,7 +1,9 @@
 <template>
-	<div id="mapcontainer">
+	<div id="mapcontainer" ref="mapContainer">
 		 <ol-map 
+		 	v-if="mapVisible"
 		 	class="map minimap" 
+			ref="olMap"
 			v-show="devices" 
 			:controls="[]" 
 			:loadTilesWhileAnimating="true" 
@@ -50,6 +52,7 @@ export default {
 	data() {
 		return {
 			center: this.position(this.device),
+			mapVisible: false,
 			// zoom: 15,
 			mouseoverDevice: null,
 		};
@@ -71,6 +74,34 @@ export default {
 		},
 	},
 	methods: {
+		syncMapVisibility() {
+			const container = this.$refs.mapContainer;
+			if (!container) return;
+
+			const { width, height } = container.getBoundingClientRect();
+			const hasSize = width > 0 && height > 0;
+
+			if (hasSize && !this.mapVisible) {
+				this.mapVisible = true;
+				this.$nextTick(() => this.ensureMapSize());
+				return;
+			}
+
+			if (hasSize) {
+				this.ensureMapSize();
+			}
+		},
+		ensureMapSize() {
+			const container = this.$refs.mapContainer;
+			const map = this.$refs.olMap?.map;
+			if (!container || !map) return false;
+
+			const { width, height } = container.getBoundingClientRect();
+			if (width <= 0 || height <= 0) return false;
+
+			map.updateSize();
+			return true;
+		},
 		position(device) {
 			return fromLonLat([device?.attributes?.longitude, device?.attributes?.latitude])
 		},
@@ -83,10 +114,21 @@ export default {
 		},
 	},
 	mounted() {
+		this._mapResizeObserver = new ResizeObserver(() => {
+			this.syncMapVisibility();
+		});
+		if (this.$refs.mapContainer) this._mapResizeObserver.observe(this.$refs.mapContainer);
+		this.$nextTick(() => {
+			requestAnimationFrame(() => this.syncMapVisibility());
+		});
+	},
+	beforeUnmount() {
+		if (this._mapResizeObserver) this._mapResizeObserver.disconnect();
 	},
 	watch: {
 		device() {
 			this.center = this.position(this.device)
+			this.$nextTick(() => this.ensureMapSize())
 		}
 	}
 	

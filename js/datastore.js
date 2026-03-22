@@ -12,6 +12,8 @@ const alltelemetryurl = '/api/cache/alltelemetry.json.gz'
 const dataStore = {
 
 	dataCache: {},
+	timelineCache: {},
+	_sortedDayTimestamps: null,
 
 	async fetchDevicesData() {
 		try {
@@ -137,10 +139,10 @@ const dataStore = {
 
 			const cacheKey = `${deviceId}_all_1d`;
 			this.dataCache[cacheKey] = telemetry;
-			state.telemetryLoaded = true; 
 		}
 		this.createDeviceSchemaIndex();
 		this.buildTimelineCache()
+		state.telemetryLoaded = true;
 
 		window.setTimeout(()=>{
 			// this.loaded = true;
@@ -389,6 +391,11 @@ const dataStore = {
 
 		// Clear day cache
 		this.timelineCache = {};
+		this._sortedDayTimestamps = null;
+
+		if (!Number.isFinite(this.earliestTimestamp) || !Number.isFinite(this.latestTimestamp)) {
+			return;
+		}
 
 		const msPerDay = 24 * 60 * 60 * 1000;
 
@@ -461,7 +468,11 @@ const dataStore = {
 	// calculates nfk daily averages for all locations and days
 	getNfkDailyAverages() {
 		const startTime = performance.now();
-		const timelineCache = this.timelineCache;
+		const timelineCache = this.timelineCache ?? {};
+
+		if (!Object.keys(timelineCache).length) {
+			return [];
+		}
 
 		// cache sorted timestamps
 		if (!this._sortedDayTimestamps) {
@@ -500,6 +511,9 @@ const dataStore = {
 
 	// calculates nfk averages for current day because daily aggregates do not yet exist
 	getNfkAveragesForLastTelemetry() {
+		if (!state.devices.length) {
+			return this.getEmptyNfkAverages();
+		}
 
 		const useFilter = state.includeFilter.length > 0 || state.excludeFilter.length > 0;
 		const deviceAllowed = new Uint8Array(state.devices.length);
@@ -516,7 +530,12 @@ const dataStore = {
 		let ts = 0;
 
 		for (let i = 0; i < state.devices.length; i++) {
-			const data = state.devices[i].telemetrySchema.data[0];
+			const data = state.devices[i].telemetrySchema?.data?.[0];
+			if (!Array.isArray(data) || !data.length) {
+				telemetryRows[i] = null;
+				continue;
+			}
+
 			if (data[0] > ts) ts = data[0];
 			if (data[0] > this.latestTimestamp - config.timelineHoverCutoff && this.isRowValid(data, state.devices[i].schemaIndex)) {
 				telemetryRows[i] = data; 
@@ -579,6 +598,86 @@ const dataStore = {
 			trocken
 		};
 	},
+
+	// Get nFK average of all days of a single device
+
+	getDeviceNfkAverage(device) {
+		if (!device) return null;
+
+		if (Object.prototype.hasOwnProperty.call(device, 'nfk_avg_all')) {
+			return device.nfk_avg_all;
+		}
+
+		const telemetry = this.fetchTelemetryCache(device.id);
+		const rows = telemetry?.data;
+		const schemaIndex = Array.isArray(telemetry?.schema) ? telemetry.schema.indexOf('nfk_avg') : -1;
+		const valueIndex = schemaIndex >= 0 ? schemaIndex : device.schemaIndex?.nfk_avg;
+
+		if (!Array.isArray(rows) || !rows.length || !(valueIndex >= 0)) {
+			device.nfk_avg_all = null;
+			return device.nfk_avg_all;
+		}
+
+		let sum = 0;
+		let count = 0;
+
+		for (const row of rows) {
+			const value = row?.[valueIndex];
+			if (typeof value !== 'number' || Number.isNaN(value)) continue;
+			sum += value;
+			count++;
+		}
+
+		device.nfk_avg_all = Math.max(0,sum / count);
+		
+		return device.nfk_avg_all;
+	},
+
+	getDeviceMeasurementRange(device) {
+		if (!device) {
+			return {
+				first: null,
+				last: null,
+			};
+		}
+
+		const hasFirst = Object.prototype.hasOwnProperty.call(device, 'first_measurement_ts');
+		const hasLast = Object.prototype.hasOwnProperty.call(device, 'last_measurement_ts');
+		if (hasFirst && hasLast) {
+			return {
+				first: device.first_measurement_ts,
+				last: device.last_measurement_ts,
+			};
+		}
+
+		const rows = this.fetchTelemetryCache(device.id)?.data;
+		if (!Array.isArray(rows) || !rows.length) {
+			device.first_measurement_ts = null;
+			device.last_measurement_ts = null;
+			return {
+				first: device.first_measurement_ts,
+				last: device.last_measurement_ts,
+			};
+		}
+
+		let first = null;
+		let last = null;
+
+		for (const row of rows) {
+			const ts = row?.[0];
+			if (!Number.isFinite(ts)) continue;
+			if (first == null || ts < first) first = ts;
+			if (last == null || ts > last) last = ts;
+		}
+
+		device.first_measurement_ts = first;
+		device.last_measurement_ts = last;
+
+		return {
+			first,
+			last,
+		};
+	}
 
 };
 

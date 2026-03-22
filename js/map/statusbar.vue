@@ -187,6 +187,7 @@ export default {
 			} else {
 				return this.lastAverages;
 			}
+			return {};
 		},
 		trockenstress() {
 			if (this.averages) {
@@ -203,9 +204,11 @@ export default {
 		displayDate() {
 			if (this.timelineDate) {	
 				return displayutil.formatDateAggregated(this.timelineDate)
-			} else {
+			} else if (this.averages?.ts != null) {
 				return displayutil.formatDateShort(this.averages.ts)
 			}
+
+			return '–'
 		},
 		includeFilter() {
 			return state.includeFilter;
@@ -270,11 +273,11 @@ export default {
 		}  
 	},
 	watch: {
-		telemetryLoaded() {
-			this.getNfkDailyAverages()
+		telemetryLoaded(val) {
+			if (val) this.getNfkDailyAverages()
 		},
 		filteredDevices() {
-			this.getNfkDailyAverages()
+			if (this.telemetryLoaded) this.getNfkDailyAverages()
 		},
 	}
 };
@@ -553,7 +556,7 @@ export default {
 	.is-mobile .statusbarouter
 		flex-basis 100vw
 
-	@media (max-width: 1250px) 
+	@media (max-width: 1300px) 
 		.sidebaropen .topbar .statusbarouter
 			position fixed
 			left 0px
@@ -566,7 +569,7 @@ export default {
 			right 0
 
 
-	@media (min-width: 1250px) 
+	@media (min-width: 1300px) 
 		.wrapper:not(.sidebaropen) .topbar .statusbarouter
 			position fixed
 			left 0px

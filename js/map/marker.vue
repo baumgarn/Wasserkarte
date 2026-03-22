@@ -141,7 +141,6 @@ export default {
 			popupBelow: false,
 			vol: null,
 			nfk: null,
-			nfk_color: null,
 		};
 	},
 	props: {
@@ -415,6 +414,9 @@ export default {
 			this.mouseoverDevice = null;
 			this.setZindex();
 		},
+		timelineDate() {
+			this.setZindex();
+		},
 		filteredDevices() {
 			this.setZindex()
 		},
@@ -436,6 +438,9 @@ export default {
 	},
 	mounted() {
 		this.getTelemetry();
+		this.$nextTick(() => {
+			this.setZindex();
+		});
 		this.$nextTick(() => {
 			setTimeout(() => {
 				const el = this.$refs.popup;

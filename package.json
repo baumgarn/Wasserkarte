@@ -10,8 +10,6 @@
     "commit": "git add . && git commit -m \"update\" && git push origin main && git push opencode main"
   },
   "devDependencies": {
-    "@babel/plugin-transform-nullish-coalescing-operator": "^7.28.6",
-    "@babel/plugin-transform-optional-chaining": "^7.28.6",
     "basic-ftp": "^5.0.5",
     "dotenv": "^16.5.0",
     "stylus": "^0.62.0",

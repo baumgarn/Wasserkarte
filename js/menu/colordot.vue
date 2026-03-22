@@ -1,7 +1,7 @@
 <template>
 	<div class="colordotcontainer">
 
-		<div class="colordot" :style="'background-color:' + 	nfk_color">
+		<div class="colordot" :style="dotStyle">
 		</div>
 
 	</div>
@@ -9,6 +9,7 @@
 
 <script>
 import { state } from '@/state.js'
+import { config } from '@/config.js'
 import { dataModel } from '@/datamodel.js'
 import dataStore from '@/datastore.js';
 
@@ -22,29 +23,89 @@ export default {
 	},
 	data() {
 		return {
+			telemetryData: null,
 		};
 	},
 	mounted() {
+		this.getTelemetry();
 	},
 	computed: {
 		nfk() {
-			// const nfk = dataModel.nfk(this.device);
-			const nfk = this.lastData.nfk_avg;
+			const nfk = this.nfk_avg;
 			if (isNaN(nfk)) return '–'
 			return parseFloat(nfk.toFixed(0));
 		},
+		schema() {
+			return this.device.telemetrySchema?.schema || [];
+		},
+		nfkavg_index() {
+			const i = this.schema.indexOf('nfk_avg');
+			return (i >= 0) ? i : null;
+		},
+		nfk_avg() {
+			if (this.nfkavg_index != null && this.displayData) {
+				return Math.max(0, this.displayData[this.nfkavg_index]);
+			}
+			return null;
+		},
 		nfk_color() {
-			return dataModel.get_nfk_color(this.nfk);
+			if (this.nfk_avg != null && !Number.isNaN(this.nfk_avg)) {
+				return dataModel.get_nfk_color(this.nfk_avg);
+			}
+			return null;
+		},
+		dotStyle() {
+			if (this.isInactive) {
+				return { backgroundColor: '#e4e4e4' };
+			}
+			return this.nfk_color ? { backgroundColor: this.nfk_color } : null;
 		},
 		lastData() {
-			if (!this.device.telemetrySchema || !this.device.telemetrySchema.data || !this.device.telemetrySchema.data[0]) return {};
-			return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-		}
-
+			if (!this.device.telemetrySchema?.data?.[0]) return null;
+			return this.device.telemetrySchema.data[0];
+		},
+		firstDate() {
+			return this.telemetryData?.data?.[0]?.[0] ?? null;
+		},
+		lastDate() {
+			const rows = this.telemetryData?.data;
+			return rows?.length ? rows[rows.length - 1][0] : null;
+		},
+		displayData() {
+			if (state.timelineDate && this.telemetryData) {
+				const data = dataStore.getDataAtTimestamp(this.device.index, state.timelineDate);
+				if (data) return data;
+			}
+			return this.lastData;
+		},
+		timelineDate() {
+			return state.timelineDate;
+		},
+		hoursSinceLastTelemetry() {
+			return dataStore.hoursSinceLastTelemetry(this.device.id);
+		},
+		isInactive() {
+			if (!this.timelineDate) {
+				return this.hoursSinceLastTelemetry === -1 || this.hoursSinceLastTelemetry > config.noTelemetryCutoff;
+			}
+			if (!this.firstDate || !this.lastDate) {
+				return true;
+			}
+			return this.timelineDate < this.firstDate || this.timelineDate >= this.lastDate + config.timeDisplayCutoff;
+		},
+		telemetryLoaded() {
+			return state.telemetryLoaded;
+		},
 	},
 	watch: {
+		telemetryLoaded() {
+			this.getTelemetry();
+		},
 	},
 	methods: {
+		getTelemetry(){
+			this.telemetryData = dataStore.fetchTelemetryCache(this.device.id);
+		},
 	}
 };
 </script>

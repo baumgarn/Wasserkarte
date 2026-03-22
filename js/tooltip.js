@@ -631,7 +631,10 @@ function mountDirective(el, binding, vnodeProps) {
 			hideTooltip();
 			return;
 		}
-		const keepWarm = options.handover && (tooltipState.visible || Boolean(pendingHideTimer));
+		const keepWarm = options.handover && tooltipState.visible;
+		if (options.handover && pendingHideTimer && !tooltipState.visible) {
+			clearPendingHide();
+		}
 		if (!options.handover && pendingHideTimer) {
 			clearPendingHide();
 		}

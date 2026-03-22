@@ -47,7 +47,7 @@
 						:startTimestamp="year.firstts"
 						:endTimestamp="year.lastts"
 						:dateAxis="false"
-						:label="year.year"
+						:label="String(year.year)"
 						/>
 
 					</template>
@@ -58,7 +58,7 @@
 						:dailyAverages
 						:startTimestamp="year.firstts"
 						:endTimestamp="year.lastts"
-						:label="year.year"
+						:label="String(year.year)"
 						:dateAxis="true"
 						:firstItemPadding="true"
 						/>

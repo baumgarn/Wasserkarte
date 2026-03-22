@@ -28,7 +28,7 @@
 						<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
 						<FilterMenu v-if="state.menuOpen.filter"/>
 						<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
-						<GlossarMenu v-if="state.menuOpen.glossar"/>
+						<BodenkundeMenu v-if="state.menuOpen.bodenkunde"/>
 						<SettingsMenu v-if="state.menuOpen.einstellungen"/>
 						<KartenMenu v-if="state.menuOpen.karten"/>
 					</div>
@@ -75,7 +75,7 @@ import MenuBar from '@/menu/menu_bar.vue';
 import Legend from '@/map/legend.vue';
 import MarkerMenu from '@/menu/menu_marker.vue';
 import FilterMenu from '@/menu/menu_filter.vue';
-import GlossarMenu from '@/menu/menu_glossar.vue';
+import BodenkundeMenu from '@/menu/menu_bodenkunde.vue';
 import KartenMenu from '@/menu/menu_karten.vue';
 import ErrorMenu from '@/menu/menu_error.vue';
 import LayerLegends from '@/menu/layer_legends.vue';
@@ -110,7 +110,7 @@ export default {
 		Legend,
 		MarkerMenu,
 		FilterMenu,
-		GlossarMenu,
+		BodenkundeMenu,
 		ErrorMenu,
 		SettingsMenu,
 		GeraeteMenu,

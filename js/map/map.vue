@@ -1,7 +1,9 @@
 <template>
-	<div id="mapcontainer" :class="{ focusmode: state.focusMode }">
+	
+	<div id="mapcontainer" ref="mapContainer" :class="{ focusmode: state.focusMode }">
 
 		 <ol-map 
+		 	v-if="mapVisible"
 		 	class="map" 
 			ref="olMap"
 			:class="{'sidebaropen': state.sidebarOpen}"
@@ -79,6 +81,7 @@ export default {
 	data() {
 		return {
 			hasFitRun: false,
+			mapVisible: false,
 			state,
 			topLeftAnchor: null
 		};
@@ -121,6 +124,39 @@ export default {
 		},
 	},
 	methods: {
+		syncMapVisibility() {
+			const container = this.$refs.mapContainer;
+			if (!container) return;
+
+			const { width, height } = container.getBoundingClientRect();
+			const hasSize = width > 0 && height > 0;
+
+			if (hasSize && !this.mapVisible) {
+				this.mapVisible = true;
+				this.$nextTick(() => this.syncMapVisibility());
+				return;
+			}
+
+			if (hasSize) {
+				if (!this.ensureMapSize()) return;
+
+				if (!this.hasFitRun && this.devices?.length) {
+					this.fitMarkers();
+					this.hasFitRun = true;
+				}
+			}
+		},
+		ensureMapSize() {
+			const container = this.$refs.mapContainer;
+			const map = this.$refs.olMap?.map;
+			if (!container || !map) return false;
+
+			const { width, height } = container.getBoundingClientRect();
+			if (width <= 0 || height <= 0) return false;
+
+			map.updateSize();
+			return true;
+		},
 		position(device) {
 			return fromLonLat([device.attributes?.longitude, device.attributes?.latitude])
 		},
@@ -174,7 +210,7 @@ export default {
 			const map = this.$refs.olMap?.map;
 			if (!map || !this.topLeftAnchor) return;
 
-			map.updateSize();
+			if (!this.ensureMapSize()) return;
 
 			const view = map.getView();
 			const size = map.getSize();
@@ -198,6 +234,11 @@ export default {
 
 				const map = mapComponent.map;
 				const view = map.getView();
+
+				if (!this.ensureMapSize()) {
+					return;
+				}
+
 				const size = map.getSize();
 	
 				if (!this.devices || this.devices.length === 0) {
@@ -263,16 +304,26 @@ export default {
 		},
 		devices(val) {
 			if (!this.hasFitRun && val?.length) {
-				this.fitMarkers();
-				this.hasFitRun = true;
+				if (this.ensureMapSize()) {
+					this.fitMarkers();
+					this.hasFitRun = true;
+				}
 			}
 		},
 	},
 	mounted() {
 		window.addEventListener('panToDevice', this.panToDevice);
+		this._mapResizeObserver = new ResizeObserver(() => {
+			this.syncMapVisibility();
+		});
+		if (this.$refs.mapContainer) this._mapResizeObserver.observe(this.$refs.mapContainer);
+		this.$nextTick(() => {
+			requestAnimationFrame(() => this.syncMapVisibility());
+		});
 	},
 	beforeUnmount() {
 		window.removeEventListener('panToDevice', this.panToDevice);
+		if (this._mapResizeObserver) this._mapResizeObserver.disconnect();
 	}
 	
 };
