@@ -6,6 +6,9 @@
 
 
 require_once 'config.php';
+require_once 'auth.php';
+
+requireRefreshSecretIfNeeded();
 
 // only run if cache file doesn't exist or was changed more than 1 hours ago
 if (file_exists(CACHE_FILE_DEVICES) && !isset($_GET['refresh'])) {

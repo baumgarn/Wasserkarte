@@ -15,9 +15,13 @@ $nfk_labels = [
 ];
 
 require_once 'config.php';
+require_once 'auth.php';
 
-// only run cache wasn't updated since midnight or if cache doesn't exist 
-if (is_file(CACHE_FILE_ALLTELEMETRY)) {
+requireRefreshSecretIfNeeded();
+
+// only run if cache wasn't updated since midnight or if cache doesn't exist,
+// unless an explicit refresh was requested
+if (is_file(CACHE_FILE_ALLTELEMETRY) && !isset($_GET['refresh'])) {
     $mtime = filemtime(CACHE_FILE_ALLTELEMETRY);
     if ($mtime !== false) {
         $midnight = strtotime('today midnight'); // timestamp for today's 00:00
@@ -356,4 +360,3 @@ function getLatestTimestampFromCache(): int {
     
 //     return $buckets;
 // }
-

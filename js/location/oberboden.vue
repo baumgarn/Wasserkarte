@@ -13,9 +13,11 @@
 				<div class="nfklabel">
 
 					<template v-if="isInactive">
+
 						<div class="notelemetry">
 							Keine Telemetrie seit {{ daysSinceLastTelemetry }} Tagen
 						</div>
+
 					</template>
 
 					<template v-else>
@@ -23,6 +25,7 @@
 						<div class="name" :style="'color:'+nfk_color">
 							{{ nfk_label }}
 						</div>
+						
 						<div class="nameoverlay">
 							{{ nfk_label }}
 						</div>
@@ -38,8 +41,7 @@
 					tooltipoffset="6"
 					tooltipwidth="210">
 
-					<div class="icon">
-					</div>
+					<Icon type="tropfen-flat" :size="24" class="icon" />
 				
 					<div class="label">
 						Wassergehalt
@@ -64,7 +66,7 @@
 					tooltipoffset="6"
 					tooltipwidth="210">
 
-					<div class="icon"></div>
+					<Icon type="pflanze" :size="24" class="icon" />
 					
 					<div class="label">
 						Pflanzenverfügbar
@@ -91,7 +93,7 @@
 					tooltipoffset="6"
 					tooltipwidth="210">
 
-					<div class="icon"></div>
+					<Icon type="totwasser" :size="24" class="icon" />
 
 					<div class="label">
 						Nicht verfügbar
@@ -119,7 +121,7 @@
 					tooltipoffset="6"
 					tooltipwidth="210">
 
-					<div class="icon"></div>
+					<Icon type="gesamt" :size="24" class="icon" />
 
 					<div class="label">
 						Gesamtkapazität
@@ -131,6 +133,7 @@
 					</div>
 				
 					<div class="num light">
+						<span class="before"></span>
 						<span class="value">{{ FK }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
@@ -161,10 +164,11 @@
 	import Beschreibung from '@/location/beschreibung.vue'
 	import Barrell from '@/charts/barrell.vue';
 	import FilterItem from '@/location/filteritem.vue';
+	import Icon from '@/ui/Icon.vue';
 
 	export default {
 		name: 'Wassergehalt',
-		components: {Barrell, Beschreibung, FilterItem},
+		components: {Barrell, Beschreibung, FilterItem, Icon},
 		props: {device: Object, hoverData: Object},
 		setup() {
 			return {state};
@@ -227,15 +231,17 @@
 			nfk_color() {
 				return dataModel.get_nfk_color(this.nfk);
 			},
-			hasSoilAttributes() {
-				return (this.device.attributes.avg_FK && this.device.attributes.avg_TW)
-			},
-			hoverOrLastData() {
-				return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-			},
-			timelineDate() {
-				return state.timelineDate;
-			},
+				hasSoilAttributes() {
+					return (this.device.attributes.avg_FK && this.device.attributes.avg_TW)
+				},
+				hoverOrLastData() {
+					const lastRow = this.device?.telemetrySchema?.data?.[0];
+					const schema = this.device?.telemetrySchema?.schema;
+					return this.hoverData || (Array.isArray(lastRow) && Array.isArray(schema) ? dataModel.rowToProps(lastRow, schema) : {})
+				},
+				timelineDate() {
+					return state.timelineDate;
+				},
 			hoursSinceLastTelemetry() {
 				return dataStore.hoursSinceLastTelemetry(this.device.id);
 			},
@@ -283,14 +289,16 @@
 		flex-shrink 0
 		margin-right 1.65em
 		margin-left -2px
+		margin-top -4px
+		margin-bottom -4px
 		position relative
 	.datacol	
 		flex-grow 1
 	.nfklabel
 		font-weight bold
-		font-size 14pt
+		font-size 13pt
 		height 20px
-		margin 0 0 .5em
+		margin 0 0 .25em
 		letter-spacing 0.03em;
 		position relative
 		text-transform uppercase
@@ -319,54 +327,38 @@
 		flex-direction row
 		align-items baseline
 		white-space nowrap
-		height 35px
-		padding 0
+		height 32px
+		padding 3px 0 0
 		cursor default
 		position relative
-		border-bottom var(--separatorline)
 		border-bottom 1px solid #eee
 		.label
-			flex-basis 42%
+			flex-basis 40%
 		.num
 			flex-basis 60px
 			text-align right
 		.num.light
 			flex-basis 30%
-			padding-right .6em
+			padding-right 4px
 	.datarow .icon
 		content ''
 		display inline-block
 		position relative
-		width 30px
-		flex-basis 30px
+		// width 30px
+		// flex-basis 30px
 		flex-grow 0
 		flex-shrink 0
 		height 30px
-		opacity .45
+		opacity .7
 		margin-right 8px
-		margin-top -8px
-		top 10px
-		background-size contain
-		background-position center
-		background-repeat no-repeat
-	.datarow.wassergehalt .icon
-		opacity .85
-		background-image url(/img/tropfen_flat.png)
-		background-size 60% 90%
-	.datarow.pflanzenverfuegbar .icon
-		background-image url(/img/plant.svg)
+		margin-top -12px
+		top 6px
+	.datarow .icon.type-pflanze
 		opacity .65
-		// top 10px
-	.datarow.totwasser .icon
-		background-size auto
-		opacity .55
-		box-sizing border-box
-		background-image url(/img/totwasser2.png)
-		background-repeat repeat
-		background-position -3px 0
-	.datarow.gesamtkapazitaet .icon
-		background-image url(/img/barrellflat.png)
-		opacity .44
+	.datarow .icon.type-gesamt
+		opacity .45
+	.datarow .icon.type-totwasser
+		opacity .5
 	.value
 		display inline-block
 		font-size 13.5pt
@@ -400,26 +392,26 @@
 		letter-spacing .01em
 	@media (max-width 500px)
 		.nfklabel
-			font-size 14pt
+			font-size 11pt
 		.barrell
-			margin-right 24px
-		.datarow .label
-			font-size 10px
-		.datarow.totwasser .icon
-			top 10px
-		.datarow .icon
-			width 28px
-			height 28px
-			flex-basis 28px
-		.datarow.gesamtkapazitaet
-			border-bottom none
-		.soilinfo
-			margin 1.8em 0 1.2em
-			font-size 13px
-		.num.light
-			display none
-		.num
-			flex-grow 1
+			margin-right 12px
+	// 	.datarow .label
+	// 		font-size 10px
+	// 	.datarow.totwasser .icon
+	// 		top 10px
+	// 	.datarow .icon
+	// 		width 28px
+	// 		height 28px
+	// 		flex-basis 28px
+	// 	.datarow.gesamtkapazitaet
+	// 		border-bottom none
+	// 	.soilinfo
+	// 		margin 1.8em 0 1.2em
+	// 		font-size 13px
+	// 	.num.light
+	// 		display none
+	// 	.num
+	// 		flex-grow 1
 
 	
 </style>

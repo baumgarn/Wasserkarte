@@ -37,6 +37,7 @@ export const state = reactive({
 	windowHeight: 0,
 	isMobile: false,
 	tooltips: true,
+	popupMenuOpen: false,
 	markerClicked: false,
 	timelineDate: null,
 });
@@ -114,6 +115,21 @@ export function computedState(key, getter, options = {}) {
 	watch(getter, (val) => {
 		state[key] = val;
 	}, { immediate: false, ...options });
+}
+
+export function closeAllMenuWindowsAndSidebar() {
+	state.selectedDevice = null;
+	state.sidebarFullView = false;
+
+	for (const key in state.menuOpen) {
+		if (Object.prototype.hasOwnProperty.call(state.menuOpen, key)) {
+			state.menuOpen[key] = false;
+		}
+	}
+
+	state.wsmlegends = false;
+	state.mobilemenuOpen = false;
+	window.dispatchEvent(new CustomEvent('app:close-popovers'));
 }
 
 // FILTER

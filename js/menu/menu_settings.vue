@@ -8,10 +8,6 @@
 		<div class="menuwindow-content">
 
 			<div class="settings-group">
-			
-				<div class="settingslabel">
-					Farbschema
-				</div>
 				
 				<ColorSchemeSelect />
 
@@ -55,6 +51,7 @@
 <script>
 
 import { state } from '../state.js' 
+import { dataModel } from '@/datamodel.js'
 import ColorSchemeSelect from '@/menu/colorscheme_select.vue'
 
 export default {
@@ -70,6 +67,9 @@ export default {
 		}
 	},
 	computed: {
+		selectedColorSchemeName() {
+			return dataModel.get_color_scheme_name('nfk');
+		},
 	},
 	props: {
 	},

@@ -271,15 +271,17 @@ export default {
 		colorScheme() {
 			return state.colorScheme;
 		},
-		filterFaultyValues() {
-			return state.filterFaultyValues;
-		},
-		hoverOrLastData() {
-			return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-		},
-		timelineDate() {
-			return state.timelineDate;
-		},
+			filterFaultyValues() {
+				return state.filterFaultyValues;
+			},
+			hoverOrLastData() {
+				const lastRow = this.device?.telemetrySchema?.data?.[0];
+				const schema = this.device?.telemetrySchema?.schema;
+				return this.hoverData || (Array.isArray(lastRow) && Array.isArray(schema) ? dataModel.rowToProps(lastRow, schema) : {})
+			},
+			timelineDate() {
+				return state.timelineDate;
+			},
 		daysSinceLastTelemetry() {
 			const latestTimestamp = this.getLastTimestamp();
 			if (latestTimestamp) {

@@ -56,20 +56,21 @@
 				default: "sidebar"
 			}
 		},
-		data() {
-			return {
-				sensorData: {},
-				graphScale: 1.0,
-				graphPosition: 0,
+			data() {
+				return {
+					sensorData: {},
+					graphScale: 1.0,
+					graphPosition: 0,
 				earliestTimestamp: 0,
 				latestTimestamp: 0,
-				frameMargin: 0,
-				hoverPosition: -1,
-				frameWidth: 0,
-				dataPresent: false,
-			};
-		},
-		computed: {
+					frameMargin: 0,
+					hoverPosition: -1,
+					frameWidth: 0,
+					dataPresent: false,
+					sensorLoadRequestId: 0,
+				};
+			},
+			computed: {
 			nfk() {
 				const nfk = dataModel.nfk(this.device, this.hoverData);
 				if (isNaN(nfk)) return '–'
@@ -89,13 +90,22 @@
 					state.chartTimeRange = value;
 				}
 			},
-			apiUrl() {
-				return dataStore.getApiUrl(this.device.id, 'all', state.dataAggregation);
-			},
-			bodentemperaturSensors() {
-				const sensorKeys = ["Bodentemperatur_10cm", "Bodentemperatur_30cm", "Bodentemperatur_60cm", "Bodentemperatur_80cm"];
-				return this.filterSensors(sensorKeys);
-			},
+				apiUrl() {
+					return dataStore.getApiUrl(this.device.id, 'all', state.dataAggregation);
+				},
+				availableSensorKeys() {
+					if (Array.isArray(this.sensorData?.schema) && this.sensorData.schema.length) {
+						return this.sensorData.schema;
+					}
+					if (Array.isArray(this.device?.telemetrySchema?.schema) && this.device.telemetrySchema.schema.length) {
+						return this.device.telemetrySchema.schema;
+					}
+					return Object.keys(this.device?.telemetry || {});
+				},
+				bodentemperaturSensors() {
+					const sensorKeys = ["Bodentemperatur_10cm", "Bodentemperatur_30cm", "Bodentemperatur_60cm", "Bodentemperatur_80cm"];
+					return this.filterSensors(sensorKeys);
+				},
 			bodenfeuchteSensors() {
 				const sensorKeys = ["Bodenfeuchte_10cm", "Bodenfeuchte_30cm", "Bodenfeuchte_60cm", "Bodenfeuchte_80cm"];
 				return this.filterSensors(sensorKeys);
@@ -108,16 +118,16 @@
 				const sensorKeys = ["vol_avg"];
 				return this.filterSensors(sensorKeys);
 			},
-			allSensors() {
-				const sensorKeys = ["Bodenfeuchte_10cm", "Bodenfeuchte_30cm", "Bodenfeuchte_60cm", "Bodenfeuchte_80cm", "Bodentemperatur_10cm", "Bodentemperatur_30cm", "Bodentemperatur_60cm", "Bodentemperatur_80cm"];
-				return this.filterSensors(sensorKeys);
-			},
-			hasBodenfeuchteSensors() {
-				return this.bodenfeuchteSensors.length > 0;
-			},
-			hasBodentemperaturSensors() {
-				return this.bodentemperaturSensors.length > 0;
-			},
+				allSensors() {
+					const sensorKeys = ["Bodenfeuchte_10cm", "Bodenfeuchte_30cm", "Bodenfeuchte_60cm", "Bodenfeuchte_80cm", "Bodentemperatur_10cm", "Bodentemperatur_30cm", "Bodentemperatur_60cm", "Bodentemperatur_80cm"];
+					return this.filterSensors(sensorKeys);
+				},
+				hasBodenfeuchteSensors() {
+					return this.availableSensorKeys.some(key => key.startsWith('Bodenfeuchte_'));
+				},
+				hasBodentemperaturSensors() {
+					return this.availableSensorKeys.some(key => key.startsWith('Bodentemperatur_'));
+				},
 			otherSensors() {
 				return this.sensors.filter(
 					(sensor) =>
@@ -227,36 +237,51 @@
 				return state.debugAttributes;
 			}
 		},
-		
-
 		methods: {
 			async loadSensorData() {
+				const requestId = ++this.sensorLoadRequestId;
+				const deviceId = this.device?.id ?? null;
+				const aggregation = state.dataAggregation;
+
 				this.isVisible = true;
 				this.$nextTick(() => {
 					this.updateFrameWidth();
 				});
 				this.dataPresent = false;
-				await this.processSensorData();
+				await this.processSensorData({ requestId, deviceId, aggregation });
 			},
-			async processSensorData() { 
+			isCurrentSensorLoad({ requestId, deviceId, aggregation }) {
+				return (
+					requestId === this.sensorLoadRequestId &&
+					deviceId === (this.device?.id ?? null) &&
+					aggregation === state.dataAggregation
+				);
+			},
+			async processSensorData(loadContext) { 
+				if (!this.isCurrentSensorLoad(loadContext)) {
+					return;
+				}
 
-				this.sensorData = {};
-				this.sensorData = this.device.telemetrySchema;
+				this.sensorData = this.device.telemetrySchema || { schema: [], data: [] };
 				this.earliestTimestamp = 0;
 				this.latestTimestamp = 0;
 				
-				let telemetryData = await dataStore.fetchTelemetryData(this.device.id, 'all', state.dataAggregation);
-				// if (state.dataAggregation == '1d') { // add latest live data point to daily aggregates
-				// 	console.log(telemetryData)
-				// 	telemetryData.data.push(this.device.telemetrySchema.data[0]);
-
-				// }
-
-				this.dataPresent = true;
-				
-				this.earliestTimestamp = telemetryData.data[0][0];
-				this.latestTimestamp = telemetryData.data[telemetryData.data.length - 1][0];
+				const telemetryData = await dataStore.fetchTelemetryData(loadContext.deviceId, 'all', loadContext.aggregation);
+				if (!this.isCurrentSensorLoad(loadContext)) {
+					return;
+				}
+		
 				this.sensorData = telemetryData;
+				const rows = telemetryData?.data;
+				const hasRows = Array.isArray(rows) && rows.length > 0;
+				this.dataPresent = hasRows;
+
+				if (!hasRows) {
+					return;
+				}
+
+				this.earliestTimestamp = rows[0]?.[0] ?? 0;
+				this.latestTimestamp = rows[rows.length - 1]?.[0] ?? 0;
 
 				if (this.chartTimeRange == 0 ) {
 					this.chartTimeRange = -1
@@ -269,11 +294,12 @@
 
 			},
 			filterSensors(sensorKeys) {
-				if (!this.sensorData?.schema?.length) return [];
-				const present = new Set(this.sensorData.schema);
+				const schema = Array.isArray(this.sensorData?.schema) ? this.sensorData.schema : [];
+				if (!schema.length) return [];
+				const present = new Set(schema);
 				const filtered = sensorKeys
 					.filter(k => k !== 'ts' && present.has(k))
-					.map(k => ({ key: k, col: this.sensorData.schema.indexOf(k) })) // just key + column index
+					.map(k => ({ key: k, col: schema.indexOf(k) }))
 					.sort((a, b) => a.key.localeCompare(b.key));
 				return filtered;
 			},
@@ -374,11 +400,12 @@
 					this.resizeObserver.observe(this.$refs.frameRef);
 				}
 			});
-		},
-		beforeUnmount() {
-			window.removeEventListener('resize', this.updateFrameWidth);
-			if (this.resizeObserver) {
-				this.resizeObserver.disconnect();
+			},
+			beforeUnmount() {
+				this.sensorLoadRequestId++;
+				window.removeEventListener('resize', this.updateFrameWidth);
+				if (this.resizeObserver) {
+					this.resizeObserver.disconnect();
 			}
 		},
 	};
@@ -436,7 +463,7 @@
 			
 			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 			
-			<div v-if="hasBodenfeuchteSensors">
+				<div v-if="hasBodenfeuchteSensors && dataPresent">
 				<!-- <hr/> -->
 
 				<div v-if="chartStyle === 'schichten'">

@@ -29,6 +29,7 @@
   --timelinedatebg: rgba(68,68,68,0.6);
   --menusectionheadercolor: #4c88cc;
   --menusectionheadercolor: #4466bc;
+  --menusectionheadercolorlight: #4466bc;
   --menuheaderline: rgba(0,0,0,0.133);
 }
 body.is-mobile {

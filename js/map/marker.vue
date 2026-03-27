@@ -19,7 +19,7 @@
 						>
 					<div class="propertyicon">
 						
-						<FilterIcon :obj="propertyObj" :size="36"/>
+						<Icon :obj="propertyObj" :size="36"/>
 
 					</div>	
 				</div>
@@ -123,13 +123,13 @@ import { dataModel } from '@/dataModel.js';
 import dataStore from '@/dataStore.js';
 import {state} from '@/state.js'
 import MapPopup from '@/map/popup.vue';
-import FilterIcon from '@/location/filtericon.vue';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'MapMarker',
 	components: {
 		MapPopup,
-		FilterIcon
+		Icon
 	},
 	setup() {
 		return {dataModel, displayutil}
@@ -232,29 +232,31 @@ export default {
 			if (this.volavg_index != null) {
 				return this.displayData[this.volavg_index];
 			}
-		},
-		lastData() {
-			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
-				return this.device.telemetrySchema.data[0];
-			} else {
-				return null;
-			}
-		},
+			},
+			lastData() {
+				const lastRow = this.device?.telemetrySchema?.data?.[0];
+				if (Array.isArray(lastRow)) {
+					return lastRow;
+				} else {
+					return null;
+				}
+			},
 		filteredDevices() {
 			return state.filteredDevices;
 		},
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
-		sidebarFullView() {
-			return state.sidebarFullView;
-		},
-		firstDate() {
-			return this.telemetryData?.data[0][0];
-		},
-		lastDate() {
-			return this.telemetryData?.data[this.telemetryData.data.length-1][0];
-		},
+			sidebarFullView() {
+				return state.sidebarFullView;
+			},
+			firstDate() {
+				return this.telemetryData?.data?.[0]?.[0] ?? null;
+			},
+			lastDate() {
+				const rows = this.telemetryData?.data;
+				return rows?.length ? rows[rows.length - 1]?.[0] ?? null : null;
+			},
 		isVisible() {
 			if (!this.timelineDate && this.hoursSinceLastTelemetry < config.noTelemetryCutoff ) {
 				return true;

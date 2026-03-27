@@ -4,6 +4,55 @@ const ftp = require("basic-ftp");
 const path = require("path");
 const fs = require("fs");
 
+const UPLOAD_SKIP_PATHS = [
+	"api/cache",
+];
+
+function normalizeRelativePath(relativePath) {
+	return relativePath.split(path.sep).join("/");
+}
+
+function shouldSkipUpload(relativePath) {
+	const normalizedPath = normalizeRelativePath(relativePath);
+	if (!normalizedPath || normalizedPath === ".") {
+		return false;
+	}
+
+	if (normalizedPath === ".DS_Store" || normalizedPath.endsWith("/.DS_Store")) {
+		return true;
+	}
+
+	return UPLOAD_SKIP_PATHS.some(skipPath =>
+		normalizedPath === skipPath || normalizedPath.startsWith(`${skipPath}/`)
+	);
+}
+
+async function uploadDirectory(client, localDir, remoteDir, rootDir = localDir) {
+	const entries = fs.readdirSync(localDir, { withFileTypes: true });
+
+	for (const entry of entries) {
+		const localPath = path.join(localDir, entry.name);
+		const relativePath = path.relative(rootDir, localPath);
+
+		if (shouldSkipUpload(relativePath)) {
+			console.log(`Skipping upload: ${normalizeRelativePath(relativePath)}`);
+			continue;
+		}
+
+		const remotePath = path.posix.join(remoteDir, entry.name);
+
+		if (entry.isDirectory()) {
+			await client.ensureDir(remotePath);
+			await uploadDirectory(client, localPath, remotePath, rootDir);
+			continue;
+		}
+
+		if (entry.isFile()) {
+			await client.uploadFrom(localPath, remotePath);
+		}
+	}
+}
+
 async function upload() {
 	const client = new ftp.Client();
 	client.ftp.verbose = true;
@@ -39,9 +88,9 @@ async function upload() {
 		client.ftp.verbose = true;
 		client.ftp.keepAlive = 10000;
 
-		console.log(`Navigating to: ${FTP_REMOTE_DIR}`);
-		await client.ensureDir(FTP_REMOTE_DIR);
-		await client.cd(FTP_REMOTE_DIR);
+			console.log(`Navigating to: ${FTP_REMOTE_DIR}`);
+			await client.ensureDir(FTP_REMOTE_DIR);
+			await client.cd(FTP_REMOTE_DIR);
 
 		// const files = await client.list();
 		// const existingFiles = files.map(f => f.name);
@@ -55,8 +104,8 @@ async function upload() {
 		// 	}
 		// }
 
-		await client.uploadFromDir(localDist);
-		console.log("✅ Upload complete.");
+			await uploadDirectory(client, localDist, FTP_REMOTE_DIR);
+			console.log("✅ Upload complete.");
 		
 	} catch (err) {
 		console.error("❌ FTP upload failed:", err);

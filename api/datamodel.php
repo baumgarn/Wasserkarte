@@ -1,27 +1,29 @@
 <?php
 
-$soil_table = [
-	"Ss" => [
-		"name"  => "sandiger Sand",
-		"TW"    => ["h0-1" => 2, "h2" => 3, "h3" => 4, "h4" => 6],
-		"FK"    => ["h0-1" => 13, "h2" => 16, "h3" => 18, "h4" => 23]
-	],
-	"Sl2" => [
-		"name"  => "schwach lehmiger Sand",
-		"TW"    => ["h0-1" => 6, "h2" => 7, "h3" => 8, "h4" => 9],
-		"FK"    => ["h0-1" => 21, "h2" => 23, "h3" => 26, "h4" => 30]
-	],
-	"Sl3" => [
-		"name"  => "mittel lehmiger Sand",
-		"TW"    => ["h0-1" => 9, "h2" => 10, "h3" => 10, "h4" => 12],
-		"FK"    => ["h0-1" => 25, "h2" => 27, "h3" => 29, "h4" => 34]
-	],
-	"Ls4" => [
-		"name"  => "sandiger Lehm",
-		"TW"    => ["h0-1" => 13, "h2" => 14, "h3" => 14, "h4" => 15],
-		"FK"    => ["h0-1" => 28, "h2" => 60, "h3" => 32, "h4" => 36]
-	]
-];
+function loadSoilTable(): array
+{
+	static $soilTable = null;
+
+	if ($soilTable !== null) {
+		return $soilTable;
+	}
+
+	$path = dirname(__DIR__) . '/data/soil-table.json';
+	$json = @file_get_contents($path);
+	if ($json === false) {
+		throw new RuntimeException("Failed to read soil table from {$path}");
+	}
+
+	$data = json_decode($json, true);
+	if (!is_array($data)) {
+		throw new RuntimeException("Invalid soil table JSON in {$path}");
+	}
+
+	$soilTable = $data;
+	return $soilTable;
+}
+
+$soil_table = loadSoilTable();
 
 
 function expandSchema($schema) {

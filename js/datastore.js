@@ -125,14 +125,21 @@ const dataStore = {
 		for (const [deviceId, deviceTelemetry] of Object.entries(result.devices)) {
 			
 			const device = this.getDeviceById(deviceId);
+			if (!device || !Array.isArray(deviceTelemetry?.data)) {
+				console.warn('Skipping telemetry cache entry with missing device or rows', deviceId);
+				continue;
+			}
+
 			let telemetry = deviceTelemetry;
 			
 			// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
-			const lastTelemetryData = [...toRaw(device.telemetrySchema.data)[0]];
+			const lastTelemetryData = this.getLatestDeviceTelemetryRow(device);
 
 			// TODO fehlerhafte letzte telemetrie ausschließen
 
-			telemetry.data.push(lastTelemetryData);
+			if (lastTelemetryData && this.shouldAppendTelemetryRow(telemetry.data, lastTelemetryData)) {
+				telemetry.data.push(lastTelemetryData);
+			}
 			if (state.filterFaultyValues) {
 				telemetry = this.filterTelemetry(deviceTelemetry, -5, 100);
 			}
@@ -184,6 +191,8 @@ const dataStore = {
 		if (this.dataCache[cacheKey]) {
 			return this.dataCache[cacheKey];
 		}
+
+		return this.normalizeTelemetryResponse(deviceId);
 	},
 
 	// request telemetry from backend, used to retrieve raw data for single locations now, as all aggregated daily telemetry is already loaded initially
@@ -203,13 +212,14 @@ const dataStore = {
 				const response = await fetch(url);
 				if (!response.ok) throw new Error(`HTTP ${response.status}`);
 				json = await response.json();
+				const telemetry = this.normalizeTelemetryResponse(deviceId, json?.telemetry);
 
 				if (state.filterFaultyValues) {
-					json.telemetry = this.filterTelemetry(json.telemetry, -5, 100);
+					this.dataCache[cacheKey] = this.filterTelemetry(telemetry, -5, 100);
+				} else {
+					this.dataCache[cacheKey] = telemetry;
 				}
-				
-				this.dataCache[cacheKey] = json.telemetry;
-				return json.telemetry;
+				return this.dataCache[cacheKey];
 
 			} catch (error) {
 				attempts++;
@@ -217,12 +227,20 @@ const dataStore = {
 
 				if (attempts >= 3) {
 					console.error("Failed to fetch data after 3 attempts:", error);
-					return { data: {} };
+					return this.normalizeTelemetryResponse(deviceId);
 				}
 
 				await new Promise(r => setTimeout(r, 2000 * attempts));
 			}
 		}
+	},
+
+	normalizeTelemetryResponse(deviceId, telemetry = null) {
+		const deviceSchema = this.getDeviceById(deviceId)?.telemetrySchema?.schema;
+		return {
+			schema: Array.isArray(telemetry?.schema) ? telemetry.schema : (Array.isArray(deviceSchema) ? [...deviceSchema] : []),
+			data: Array.isArray(telemetry?.data) ? telemetry.data : [],
+		};
 	},
 
 	// only include valid Bodenfeuchte telemetry rows withing range
@@ -249,7 +267,25 @@ const dataStore = {
 		return { ...telemetry, data: filteredData };
 
 	},
-	
+
+	getLatestDeviceTelemetryRow(device) {
+		const liveRow = toRaw(device?.telemetrySchema?.data)?.[0];
+		return Array.isArray(liveRow) ? [...liveRow] : null;
+	},
+
+	shouldAppendTelemetryRow(rows, row) {
+		if (!Array.isArray(rows) || !Array.isArray(row) || !row.length) {
+			return false;
+		}
+
+		const lastRow = rows[rows.length - 1];
+		if (!Array.isArray(lastRow) || !lastRow.length) {
+			return true;
+		}
+
+		return lastRow[0] !== row[0];
+	},
+		
 	getApiUrl(deviceId, timerange, aggregation) {
 		return `/api/?deviceId=${deviceId}&time=${timerange}&agg=${aggregation}`;
 	},
@@ -551,11 +587,26 @@ const dataStore = {
 	// locations in nfk averages for current day will only be considered if all soil moisture values are betwen -10 and 100
 	// past daily averages are already sanitized in the api cache
 	isRowValid(row, schemaIndex) {
+		if (!Array.isArray(row) || !schemaIndex) {
+			return false;
+		}
+
+		const isValueInRange = (key) => {
+			const index = schemaIndex[key];
+			if (!Number.isInteger(index) || index < 0) {
+				return true;
+			}
+
+			const value = row[index];
+			return typeof value !== 'number' || (value > -10 && value < 100);
+		};
+
 		return (
-			(!schemaIndex.Bodenfeuchte_10cm || (row[schemaIndex.Bodenfeuchte_10cm] > -10 && row[schemaIndex.Bodenfeuchte_10cm] < 100) ) &&
-			(!schemaIndex.Bodenfeuchte_30cm || (row[schemaIndex.Bodenfeuchte_30cm] > -10 && row[schemaIndex.Bodenfeuchte_30cm] < 100) ) &&
-			(!schemaIndex.Bodenfeuchte_60cm || (row[schemaIndex.Bodenfeuchte_60cm] > -10 && row[schemaIndex.Bodenfeuchte_60cm] < 100) ) &&
-			(!schemaIndex.Bodenfeuchte_80cm || (row[schemaIndex.Bodenfeuchte_80cm] > -10 && row[schemaIndex.Bodenfeuchte_80cm] < 100) ) )
+			isValueInRange('Bodenfeuchte_10cm') &&
+			isValueInRange('Bodenfeuchte_30cm') &&
+			isValueInRange('Bodenfeuchte_60cm') &&
+			isValueInRange('Bodenfeuchte_80cm')
+		)
 	},
 
 	// Calculate averages data for a single day
@@ -570,9 +621,10 @@ const dataStore = {
 			if (!deviceAllowed[i]) continue;
 			const row = rowsForDay[i];
 			if (!row) continue;
-			const idx = state.devices[i].schemaIndex.nfk_avg;
+			const idx = state.devices[i].schemaIndex?.nfk_avg;
+			if (!Number.isInteger(idx) || idx < 0) continue;
 			const v = row[idx];
-			if (!(v >= 0 || v < 0)) continue;
+			if (typeof v !== 'number' || Number.isNaN(v)) continue;
 
 			sum += v;
 			count++;

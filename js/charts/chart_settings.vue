@@ -77,8 +77,9 @@ export default {
 	},
 	methods: {
 		openTimeRanges() {
-			const outer = this.$refs.openTimeRangeRef.closest('.settingsouter');
-			this.$refs.popoverRef.open({ bottom: -5, right: 0 });
+			const popover = this.$refs.popoverRef;
+			if (!popover?.open) return;
+			popover.open({ bottom: -5, right: 0 });
 		}
 	},
 	computed: {
@@ -111,14 +112,14 @@ export default {
 				}
 			}
 		},
-		daysSinceFirstTelemetry() {
-			return Math.floor((Date.now() - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
-		},
-		isPopoverOpen() {
-			return this.$refs.popoverRef.isOpen;
+			daysSinceFirstTelemetry() {
+				return Math.floor((Date.now() - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
+			},
+			isPopoverOpen() {
+				return Boolean(this.$refs.popoverRef?.isOpen);
+			}
 		}
-	}
-};
+	};
 </script>
 
 <style lang="stylus" scoped>

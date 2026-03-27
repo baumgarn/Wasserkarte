@@ -104,7 +104,7 @@ export default {
 				<div class="datarow">
 					<div class="label">data</div>
 					<div class="value">
-						<span v-for="(value, index) in device.telemetrySchema.data[0]" :key="index">
+						<span v-for="(value, index) in (device.telemetrySchema?.data?.[0] || [])" :key="index">
 							{{ value }}<br>
 						</span>
 					</div>

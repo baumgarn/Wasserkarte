@@ -73,9 +73,26 @@ function saveCache(array $data): void
 
 // GET TELEMETRY CACHE
 
+function getTelemetryCacheFilePath(string $deviceId, string $timerange, string $aggregation): ?string
+{
+	$isValidDeviceId = (bool) preg_match('/^[a-zA-Z0-9-]+$/', $deviceId);
+	$isValidTimerange = (bool) preg_match('/^[a-zA-Z0-9_-]+$/', $timerange);
+	$isValidAggregation = (bool) preg_match('/^[a-zA-Z0-9_-]+$/', $aggregation);
+
+	if (!$isValidDeviceId || !$isValidTimerange || !$isValidAggregation) {
+		return null;
+	}
+
+	return __DIR__ . "/cache/telemetry_{$deviceId}_{$timerange}_{$aggregation}.json";
+}
+
 function getTelemetryCache($deviceId, $timerange, $aggregation)
 {
-	$cacheFile = "cache/telemetry_{$deviceId}_{$timerange}_{$aggregation}.json";
+	$cacheFile = getTelemetryCacheFilePath($deviceId, $timerange, $aggregation);
+	if (!$cacheFile) {
+		return null;
+	}
+
 	if (file_exists($cacheFile)) {
 		$fileData = file_get_contents($cacheFile);
 		$cache = json_decode($fileData, true);
@@ -92,7 +109,11 @@ function getTelemetryCache($deviceId, $timerange, $aggregation)
 
 function getTelemetryCacheToExpand($deviceId, $timerange, $aggregation)
 {
-	$cacheFile = "cache/telemetry_{$deviceId}_{$timerange}_{$aggregation}.json";
+	$cacheFile = getTelemetryCacheFilePath($deviceId, $timerange, $aggregation);
+	if (!$cacheFile) {
+		return null;
+	}
+
 	if (file_exists($cacheFile)) {
 		$fileData = file_get_contents($cacheFile);
 		$cache = json_decode($fileData, true);
@@ -105,7 +126,11 @@ function getTelemetryCacheToExpand($deviceId, $timerange, $aggregation)
 
 function saveTelemetryCache(string $deviceId, string $timerange, string $aggregation, string $jsonData): void
 {
-    $cacheFile = __DIR__ . "/cache/telemetry_{$deviceId}_{$timerange}_{$aggregation}.json";
+    $cacheFile = getTelemetryCacheFilePath($deviceId, $timerange, $aggregation);
+    if (!$cacheFile) {
+        return;
+    }
+
     atomicWrite($cacheFile, $jsonData);
 }
 

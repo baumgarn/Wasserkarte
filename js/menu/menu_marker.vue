@@ -32,7 +32,7 @@
 
 				<div class="iconspace">
 
-					<div class="icon nfk"></div>
+					<Icon type="pflanze" :size="22" class="markerstyle-icon" />
 
 				</div>
 				<div class="label">
@@ -51,7 +51,7 @@
 
 				<div class="iconspace">
 
-					<div class="icon vol"></div>
+					<Icon type="tropfen-flat" :size="22" class="markerstyle-icon" />
 
 				</div>
 				<div class="label">
@@ -72,7 +72,7 @@
 
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.usage_table.MW" :size="22" />
+					<Icon :obj="dataModel.usage_table.MW" :size="22" />
 
 				</div>
 				<div class="label">
@@ -90,7 +90,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.bewaessert_obj" :size="22" />
+					<Icon :obj="dataModel.bewaessert_obj" :size="22" />
 
 				</div>
 				<div class="label">
@@ -107,7 +107,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.soil_table.Ss" :size="22" />
+					<Icon :obj="dataModel.soil_table.Ss" :size="22" />
 
 				</div>
 				<div class="label">
@@ -124,7 +124,7 @@
 			>
 				<div class="iconspace">
 
-					<FilterIcon :obj="dataModel.humus_table.h3" :size="22" />
+					<Icon :obj="dataModel.humus_table.h3" :size="22" />
 
 				</div>
 				<div class="label">
@@ -142,13 +142,13 @@
 import { state } from '@/state.js'
 import FauxMarker from '@/map/legend_faux_marker.vue';
 import { dataModel } from '@/dataModel.js';
-import FilterIcon from '@/location/filtericon.vue';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'MarkerMenu',
 	components: {
 		FauxMarker,
-		FilterIcon
+		Icon
 	},
 	setup() {
 		return {dataModel}
@@ -209,27 +209,17 @@ export default {
 					opacity .7
 					// transform scale(.85)
 
-	.iconspace .icon
-		content ''
+	.iconspace .markerstyle-icon
 		display inline-block
 		position relative
-		width 22px
-		flex-basis 22px
-		height 22px
-		flex-grow 0
-		flex-shrink 0
 		opacity .5
 		margin-left -4px
-		background-size contain
-		background-position center
-		background-repeat no-repeat
-		&.vol
-			opacity .85
-			background-image url(/img/tropfen_flat.png)
-			// background-size 60% 90%
-		&.nfk 
-			background-image url(/img/plant.svg)
-			opacity .8
+
+	.menuitem.Bodenfeuchte_vol .markerstyle-icon
+		opacity .85
+
+	.menuitem.Bodenfeuchte_nfk .markerstyle-icon
+		opacity .8
 
 	.menuitem.Bodenfeuchte_Farbkreis 
 		.iconspace

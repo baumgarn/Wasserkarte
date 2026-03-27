@@ -183,10 +183,20 @@ export default {
 				item.action(state);
 			}
 			this.close();
+		},
+		handleGlobalClose() {
+			if (this.isOpen) {
+				this.close();
+			}
 		}
 	},
 
+	mounted() {
+		window.addEventListener('app:close-popovers', this.handleGlobalClose);
+	},
+
 	beforeUnmount() {
+		window.removeEventListener('app:close-popovers', this.handleGlobalClose);
 		document.removeEventListener('click', this.handleOutsideClick);
 		window.removeEventListener('resize', this.clampHeight);
 		state.popupMenuOpen = false;

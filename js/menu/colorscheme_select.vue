@@ -1,23 +1,31 @@
 <template>
 
-	<div class="colorscheme-items">
+	<div class="colorscheme-select">
 
-		<div
-			v-for="key in colorSchemeKeys"
-			:key="key"
-			class="colorscheme-item"
-			:class="{ selected: state.colorScheme === key }"
-			tabindex="0"
-			role="radio"
-			:aria-checked="state.colorScheme === key"
-			@click="selectColorScheme(key)"
-			@keydown.enter.space.prevent="selectColorScheme(key)">
-
-			<ColorSchemeGradient :width="220" :height="16" :colorScheme="colorSchemes[key]" />
-			<!-- <ColorSchemeItem :width="220" :height="20" :colorScheme="colorSchemes[key]" /> -->
-
+		<div class="current-colorscheme">
+			Farbschema: <span class="current-colorscheme-name">{{ selectedColorSchemeName }}</span>
 		</div>
-		
+
+		<div class="colorscheme-items">
+
+			<div
+				v-for="key in colorSchemeKeys"
+				:key="key"
+				class="colorscheme-item"
+				:class="{ selected: state.colorScheme === key }"
+				tabindex="0"
+				role="radio"
+				:aria-checked="state.colorScheme === key"
+				@click="selectColorScheme(key)"
+				@keydown.enter.space.prevent="selectColorScheme(key)">
+
+				<!-- <div class="colorscheme-label">{{ colorSchemes[key].name }}</div> -->
+				<ColorSchemeGradient :width="220" :height="16" :colorScheme="colorSchemes[key].colors" />
+				<!-- <ColorSchemeItem :width="220" :height="20" :colorScheme="colorSchemes[key].colors" /> -->
+
+			</div>
+		</div>
+
 	</div>
 	
 </template>
@@ -26,16 +34,12 @@
 
 import { dataModel } from '@/datamodel.js'
 import { state } from '@/state.js'
-import ColorScheme from '@/menu/colorscheme_item.vue'
 import ColorSchemeGradient from '@/menu/colorscheme_gradient.vue'
-import ColorSchemeItem from '@/menu/colorscheme_item.vue'
 
 export default {
 	name: 'ColorschemeMenu',
 	components: {
-		ColorScheme,
 		ColorSchemeGradient,
-		ColorSchemeItem,
 	},
 	setup() {
 		return {state};
@@ -51,7 +55,9 @@ export default {
 		colorSchemeKeys() {
 			return Object.keys(this.colorSchemes);
 		},
-		
+		selectedColorSchemeName() {
+			return dataModel.get_color_scheme_name('nfk');
+		},
 	},
 	props: {
 	},
@@ -72,6 +78,17 @@ export default {
 
 <style lang="stylus" scoped>
 
+.colorscheme-select
+	display flex
+	flex-direction column
+	gap 6px
+
+// .current-colorscheme
+	// font-size 12px
+
+// .current-colorscheme-name
+	// font-weight 600
+
 .colorscheme-items
 	display flex
 	flex-direction column
@@ -83,6 +100,10 @@ export default {
 	cursor pointer
 	width 100%
 	position relative
+	display flex
+	flex-direction column
+	gap 4px
+	padding 0
 	&.selected::after
 		content ''
 		display block
@@ -93,6 +114,9 @@ export default {
 		opacity .4
 		bottom 0
 		background url(/img/dreieck_rechts.png) no-repeat left center / 8px 12px, url(/img/dreieck_links.png) no-repeat right center / 8px 12px
+
+.colorscheme-label
+	font-size 12px
 
 
 </style>

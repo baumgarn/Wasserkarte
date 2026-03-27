@@ -50,20 +50,6 @@
 
 						<FilterItem v-if="humusObj" :obj="humusObj" type="small"/>
 
-
-						<!-- 
-						<FilterIcon v-if="usageObj" :obj="usageObj" :size="24"/>
-						
-						<FilterIcon v-if="bewaessertObj" :obj="bewaessertObj" :size="24"/>
-						
-						<FilterIcon v-if="grundwasserObj" :obj="grundwasserObj" :size="24"/>
-
-						<FilterIcon v-if="regenabhängigObj" :obj="regenabhängigObj" :size="24"/>
-						
-						<FilterIcon v-if="soilObj" :obj="soilObj" :size="24"/>
-
-						<FilterIcon v-if="humusObj" :obj="humusObj" :size="24"/> -->
-
 					</div>
 
 					<template v-if="!isInactive">
@@ -115,12 +101,12 @@ import { state } from '../state.js';
 import { displayutil } from '../displayutil.js';
 import { dataModel } from '../datamodel.js';
 import dataStore from '../dataStore.js';
-import FilterIcon from '@/location/filtericon.vue';
+import Icon from '@/ui/Icon.vue';
 import FilterItem from '@/location/filteritem.vue';
 
 export default {
 	name: "MapPopup",
-	components: {FilterIcon, FilterItem},
+	components: {Icon, FilterItem},
 	setup() {
 		return {state, dataModel, displayutil};
 	},
@@ -207,14 +193,16 @@ export default {
 			if (this.device.filterKeywords.indexOf(dataModel.regenabhängig_obj.name)>-1) {
 				return dataModel.regenabhängig_obj;
 			}
-		},
-		lastData() {
-			if (this.device.telemetrySchema && this.device.telemetrySchema.data) {
-				return dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-			} else {
-				return null;
-			}
-		},
+			},
+			lastData() {
+				const lastRow = this.device?.telemetrySchema?.data?.[0];
+				const schema = this.device?.telemetrySchema?.schema;
+				if (Array.isArray(lastRow) && Array.isArray(schema)) {
+					return dataModel.rowToProps(lastRow, schema)
+				} else {
+					return null;
+				}
+			},
 		hoursSinceLastTelemetry() {
 			return dataStore.hoursSinceLastTelemetry(this.device.id);
 		},

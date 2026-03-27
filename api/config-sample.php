@@ -11,5 +11,7 @@
 	define('THINGSBOARD_URL', 'https://...');
 	define('USERNAME', 'username');
 	define('PASSWORD', 'password');
+	define('REFRESH_SECRET', 'change-this-secret');
+	define('REFRESH_BLOCK_SECONDS', 300);
 	define('ALLOWED_SENSOR_KEYS', ['Bodenfeuchte_10cm', 'Bodenfeuchte_30cm', 'Bodenfeuchte_60cm', 'Bodenfeuchte_80cm']);
 	define('CUTOFF_DATE', 1737072000000); // Jan 17, 2025 UTC in ms

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
+import fs from 'fs';
 
 // Plugin to watch public folder and add cache busting to CSS
 function watchPublicWithCacheBust() {
@@ -74,6 +75,51 @@ function watchPublicWithCacheBust() {
 	};
 }
 
+function copyApiToDist() {
+	return {
+		name: 'copy-api-to-dist',
+		closeBundle() {
+			const sourceDir = path.resolve(__dirname, 'api');
+			const targetDir = path.resolve(__dirname, 'dist/api');
+			const sourceDataDir = path.resolve(__dirname, 'data');
+			const targetDataDir = path.resolve(__dirname, 'dist/data');
+			const sourceCacheDir = path.join(sourceDir, 'cache');
+			const targetCacheDir = path.join(targetDir, 'cache');
+
+			if (!fs.existsSync(sourceDir)) {
+				return;
+			}
+
+			fs.rmSync(targetDir, { recursive: true, force: true });
+			fs.mkdirSync(targetDir, { recursive: true });
+
+			fs.cpSync(sourceDir, targetDir, {
+				recursive: true,
+				filter: (src) => {
+					const relativePath = path.relative(sourceDir, src);
+					if (!relativePath) return true;
+					if (relativePath === '.DS_Store') return false;
+					if (relativePath === 'cache') return false;
+					if (relativePath.startsWith(`cache${path.sep}`)) return false;
+					return true;
+				},
+			});
+
+			if (fs.existsSync(sourceCacheDir)) {
+				fs.mkdirSync(targetCacheDir, { recursive: true });
+			}
+
+			if (fs.existsSync(sourceDataDir)) {
+				fs.rmSync(targetDataDir, { recursive: true, force: true });
+				fs.cpSync(sourceDataDir, targetDataDir, {
+					recursive: true,
+					filter: (src) => path.basename(src) !== '.DS_Store',
+				});
+			}
+		},
+	};
+}
+
 export default defineConfig({
 	esbuild: {
 		target: 'es2020',
@@ -116,7 +162,7 @@ export default defineConfig({
 			interval: 100
 		}
 	},
-	plugins: [vue(), watchPublicWithCacheBust()],
+	plugins: [vue(), watchPublicWithCacheBust(), copyApiToDist()],
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, 'js'),

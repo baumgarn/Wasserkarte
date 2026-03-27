@@ -13,9 +13,10 @@
 
 import dataStore from './datastore.js';
 import { fetchWMSCapabilities } from './wmsutils.js';
-import { state } from './state.js';
+import { closeAllMenuWindowsAndSidebar, state } from './state.js';
 import { config } from './config.js';
 import { useRoute, useRouter } from 'vue-router';
+import { onBeforeUnmount } from 'vue';
 import AppTooltip from '@/ui/app_tooltip.vue';
 
 
@@ -45,6 +46,21 @@ export default {
 
 		window.addEventListener('resize', handleResize);
 		handleResize();
+
+		const handleGlobalKeydown = (event) => {
+			if (event.key !== 'Escape') return;
+			if (route.name === 'embed' || route.name === 'qrcode') {
+				router.push('/');
+				return;
+			}
+			closeAllMenuWindowsAndSidebar();
+		};
+
+		window.addEventListener('keydown', handleGlobalKeydown);
+		onBeforeUnmount(() => {
+			window.removeEventListener('resize', handleResize);
+			window.removeEventListener('keydown', handleGlobalKeydown);
+		});
 
 		if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
 			state.localhost = true;

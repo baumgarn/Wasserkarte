@@ -14,7 +14,7 @@
 				<div class="infoschicht" :style="'background:'+dataModel.get_nfk_color_alpha(70, alpha)">
 					<h2>Wie feucht sind unsere Böden wirklich?</h2>
 					<p>
-						Die Wassermeisterei ist ein Citizen Science Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten um Böden besser zu verstehen und Strategien für eine dürre-resiliente Landschaft zu entwickeln. Erfahre mehr über das Projekt und werde Wassermeister*in auf <a href="http://wassermeisterei.org">wassermeisterei.org</a>
+						Die Wassermeisterei ist ein Citizen Science Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten um Böden besser zu verstehen und Strategien für eine dürre-resiliente Landschaft zu entwickeln. Erfahre mehr über das Projekt und werde Wassermeister*in auf <a href="http://wassermeisterei.org"><strong>wassermeisterei.org</strong></a>
 
 					</p>
 				</div>
@@ -77,7 +77,7 @@
 							<div class="icon bodenkunde"></div>
 						</div>
 						<div class="legendtext">
-							Bodenkunde Hintergrundinformationen
+							Hintergrundwissen zu Bodenkunde und Erläuterungen zur Methodik der Wasserkarte 
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">

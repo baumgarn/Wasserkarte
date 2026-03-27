@@ -50,6 +50,10 @@ export default {
 			heatmapNumBands: 1,
 			heatmapImageUrl: null,
 			heatmapRenderRaf: null,
+			deferredRenderFrameA: null,
+			deferredRenderFrameB: null,
+			deferredRenderIdle: null,
+			deferredRenderTimeout: null,
 			telemetryFingerprint: 'empty',
 		};
 	},
@@ -101,10 +105,51 @@ export default {
 		},
 	},
 	methods: {
-		queueRenderHeatmapImage() {
+		clearDeferredRender() {
+			if (this.deferredRenderFrameA != null) {
+				cancelAnimationFrame(this.deferredRenderFrameA);
+				this.deferredRenderFrameA = null;
+			}
+			if (this.deferredRenderFrameB != null) {
+				cancelAnimationFrame(this.deferredRenderFrameB);
+				this.deferredRenderFrameB = null;
+			}
+			if (this.deferredRenderIdle != null && typeof cancelIdleCallback === 'function') {
+				cancelIdleCallback(this.deferredRenderIdle);
+				this.deferredRenderIdle = null;
+			}
+			if (this.deferredRenderTimeout != null) {
+				clearTimeout(this.deferredRenderTimeout);
+				this.deferredRenderTimeout = null;
+			}
+		},
+		queueRenderHeatmapImage({ defer = false } = {}) {
+			this.clearDeferredRender();
 			if (this.heatmapRenderRaf != null) {
 				cancelAnimationFrame(this.heatmapRenderRaf);
 			}
+
+			if (defer && !timelineImageCache.has(this.cacheKey)) {
+				this.deferredRenderFrameA = requestAnimationFrame(() => {
+					this.deferredRenderFrameA = null;
+					this.deferredRenderFrameB = requestAnimationFrame(() => {
+						this.deferredRenderFrameB = null;
+						if (typeof requestIdleCallback === 'function') {
+							this.deferredRenderIdle = requestIdleCallback(() => {
+								this.deferredRenderIdle = null;
+								this.queueRenderHeatmapImage();
+							}, { timeout: 180 });
+							return;
+						}
+						this.deferredRenderTimeout = setTimeout(() => {
+							this.deferredRenderTimeout = null;
+							this.queueRenderHeatmapImage();
+						}, 0);
+					});
+				});
+				return;
+			}
+
 			this.heatmapRenderRaf = requestAnimationFrame(() => {
 				this.heatmapRenderRaf = null;
 				this.renderHeatmapImage();
@@ -244,7 +289,7 @@ export default {
 		},
 		'state.telemetryLoaded'() {
 			this.fetchTelemetry();
-			this.queueRenderHeatmapImage();
+			this.queueRenderHeatmapImage({ defer: true });
 		},
 		'state.showDataGaps'() {
 			this.rebuildHeatmapSegments();
@@ -259,16 +304,17 @@ export default {
 		},
 		device() {
 			this.fetchTelemetry();
-			this.queueRenderHeatmapImage();
+			this.queueRenderHeatmapImage({ defer: true });
 		}
 
 	},
 	mounted() {
 		this.fetchTelemetry();
-		this.queueRenderHeatmapImage();
+		this.queueRenderHeatmapImage({ defer: true });
 	},
 	beforeUnmount() {
 		if (this.heatmapRenderRaf != null) cancelAnimationFrame(this.heatmapRenderRaf);
+		this.clearDeferredRender();
 	},
 };
 </script>

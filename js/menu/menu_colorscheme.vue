@@ -10,7 +10,8 @@
 					:class="[{ selected: state.colorScheme === key }]"
 					@click="selectColorScheme(key)">
 
-					<ColorScheme :colorScheme="colorSchemes[key]"/>
+					<div class="colorscheme-name">{{ colorSchemes[key].name }}</div>
+					<ColorScheme :colorScheme="colorSchemes[key].colors"/>
 
 				</div>
 			</div>
@@ -38,7 +39,6 @@ export default {
 	},
 	computed: {
 		colorSchemes() {
-			console.log(dataModel.color_schemes.nfk)
 			return dataModel.color_schemes.nfk;
 		},
 		colorSchemeKeys() {
@@ -50,7 +50,6 @@ export default {
 	},
 	methods: {
 		selectColorScheme(key) {
-			console.log(key)
 			state.colorScheme = key
 		},
 	},
@@ -73,9 +72,13 @@ export default {
 .colorscheme-item
 	cursor pointer
 	width 100%
-	height 32px
+	min-height 32px
 	margin 0 0
 	position relative
+	display flex
+	flex-direction column
+	gap 4px
+	padding 4px 0
 	&.selected::after
 		content ''
 		display block
@@ -84,6 +87,9 @@ export default {
 		top 0
 		right 0
 		bottom 0
+
+.colorscheme-name
+	font-size 12px
 
 
 </style>

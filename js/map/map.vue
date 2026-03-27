@@ -59,7 +59,7 @@ import MapPopup from '@/map/popup.vue';
 import MapWSMLayers from '@/map/wsmlayers.vue';
 import TintLayer from '@/map/tintlayer.vue'
 import 'ol/ol.css';
-import { state } from '@/state.js';
+import { closeAllMenuWindowsAndSidebar, state } from '@/state.js';
 import dataStore from '@/datastore.js';
 
 import { nextTick } from 'vue';
@@ -167,17 +167,7 @@ export default {
 		},
 		click() {
 			if (! state.popupMenuOpen) {
-
-
-				state.selectedDevice = null;
-				for (const key in state.menuOpen) {
-					if (Object.prototype.hasOwnProperty.call(state.menuOpen, key)) {
-						state.menuOpen[key] = false;
-					}
-				}
-				state.wsmlegends = false;
-				state.mobilemenuOpen = false;
-
+				closeAllMenuWindowsAndSidebar();
 			}
 		},
 		offsetCenter() {

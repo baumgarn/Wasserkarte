@@ -1,45 +1,62 @@
 import { config } from './config.js';
 import { state } from './state.js';
-
-const soilColors = {
-	sand: '#fff1a3',
-	lehmigerSand: '#f0e1bc',
-};
-
-
+import soilTableData from '../data/soil-table.json';
 
 export const dataModel = {
+
+	soilColors: {
+		sand: '#fff1a3',
+		lehm: '#d7d6ce',
+		schluff: '#ffd3a3',
+		ton: '#ffddf5',
+	},
+
+	soilColorMixTable: {
+		Ss: { sand: 1 },
+		Sl2: { sand: 0.8, lehm: 0.2 },
+		Sl3: { sand: 0.65, lehm: 0.35 },
+		Ls4: { sand: 0.35, lehm: 0.65 },
+	},
 
 	color_schemes: {
 		
 		nfk : {
-			normal: [
-				{ value: 0, color: '#ff8e70'},
-				{ value: 10, color: '#ffcf4c'},
-				{ value: 40, color: '#feff4c'},
-				{ value: 70, color: '#9ff24c'},
-				{ value: 100, color: '#4ce6cc'},
-				{ value: 120, color: '#55c9f0'},
-			],
-			dwd: [
-				{ value: 0, color: '#c8632c'},
-				{ value: 10, color: '#ff961f'},
-				{ value: 20, color: '#fac83d'},
-				{ value: 30, color: '#ffe765'},
-				{ value: 40, color: '#fafa4b'},
-				{ value: 50, color: '#bee68c'},
-				{ value: 60, color: '#c7fa4b'},
-				{ value: 70, color: '#00b401'},
-				{ value: 80, color: '#008c01'},
-				{ value: 90, color: '#82e7fa'},
-				{ value: 100, color: '#34c8fa'},
-				{ value: 110, color: '#0082fa'},
-				{ value: 120, color: '#0000fa'},
-			],
-			blue: [
-				{ value: 0, color: '#d8f5ff'},
-				{ value: 120, color: '#407dff'},
-			],
+			normal: {
+				name: 'Standard',
+				colors: [
+					{ value: 0, color: '#ff8e70'},
+					{ value: 10, color: '#ffcf4c'},
+					{ value: 40, color: '#feff4c'},
+					{ value: 70, color: '#9ff24c'},
+					{ value: 100, color: '#4ce6cc'},
+					{ value: 120, color: '#55c9f0'},
+				],
+			},
+			dwd: {
+				name: 'DWD',
+				colors: [
+					{ value: 0, color: '#c8632c'},
+					{ value: 10, color: '#ff961f'},
+					{ value: 20, color: '#fac83d'},
+					{ value: 30, color: '#ffe765'},
+					{ value: 40, color: '#fafa4b'},
+					{ value: 50, color: '#bee68c'},
+					{ value: 60, color: '#c7fa4b'},
+					{ value: 70, color: '#00b401'},
+					{ value: 80, color: '#008c01'},
+					{ value: 90, color: '#82e7fa'},
+					{ value: 100, color: '#34c8fa'},
+					{ value: 110, color: '#0082fa'},
+					{ value: 120, color: '#0000fa'},
+				],
+			},
+			blau: {
+				name: 'Blau',
+				colors: [
+					{ value: 0, color: '#d8f5ff'},
+					{ value: 120, color: '#407dff'},
+				],
+			},
 		},
 		
 	},
@@ -55,40 +72,7 @@ export const dataModel = {
 	],
 
 	
-	soil_table : {
-		"Ss": {
-			name: "Sandiger Sand",
-			short: 'Ss',
-			sort: 1,
-			color: soilColors.sand,
-			TW: { "h0-1": 2, "h2": 3, "h3": 4, "h4": 6 },
-			FK: { "h0-1": 13, "h2": 16, "h3": 18, "h4": 23 },
-		},
-		"Sl2": {
-			name: "Schwach lehmiger Sand",
-			short: 'Sl2',
-			sort: 2,
-			color: soilColors.lehmigerSand,
-			TW: { "h0-1": 6, "h2": 7, "h3": 8, "h4": 9 },
-			FK: { "h0-1": 21, "h2": 23, "h3": 26, "h4": 30 },
-		},
-		"Sl3": {
-			name: "Mittel lehmiger Sand",
-			short: 'Sl3',
-			sort: 3,
-			color: soilColors.lehmigerSand,
-			TW: { "h0-1": 9, "h2": 10, "h3": 10, "h4": 12 },
-			FK: { "h0-1": 25, "h2": 27, "h3": 29, "h4": 34 },
-		},
-		// "Ls4": {
-		// 	name: "Sandiger Lehm",
-		// 	short: 'Ls4',
-		// 	color: soilColors.lehmigerSand,
-		// 	TW: { "h0-1": 13, "h2": 14, "h3": 14, "h4": 15 },
-		// 	FK: { "h0-1": 28, "h2": 30, "h3": 32, "h4": 36 },
-		// 	soilIcon: [['lehm', 1], ['sand', .4]]
-		// }
-	},
+	soil_table : soilTableData,
 
 	humus_table : {
 		"h0": { name: "Nahezu humusfrei", short:'h0', sort: 0, color: '#f7f6f6'},
@@ -304,10 +288,18 @@ export const dataModel = {
 		}
 	},
 
-	get_color_scheme(type) {
+	get_color_scheme_entry(type, key = state.colorScheme) {
 		const schemes = this.color_schemes[type];
 		if (!schemes) return undefined;
-		return schemes[state.colorScheme] || schemes.normal;
+		return schemes[key] || schemes.normal || Object.values(schemes)[0];
+	},
+
+	get_color_scheme(type, key = state.colorScheme) {
+		return this.get_color_scheme_entry(type, key)?.colors;
+	},
+
+	get_color_scheme_name(type, key = state.colorScheme) {
+		return this.get_color_scheme_entry(type, key)?.name || key;
 	},
 
 	get_color_flat(value, colorTable) {
@@ -381,14 +373,93 @@ export const dataModel = {
 		}, {});
 	},
 
+	buildSoilTable(rawTable) {
+		return Object.entries(rawTable).reduce((acc, [key, soil], index) => {
+			const textur = this.augmentTextur(soil.textur);
+			acc[key] = {
+				...soil,
+				textur,
+				short: key,
+				sort: index + 1,
+				color: this.getSoilColor(key, { ...soil, textur }),
+			};
+			return acc;
+		}, {});
+	},
+
+	augmentTextur(textur) {
+		if (!textur || typeof textur !== 'object') {
+			return textur;
+		}
+
+		return Object.fromEntries(
+			Object.entries(textur).map(([type, range]) => {
+				if (typeof range === 'number') {
+					return [type, { avg: range }];
+				}
+
+				if (!range || typeof range !== 'object') {
+					return [type, range];
+				}
+
+				return [type, {
+					...range,
+					avg: this.getTexturWeight(range),
+				}];
+			})
+		);
+	},
+
+	getSoilColor(key, soil) {
+		const colorMix = this.soilColorMixTable[key];
+		if (colorMix && typeof colorMix === 'object') {
+			const instructions = Object.entries(colorMix)
+				.filter(([, amount]) => amount > 0);
+			if (instructions.length) {
+				return this.mixColors(instructions);
+			}
+		}
+
+		return this.soilColors.lehm;
+	},
+
+	getTexturWeight(range) {
+		if (typeof range === 'number') {
+			return range;
+		}
+
+		if (!range || typeof range !== 'object') {
+			return 0;
+		}
+
+		if (typeof range.avg === 'number') {
+			return range.avg;
+		}
+
+		const min = typeof range.min === 'number' ? range.min : null;
+		const max = typeof range.max === 'number' ? range.max : null;
+
+		if (min != null && max != null) {
+			return (min + max) / 2;
+		}
+
+		if (max != null) {
+			return max;
+		}
+
+		if (min != null) {
+			return min;
+		}
+
+		return 0;
+	},
+
 	mixColors(instructions) {
-		const colors = this.soilColors;
+		if (!instructions || instructions.length === 0) {
+			return '#000000';
+		}
 
-		if (!instructions || instructions.length === 0)
-			return "#000000";
-
-		// Helpers
-		const hexToRgb = hex => {
+		const hexToRgbValue = hex => {
 			hex = hex.replace('#', '');
 			if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
 			const num = parseInt(hex, 16);
@@ -399,62 +470,56 @@ export const dataModel = {
 			};
 		};
 
-		const toHex = v => {
-			const h = Math.round(v).toString(16);
-			return h.length === 1 ? "0" + h : h;
+		const toHex = value => {
+			const hex = Math.round(value).toString(16);
+			return hex.length === 1 ? '0' + hex : hex;
 		};
 
-		const rgbToHex = ({ r, g, b }) =>
-			"#" + toHex(r) + toHex(g) + toHex(b);
-
-		// Exactly 1 color? → mix with white
 		if (instructions.length === 1) {
-			let [type, amount] = instructions[0];
+			const [type, amount] = instructions[0];
+			const baseHex = this.soilColors[type];
+			if (!baseHex) return '#000000';
 
-			const baseHex = colors[type];
-			if (!baseHex) return "#000000";
-
-			// clamp 0..1
 			const p = Math.max(0, Math.min(1, amount));
-
-			const base = hexToRgb(baseHex);
+			const base = hexToRgbValue(baseHex);
 			const white = { r: 255, g: 255, b: 255 };
 
-			const r = base.r * p + white.r * (1 - p);
-			const g = base.g * p + white.g * (1 - p);
-			const b = base.b * p + white.b * (1 - p);
-
-			return rgbToHex({ r, g, b });
+			return '#' + [
+				base.r * p + white.r * (1 - p),
+				base.g * p + white.g * (1 - p),
+				base.b * p + white.b * (1 - p)
+			].map(toHex).join('');
 		}
 
-		// More than one color? → weighted average
 		let total = 0;
-		let r = 0, g = 0, b = 0;
+		let r = 0;
+		let g = 0;
+		let b = 0;
 
 		for (const [type, amount] of instructions) {
-			const hex = colors[type];
+			const hex = this.soilColors[type];
 			if (!hex) continue;
 
-			const w = Math.max(0, amount);
-			const rgb = hexToRgb(hex);
+			const weight = Math.max(0, amount);
+			const rgb = hexToRgbValue(hex);
 
-			total += w;
-			r += rgb.r * w;
-			g += rgb.g * w;
-			b += rgb.b * w;
+			total += weight;
+			r += rgb.r * weight;
+			g += rgb.g * weight;
+			b += rgb.b * weight;
 		}
 
-		if (total === 0) return "#000000";
+		if (total === 0) {
+			return '#000000';
+		}
 
-		return rgbToHex({
-			r: r / total,
-			g: g / total,
-			b: b / total
-		});
+		return '#' + [r / total, g / total, b / total].map(toHex).join('');
 	}
 
 
-}	
+}
+
+dataModel.soil_table = dataModel.buildSoilTable(dataModel.soil_table);
 
 function valid(value) {
 	return typeof value === 'number' && !isNaN(value);

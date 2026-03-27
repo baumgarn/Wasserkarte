@@ -124,13 +124,13 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 	}
 
 	// Find earliest/latest timestamps
-	$earliest = PHP_INT_MAX;
-	$latest = 0;
+	$earliest = null;
+	$latest = null;
 
 	foreach ($telemetryData['data'] as $row) {
 		$ts = $row[0];
-		if ($ts < $earliest) $earliest = $ts;
-		if ($ts > $latest) $latest = $ts;
+		if ($earliest === null || $ts < $earliest) $earliest = $ts;
+		if ($latest === null || $ts > $latest) $latest = $ts;
 	}
 
 	$days = null;
@@ -151,8 +151,8 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 		'totalDataPoints' => count($telemetryData['data']),
 		'earliestTimestamp' => $earliest,
 		'latestTimestamp' => $latest,
-		'earliestDate' => date('Y-m-d H:i:s', (int) ($earliest / 1000)),
-		'latestDate' => date('Y-m-d H:i:s', (int) ($latest / 1000)),
+		'earliestDate' => $earliest !== null ? date('Y-m-d H:i:s', (int) ($earliest / 1000)) : null,
+		'latestDate' => $latest !== null ? date('Y-m-d H:i:s', (int) ($latest / 1000)) : null,
 		'days' => $days,
 		'telemetry' => $telemetryData
 	];

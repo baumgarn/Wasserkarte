@@ -36,10 +36,12 @@
 	},
 	computed: {
 		barrel_width() {
-			return (state.windowWidth < 600) ? 140 : 175;
+			// return (state.windowWidth < 600) ? 140 : 175;
+			return (state.windowWidth < 600) ? 140 : 160;
 		},
 		barrel_height() {
-			return (state.windowWidth < 600) ? 125 : 150;
+			// return (state.windowWidth < 600) ? 125 : 150;
+			return (state.windowWidth < 600) ? 125 : 135;
 		},
 		canvasWidth() {
 			return this.barrel_width + this.margin * 2;
@@ -87,15 +89,17 @@
 		colorScheme() {
 			return state.colorScheme;
 		}, 
-		windowWidth() {
-			return state.windowWidth;
-		},
-		hoverOrLastData() {
-			return this.hoverData || dataModel.rowToProps(this.device.telemetrySchema.data[0],this.device.telemetrySchema.schema)
-		},
-		timelineDate() {
-			return state.timelineDate;
-		},
+			windowWidth() {
+				return state.windowWidth;
+			},
+			hoverOrLastData() {
+				const lastRow = this.device?.telemetrySchema?.data?.[0];
+				const schema = this.device?.telemetrySchema?.schema;
+				return this.hoverData || (Array.isArray(lastRow) && Array.isArray(schema) ? dataModel.rowToProps(lastRow, schema) : {})
+			},
+			timelineDate() {
+				return state.timelineDate;
+			},
 		hoursSinceLastTelemetry() {
 			return dataStore.hoursSinceLastTelemetry(this.device.id);
 		},
@@ -128,7 +132,8 @@
 			const liquidColor = dataModel.get_nfk_color(this.nfk);
 			// const strokeColor = '#000';
 			// const strokeWidth = 1;
-			const strokeColor = '#aaa';
+			// const strokeColor = '#aaa';
+			const strokeColor = '#00000033';
 			const strokeColorLight = '#ddd';
 			const strokeWidth = 1.5;
 

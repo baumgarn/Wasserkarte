@@ -28,7 +28,7 @@
 											
 			</div>
 			
-			<ColorSchemeGradient class="gradient" :colorScheme="dataModel.color_schemes.nfk[state.colorScheme]" :width="300" :height="18"/>
+			<ColorSchemeGradient class="gradient" :colorScheme="dataModel.get_color_scheme('nfk')" :width="300" :height="18"/>
 
 			
 			

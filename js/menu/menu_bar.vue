@@ -37,7 +37,7 @@
 <script>
 import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
-import { IconFactory } from '@/location/iconfactory.js';
+import { IconFactory } from '@/ui/iconfactory.js';
 import ColorScheme from '@/menu/colorscheme_item.vue';
 
 export default {
@@ -76,7 +76,7 @@ export default {
 			);
 		},
 		selectedColorScheme() {
-			return dataModel.color_schemes.nfk[state.colorScheme];
+			return dataModel.get_color_scheme('nfk');
 		},
 		standorttabelleIcon() {
 			IconFactory.cache.delete('standorttabelle_' + state.colorScheme);

@@ -1,12 +1,12 @@
 <template>
-	<div class="filteritem" :class="[{ active: includeActive, exclude: excludeActive, hover: isHover}, type, filterNameClass]"
+	<div v-if="shouldRender" class="filteritem" :class="[{ active: includeActive, exclude: excludeActive, hover: isHover}, type, filterNameClass]"
 	     @mouseleave="mouseLeave" @mouseenter="mouseEnter" @click="click">
 		
 		<div class="bg"></div>
 
 		<template v-if="type=='statusbaritem'">
 			
-			<FilterIcon :obj :size="32" :exclude="excludeActive"/>
+			<Icon :obj :size="32" :exclude="excludeActive"/>
 			
 			<div class="name">
 				<span v-if="excludeActive" class="notname">Nicht</span>
@@ -20,7 +20,7 @@
 
 		<template v-else-if="type=='statusbaritemsmall'">
 			
-			<FilterIcon :obj :size="24" :exclude="excludeActive"/>
+			<Icon :obj :size="24" :exclude="excludeActive"/>
 			
 			<div class="name">
 				<span v-if="excludeActive" class="notname">Nicht</span>
@@ -34,7 +34,7 @@
 		
 		<template v-else-if="type=='small'">
 
-			<FilterIcon :obj :size="22"/>
+			<Icon :obj :size="22"/>
 			
 			<div class="name">
 				{{ obj.name }}
@@ -44,7 +44,7 @@
 		
 		<template v-else-if="type=='menuitem'">
 			
-			<FilterIcon :obj :size="22" :exclude="excludeActive" />
+			<Icon :obj :size="22" :exclude="excludeActive" />
 			
 			<div class="name">
 				{{ obj.name }}
@@ -58,7 +58,7 @@
 
 		<template v-else-if="type=='popovermenuitem'" :exclude="excludeActive">
 
-			<FilterIcon :obj :size="20"/>
+			<Icon :obj :size="20"/>
 			
 			<div class="name">
 				{{ obj.name }}
@@ -72,7 +72,7 @@
 		
 		<template v-else-if="type=='table'">
 			
-			<FilterIcon :obj :size="22"/>
+			<Icon :obj :size="22"/>
 			
 			<div class="name">
 				{{ obj.name }}
@@ -82,13 +82,13 @@
 		
 		<template v-else-if="type=='tablecompact'">
 			
-			<FilterIcon :obj :size="22"/>
+			<Icon :obj :size="22"/>
 			
 		</template>
 
 		<template v-else-if="type=='pill'">
 			
-			<FilterIcon :obj :size="24"/>
+			<Icon :obj :size="24"/>
 			
 			<div class="name">
 				{{ obj.name }}
@@ -102,7 +102,7 @@
 </template>
 
 <script>
-import FilterIcon from '@/location/filtericon.vue';
+import Icon from '@/ui/Icon.vue';
 import { state } from '@/state.js';
 
 function toFilterNameClass(name) {
@@ -130,7 +130,7 @@ export default {
 		}
 	},
 	components: {
-		FilterIcon
+		Icon
 	},
 	data() {
 		return {
@@ -182,6 +182,19 @@ export default {
 		}
 	},
 	computed: {
+		shouldRender() {
+			if (!this.isCountLimitedType) {
+				return true;
+			}
+
+			return this.count > 0 || this.includeActive || this.excludeActive;
+		},
+		isCountLimitedType() {
+			return this.type === 'menuitem' || this.type === 'popovermenuitem';
+		},
+		count() {
+			return Number(this.obj?.count || 0);
+		},
 		filterName() {
 			return this.obj && this.obj.name ? this.obj.name : null;
 		},

@@ -31,7 +31,7 @@
 								:class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]"
 								@click.stop="onHeaderClick(col)"
 								v-tooltip
-								:tooltipcontent="col.name"
+								:tooltipcontent="col.tooltip || col.name"
 								tooltipside="top"
 								tooltipoffset="-5"></div>
 						</template>
@@ -54,7 +54,12 @@
 							<div
 								class="table-colheader"
 								:class="[col.key, { sortable: col.sortable, sortby: col.sortable && sortKey === col.key, asc: col.sortable && sortKey === col.key && sortAsc, desc: col.sortable && sortKey === col.key && !sortAsc }]"
-								@click.stop="onHeaderClick(col)">
+								@click.stop="onHeaderClick(col)"
+								v-tooltip
+								:tooltipcontent="col.tooltip"
+								:tooltipdisabled="!col.tooltip"
+								tooltipside="top"
+								tooltipoffset="-5">
 								{{ col.name }}
 							</div>
 						</template>
@@ -131,16 +136,21 @@
 					</div>
 
 				<div
-					v-for="(item, regularIndex) in regularVisibleRows"
+					v-if="regularRowsTopSpacerHeight > 0"
+					class="table-row-spacer"
+					:style="{ height: regularRowsTopSpacerHeight + 'px' }"></div>
+
+				<div
+					v-for="(item, regularIndex) in virtualRegularRows"
 					:key="'regular-' + item.key"
 					class="table-row table-body-row"
 					:class="{ selectedrow: isSelected(item.row.device) }">
 
 					<template v-for="col in columns" :key="'regular-' + item.key + '-' + col.key">
 
-							<div
+								<div
 								class="table-data"
-								:class="[col.type, col.key, { selected: isSelected(item.row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: regularIndex === 0 && pinnedRowsCount === 0, bookmarked: col.key === 'bookmark' && isBookmarked(item.row.device) }]"
+								:class="[col.type, col.key, { selected: isSelected(item.row.device), compact: (col.type == 'attribute' && tableview_compact), firstrow: (virtualRegularStartIndex + regularIndex) === 0 && pinnedRowsCount === 0, bookmarked: col.key === 'bookmark' && isBookmarked(item.row.device) }]"
 							@click="onCellClick(col, item.row, $event)"
 							v-tooltip
 							:tooltipcontent="getDataHoverInfo(col, item.row)"
@@ -196,6 +206,11 @@
 
 					</template>
 				</div>
+
+				<div
+					v-if="regularRowsBottomSpacerHeight > 0"
+					class="table-row-spacer"
+					:style="{ height: regularRowsBottomSpacerHeight + 'px' }"></div>
 
 			</div>
 
@@ -269,6 +284,9 @@ export default {
 			timelineWidthPx: 0,
 			timelineColumnOffsetPx: 0,
 			rowHeight: 28,
+			scrollTopPx: 0,
+			viewportHeight: 0,
+			virtualOverscan: 8,
 			timelineMetricsRaf: null,
 			timelineMetricsSettleTimeout: null,
 			timelineLayoutSettling: false,
@@ -306,7 +324,7 @@ export default {
 				{ key: 'humus', name: 'Humusgehalt', sortable: true, type: 'attribute' });
 			}
 			if (this.tableview_col_nfkavg) {
-				cols.push({ key: 'nfk_avg_all', name: 'Ø nFK', sortable: true, width: 65 })
+				cols.push({ key: 'nfk_avg_all', name: 'Ø nFK', sortable: true, width: 65, tooltip: 'Ø nutzbare Feldkapazität alle Tage' })
 			}
 			// cols.push({ key: 'last_measurement_ts', name: 'bis', sortable: true, width: 74 })
 			if (this.tableview_col_von) {
@@ -403,6 +421,30 @@ export default {
 			if (!this.pinBookmarksActive) return this.visibleRows;
 			return this.visibleRows.filter(item => !item.bookmarked);
 		},
+		regularRowsOffset() {
+			return this.rowHeight + (this.pinnedRowsCount * this.rowHeight);
+		},
+		virtualRegularStartIndex() {
+			if (!this.regularVisibleRows.length) return 0;
+			const visibleTop = Math.max(0, this.scrollTopPx - this.regularRowsOffset);
+			return Math.max(0, Math.floor(visibleTop / this.rowHeight) - this.virtualOverscan);
+		},
+		virtualRegularEndIndex() {
+			const total = this.regularVisibleRows.length;
+			if (!total) return 0;
+			const effectiveViewportHeight = Math.max(this.viewportHeight, this.rowHeight * 12);
+			const visibleBottom = Math.max(0, (this.scrollTopPx + effectiveViewportHeight) - this.regularRowsOffset);
+			return Math.min(total, Math.ceil(visibleBottom / this.rowHeight) + this.virtualOverscan);
+		},
+		virtualRegularRows() {
+			return this.regularVisibleRows.slice(this.virtualRegularStartIndex, this.virtualRegularEndIndex);
+		},
+		regularRowsTopSpacerHeight() {
+			return this.virtualRegularStartIndex * this.rowHeight;
+		},
+		regularRowsBottomSpacerHeight() {
+			return Math.max(0, (this.regularVisibleRows.length - this.virtualRegularEndIndex) * this.rowHeight);
+		},
 		pinnedRowsCount() {
 			return this.pinnedVisibleRows.length;
 		},
@@ -439,7 +481,7 @@ export default {
 				{ type: 'header', label: 'Tabelle' },
 				{ type: 'boolean', label: 'Bookmarks', stateProp: 'tableview_col_bookmarks' },
 				{ type: 'boolean', label: 'Standort Eigenschaften', stateProp: 'tableview_col_attributes' },
-				{ type: 'boolean', label: 'Durchschnitt nFK', stateProp: 'tableview_col_nfkavg' },
+				{ type: 'boolean', label: 'Ø nFK alle Tage', stateProp: 'tableview_col_nfkavg' },
 				{ type: 'boolean', label: 'Startdatum', stateProp: 'tableview_col_von' },
 				{ type: 'boolean', label: 'Kompakte Darstellung', stateProp: 'tableview_compact' },
 				{ type: 'divider' },
@@ -590,6 +632,13 @@ export default {
 			}
 			return value ?? '';
 		},
+		updateViewportMetrics(target = null) {
+			const content = target || this.$refs.content;
+			if (!content) return;
+
+			this.scrollTopPx = content.scrollTop || 0;
+			this.viewportHeight = content.clientHeight || content.getBoundingClientRect().height || 0;
+		},
 		updateTimelineMetrics() {
 			const content = this.$refs.content;
 			let timelineHeader = this.$refs.timelineHeaderRef;
@@ -720,22 +769,24 @@ export default {
 		},
 		onKeydown(e) {
 			const data = this.filteredSortedTableData;
-			if (!data.length) return;
 
 			switch (e.key) {
 				case 'ArrowDown':
+					if (!data.length) return;
 					e.preventDefault();
 					this.selectedIndex = (this.selectedIndex + 1) % data.length;
 					this.selectDevice(data[this.selectedIndex].device);
 					break;
 
 				case 'ArrowUp':
+					if (!data.length) return;
 					e.preventDefault();
 					this.selectedIndex = (this.selectedIndex - 1 + data.length) % data.length;
 					this.selectDevice(data[this.selectedIndex].device);
 					break;
 
 				case 'Enter':
+					if (!data.length) return;
 					e.preventDefault();
 					if (this.selectedIndex >= 0) {
 						this.selectDevice(data[this.selectedIndex].device);
@@ -744,7 +795,8 @@ export default {
 			}
 		},
 		onScroll(e) {
-			this.isScrollTop = e.target.scrollTop === 0;
+			this.updateViewportMetrics(e.target);
+			this.isScrollTop = this.scrollTopPx === 0;
 			this.updateTimelineMetrics();
 			hideTooltip();
 		},
@@ -837,6 +889,7 @@ export default {
 		const measureTarget = this.$refs.content || this.$el;
 		this._tableResizeObserver = new ResizeObserver(() => {
 			this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
+			this.updateViewportMetrics(measureTarget);
 			this.$nextTick(() => {
 				if (this.timelineLayoutSettling) return;
 				this.queueTimelineMetricsUpdate();
@@ -849,6 +902,7 @@ export default {
 		this._tableResizeObserver.observe(measureTarget);
 		this.observeTimelineLayout();
 		this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
+		this.updateViewportMetrics(measureTarget);
 		this.$nextTick(() => this.queueTimelineMetricsUpdate());
 	},
 	beforeUnmount() {
@@ -893,6 +947,7 @@ export default {
 			);
 			this.$nextTick(() => {
 				this.$el.focus();
+				this.updateViewportMetrics();
 				this.queueTimelineMetricsUpdate();
 			});
 		},
@@ -900,6 +955,7 @@ export default {
 			handler() {
 				this.earliestTimestamp = dataStore.earliestTimestamp;
 				this.latestTimestamp = dataStore.latestTimestamp;
+				this.$nextTick(() => this.updateViewportMetrics());
 			}
 		},
 	},
@@ -955,6 +1011,9 @@ export default {
 		min-width 100%
 		width max-content
 		grid-auto-flow row
+	.table-row-spacer
+		grid-column 1 / -1
+		pointer-events none
 	.table-row
 		display grid
 		grid-column 1 / -1
