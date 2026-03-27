@@ -40,8 +40,8 @@
         "max": 25
       },
       "sand": {
-        "min": 10,
-        "max": 40
+        "min": 67,
+        "max": 85
       }
     },
     "TW": {
@@ -65,8 +65,8 @@
         "max": 12
       },
       "schluff": {
-        "min": 67,
-        "max": 85
+        "min": 10,
+        "max": 40
       },
       "sand": {
         "min": 48,
@@ -87,7 +87,7 @@
     }
   },
   "Ls4": {
-    "name": "Sandiger Lehm",
+    "name": "Stark sandiger Lehm",
     "textur": {
       "ton": {
         "min": 17,

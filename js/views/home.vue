@@ -43,7 +43,11 @@
 
 		</div>
 
+		<!-- <BodenkundeMenu v-if="state.menuOpen.bodenkunde"/> -->
+
 		<TimelineWrapper />
+
+
 		
 		<TableView v-if="state.menuOpen.standorttabelle"/>
 	</div>

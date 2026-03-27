@@ -291,11 +291,21 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-
-// .menuwindow-header
+// .menuwindow.glossar
+// 	position fixed
+// 	left 0
+// 	top var(--menubariconsize)
+// 	margin-top 1px
+// 	bottom 0
+// 	pointer-events none
+// 	display flex
 // 	flex-direction column
-// 	height auto
-// 	align-items flex-start
+// 	z-index 2
+// 	filter drop-shadow(2px 3px 2px #00000022)
+// 	> *
+// 		pointer-events all
+
+
 .menuwindow.glossar
 	width 440px
 	width 600px

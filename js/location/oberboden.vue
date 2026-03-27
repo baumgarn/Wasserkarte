@@ -38,7 +38,7 @@
 					v-tooltip
 					tooltipcontent="Die gesamte Menge Wasser im Oberboden 1m² bis 60 cm."
 					tooltipside="left"
-					tooltipoffset="6"
+					tooltipoffset="-1"
 					tooltipwidth="210">
 
 					<Icon type="tropfen-flat" :size="24" class="icon" />
@@ -63,7 +63,7 @@
 					v-tooltip
 					tooltipcontent="Das tatsächlich für die Wurzeln der Pflanzen erreichbare Wasser, die nutzbare Feldkapazität (nFK %)"
 					tooltipside="left"
-					tooltipoffset="6"
+					tooltipoffset="-1"
 					tooltipwidth="210">
 
 					<Icon type="pflanze" :size="24" class="icon" />
@@ -90,7 +90,7 @@
 					v-tooltip
 					tooltipcontent="Ein Teil des Wassers ist zu stark an den Boden gebunden und nicht für Pflanzen erreichbar."
 					tooltipside="left"
-					tooltipoffset="6"
+					tooltipoffset="-1"
 					tooltipwidth="210">
 
 					<Icon type="totwasser" :size="24" class="icon" />
@@ -118,7 +118,7 @@
 					v-tooltip
 					tooltipcontent="So viel Wasser kann der Boden gegen die Schwerkraft speichern. Überschüssiges Wasser fließt ins Grundwasser ab."
 					tooltipside="left"
-					tooltipoffset="6"
+					tooltipoffset="-1"
 					tooltipwidth="210">
 
 					<Icon type="gesamt" :size="24" class="icon" />

@@ -71,6 +71,14 @@
 				v-for="soil in soilSeries"
 				:key="soil.short"
 				class="chart-header"
+				:class="{
+					active: isIncludedFilter(soil),
+					exclude: isExcludedFilter(soil),
+					hover: isHoverFilter(soil)
+				}"
+				@click="handleHeaderClick(soil, $event)"
+				@mouseenter="handleHeaderMouseEnter(soil)"
+				@mouseleave="handleHeaderMouseLeave(soil)"
 			>
 			<div class="chart-icon">
 				<Icon :obj="soil" :size="24" />
@@ -184,6 +192,38 @@ export default {
 
 	},
 	methods: {
+		isIncludedFilter(soil) {
+			return state.includeFilter.some(item => item.name === soil.name);
+		},
+		isExcludedFilter(soil) {
+			return state.excludeFilter.some(item => item.name === soil.name);
+		},
+		isHoverFilter(soil) {
+			return state.hoverFilter?.name === soil.name;
+		},
+		handleHeaderClick(soil, event) {
+			if (!this.isIncludedFilter(soil)) {
+				state.includeFilter = [soil];
+				state.excludeFilter = [];
+			} else {
+				state.includeFilter = state.includeFilter.filter(item => item.name !== soil.name);
+				state.hoverFilter = null;
+			}
+
+			if (state.isMobile) {
+				state.selectedDevice = null;
+			}
+
+			event.stopPropagation();
+		},
+		handleHeaderMouseEnter(soil) {
+			state.hoverFilter = soil;
+		},
+		handleHeaderMouseLeave(soil) {
+			if (state.hoverFilter?.name === soil.name) {
+				state.hoverFilter = null;
+			}
+		},
 		valueTopPercent(value) {
 			return (1 - this.normalizedValue(value)) * 100;
 		},
@@ -455,6 +495,17 @@ export default {
 		align-items center
 		padding-bottom 6px
 		margin-top -2px
+		border-radius 10px
+		cursor pointer
+		user-select none
+		transition background-color .12s linear
+		&:hover
+			background var(--activecolorgreybrighter)
+		&.active
+		&.active:hover
+		&.exclude
+		&.exclude:hover
+			background var(--activecolorgrey)
 		.chart-name
 			text-align center
 			font-weight bold
