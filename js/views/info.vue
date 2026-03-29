@@ -72,20 +72,21 @@
 							Geologische Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
 						</div>
 					</div>
-					<div class="legenditem clickable" @click="openMenu('bodenkunde', $event )">
-						<div class="legendimage">
-							<div class="icon bodenkunde"></div>
-						</div>
-						<div class="legendtext">
-							Hintergrundwissen zu Bodenkunde und Erläuterungen zur Methodik der Wasserkarte 
-						</div>
-					</div>
+					
 					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">
 						<div class="legendimage">
 							<div class="icon einstellungen"></div>
 						</div>
 						<div class="legendtext">
 							Einstellungen sowie alternative Farbschemata
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('bodenkunde', $event )">
+						<div class="legendimage">
+							<div class="icon bodenkunde"></div>
+						</div>
+						<div class="legendtext">
+							Hintergrundwissen zu Bodenkunde und Erläuterungen zur Methodik der Wasserkarte 
 						</div>
 					</div>
 					<div class="legenditem">
@@ -290,7 +291,7 @@ export default {
 	.is-mobile h1
 		font-size 36px
 	h2
-		font-size 16px
+		font-size 13pt
 		margin 0 0 10px
 	h3
 		font-size 14px
@@ -380,6 +381,7 @@ export default {
 			width 36px !important
 			height 36px !important
 		.icon.moreinfo
+			margin 4px
 			width 28px !important
 			height 28px !important
 </style>

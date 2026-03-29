@@ -3,7 +3,7 @@
 		<div
 			ref="tooltipRef"
 			class="app-tooltip"
-			:class="[{ visible: tooltipState.visible, ready: tooltipState.ready, rich: tooltipState.isHtml }, `placement-${tooltipState.placement}`, `align-${tooltipState.align}`]"
+			:class="[{ visible: tooltipState.visible, ready: tooltipState.ready, rich: tooltipState.isHtml }, `placement-${tooltipState.placement}`, `align-${tooltipState.align}`, `theme-${tooltipState.theme}`]"
 			:style="tooltipStyle"
 			aria-hidden="true"
 		>
@@ -29,6 +29,8 @@ export default {
 			left: `${tooltipState.x}px`,
 			top: `${tooltipState.y}px`,
 			maxWidth: `${tooltipState.maxWidth}px`,
+			'--app-tooltip-pad-y': `${tooltipState.padY}px`,
+			'--app-tooltip-pad-x': `${tooltipState.padX}px`,
 			'--app-tooltip-arrow-x': `${tooltipState.arrowX}px`,
 			'--app-tooltip-arrow-y': `${tooltipState.arrowY}px`,
 			'--app-tooltip-arrow-half-width': `${Math.max(2, Math.round(tooltipState.arrowWidth / 2))}px`,
@@ -60,6 +62,10 @@ export default {
 	--app-tooltip-radius 6px
 	--app-tooltip-pad-y 4px
 	--app-tooltip-pad-x 6px
+	--app-tooltip-bg var(--infobg)
+	--app-tooltip-fg white
+	--app-tooltip-border transparent
+	--app-tooltip-shadow 0 2px 8px rgba(0,0,0,.2)
 	width max-content
 	max-width 280px
 	pointer-events none
@@ -75,6 +81,11 @@ export default {
 		opacity 1
 	&.placement-cursor
 		padding 0
+	&.theme-bright
+		--app-tooltip-bg rgba(255,255,255,.75)
+		--app-tooltip-fg #111
+		--app-tooltip-border rgba(0,0,0,.10)
+		--app-tooltip-shadow 0 6px 18px rgba(0,0,0,.14)
 
 .app-tooltip-body
 	max-width inherit
@@ -82,22 +93,24 @@ export default {
 	overflow-wrap break-word
 	word-break normal
 	text-align left
-	color white
-	background var(--infobg)
+	color var(--app-tooltip-fg)
+	background var(--app-tooltip-bg)
+	border 1px solid var(--app-tooltip-border)
 	backdrop-filter blur(10px)
 	-webkit-backdrop-filter blur(10px)
 	font-size 9pt
 	line-height 1.3
 	padding var(--app-tooltip-pad-y) var(--app-tooltip-pad-x)
 	border-radius var(--app-tooltip-radius)
-	box-shadow 0 2px 8px rgba(0,0,0,.2)
+	box-shadow var(--app-tooltip-shadow)
 
 .app-tooltip.rich .app-tooltip-body
 	white-space normal
 
 .app-tooltip-arrow
 	position absolute
-	background var(--infobg)
+	background var(--app-tooltip-bg)
+	border 1px solid var(--app-tooltip-border)
 	backdrop-filter blur(10px)
 	-webkit-backdrop-filter blur(10px)
 	pointer-events none

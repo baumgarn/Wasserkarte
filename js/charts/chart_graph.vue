@@ -75,7 +75,7 @@
 				</div>
 			</div>
 
-			<ToolTip v-if="hoverData && hoverData.ts" :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
+			<GraphToolTip v-if="hoverData && hoverData.ts" :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
 
 			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
 
@@ -102,7 +102,7 @@
 
 <script>
 import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
-import ToolTip from './tooltip.vue'
+import GraphToolTip from './graph_tooltip.vue'
 import DateAxis from './dateaxis.vue'
 import * as d3 from 'd3'
 import { displayutil } from '../displayutil.js'
@@ -114,7 +114,7 @@ export default {
 	name: 'ChartGraph',
 	components: {
 		DateAxis,
-		ToolTip,
+		GraphToolTip,
 	},
 	data() {
 		return {

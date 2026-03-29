@@ -28,7 +28,7 @@
 						<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
 						<FilterMenu v-if="state.menuOpen.filter"/>
 						<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
-						<BodenkundeMenu v-if="state.menuOpen.bodenkunde"/>
+						<!-- <BodenkundeMenu v-if="!state.isMobile && state.menuOpen.bodenkunde"/> -->
 						<SettingsMenu v-if="state.menuOpen.einstellungen"/>
 						<KartenMenu v-if="state.menuOpen.karten"/>
 					</div>
@@ -44,12 +44,14 @@
 		</div>
 
 		<!-- <BodenkundeMenu v-if="state.menuOpen.bodenkunde"/> -->
-
+		
 		<TimelineWrapper />
-
-
 		
 		<TableView v-if="state.menuOpen.standorttabelle"/>
+
+		<BodenkundeMenu v-if="state.menuOpen.bodenkunde"/>
+		<!-- <BodenkundeMenu v-if="state.isMobile && state.menuOpen.bodenkunde"/> -->
+
 	</div>
 
 	<div class="rightui">

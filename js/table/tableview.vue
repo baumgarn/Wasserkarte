@@ -489,6 +489,8 @@ export default {
 				{ type: 'select', label: 'Gesamte Zeit', value: 'all', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
 				{ type: 'select', label: 'Letzte 365 Tage', value: '365d', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
 				{ type: 'select', label: 'Letzte 180 Tage', value: '180d', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
+				{ type: 'select', label: 'Letzte 90 Tage', value: '90d', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
+				// { type: 'select', label: 'Letzte 30 Tage', value: '30d', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
 				{ type: 'thinline' },
 				{ type: 'boolean', label: 'Schichten anzeigen', stateProp: 'tableview_showdepths', tooltip: 'Zeigt Farbbalken für jede gemessene Schichttiefe anstelle eines Durchschnittswertes' },
 				{ type: 'thinline' },
@@ -535,6 +537,10 @@ export default {
 				return this._365d;
 			} else if (this.timelineRange == '180d') {
 				return this._180d;
+			} else if (this.timelineRange == '90d') {
+				return this._90d;
+			} else if (this.timelineRange == '30d') {
+				return this._30d;
 			}
 		},
 		_365d() {
@@ -544,6 +550,14 @@ export default {
 		_180d() {
 			const DAY = 24 * 60 * 60 * 1000;
 			return this.latestTimestamp - (180 * DAY);
+		},
+		_90d() {
+			const DAY = 24 * 60 * 60 * 1000;
+			return this.latestTimestamp - (90 * DAY);
+		},
+		_30d() {
+			const DAY = 24 * 60 * 60 * 1000;
+			return this.latestTimestamp - (30 * DAY);
 		},
 		minTimelineWidth() {
 			return 356;

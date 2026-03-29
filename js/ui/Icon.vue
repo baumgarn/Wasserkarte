@@ -197,6 +197,15 @@ export default {
 	background-image url(/img/soil.png)
 	background-size 112%
 	opacity .7
+.filtericon.type-soil
+	background-image url(/img/soil.png)
+	background-size 112%
+	opacity .7
+
+.filtericon.type-soilblack
+	background-image url(/img/soilblack.png)
+	background-size 120%
+	opacity 1
 
 .filtericon.type-tropfen-flat
 	background-image url(/img/tropfen_flat.png)
@@ -210,6 +219,9 @@ export default {
 
 .filtericon.type-grundwasser
 	background-image url(/img/Grundwasser.svg)
+	
+.filtericon.type-cursor
+	background-image url(/img/cursor.png)
 
 .filtericon.type-regenabhaengig
 	background-image url(/img/regenabhaengig.svg)

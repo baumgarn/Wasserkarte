@@ -82,7 +82,7 @@ export default {
 <style lang="stylus" scoped>
 
 .menuwindow.karten
-	max-width 440px
+	width 400px
 
 .wms-provider
 	max-width 100%

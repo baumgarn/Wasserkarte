@@ -9,10 +9,15 @@ const REENABLE_DELAY = 1000;
 const DEFAULT_MAX_WIDTH = 270;
 const DEFAULT_ARROW_WIDTH = 10;
 const DEFAULT_ARROW_HEIGHT = 8;
+const DEFAULT_THEME = 'default';
+const DEFAULT_PAD_X = 6;
+const DEFAULT_PAD_Y = 4;
 const VIEWPORT_PADDING = 4;
 const SWITCH_GRACE_MS = 90;
+const HIDE_TRANSITION_MS = 120;
 
 const VALID_SIDES = new Set(['top', 'right', 'bottom', 'left']);
+const VALID_THEMES = new Set(['default', 'bright']);
 
 export const tooltipState = reactive({
 	visible: false,
@@ -29,6 +34,9 @@ export const tooltipState = reactive({
 	arrowY: 0,
 	arrowWidth: DEFAULT_ARROW_WIDTH,
 	arrowHeight: DEFAULT_ARROW_HEIGHT,
+	theme: DEFAULT_THEME,
+	padX: DEFAULT_PAD_X,
+	padY: DEFAULT_PAD_Y,
 });
 
 let tooltipEl = null;
@@ -36,11 +44,19 @@ let activeSourceEl = null;
 let activeOptions = null;
 let positionRaf = null;
 let pendingHideTimer = null;
+let hideFinalizeTimer = null;
 
 function clearPendingHide() {
 	if (pendingHideTimer) {
 		clearTimeout(pendingHideTimer);
 		pendingHideTimer = null;
+	}
+}
+
+function clearHideFinalize() {
+	if (hideFinalizeTimer) {
+		clearTimeout(hideFinalizeTimer);
+		hideFinalizeTimer = null;
 	}
 }
 
@@ -138,6 +154,15 @@ function normalizeAlign(align, side) {
 	if (normalized === 'top' || normalized === 'start' || normalized === 'left') return 'top';
 	if (normalized === 'bottom' || normalized === 'end' || normalized === 'right') return 'bottom';
 	return 'center';
+}
+
+function normalizeTheme(theme, bright = false) {
+	if (parseBoolean(bright, false)) {
+		return 'bright';
+	}
+
+	const normalized = String(theme || '').trim().toLowerCase();
+	return VALID_THEMES.has(normalized) ? normalized : DEFAULT_THEME;
 }
 
 function clamp(value, min, max) {
@@ -284,6 +309,30 @@ function readDirectiveOptions(el, bindingValue, vnodeProps) {
 		),
 		DEFAULT_MAX_WIDTH
 	);
+	const theme = normalizeTheme(
+		firstDefined(
+			bindingOptions.theme,
+			getPropValue(vnodeProps, ['tooltiptheme', 'tooltipTheme']),
+			el.getAttribute('tooltiptheme')
+		),
+		firstDefined(
+			bindingOptions.bright,
+			getPropValue(vnodeProps, ['tooltipbright', 'tooltipBright']),
+			el.getAttribute('tooltipbright')
+		)
+	);
+	const padX = parseNumber(firstDefined(
+		bindingOptions.padX,
+		bindingOptions.padx,
+		getPropValue(vnodeProps, ['tooltippadx', 'tooltipPadX']),
+		el.getAttribute('tooltippadx')
+	), DEFAULT_PAD_X);
+	const padY = parseNumber(firstDefined(
+		bindingOptions.padY,
+		bindingOptions.pady,
+		getPropValue(vnodeProps, ['tooltippady', 'tooltipPadY']),
+		el.getAttribute('tooltippady')
+	), DEFAULT_PAD_Y);
 	const disabled = parseBoolean(firstDefined(
 		bindingOptions.disabled,
 		getPropValue(vnodeProps, ['tooltipdisabled', 'tooltipDisabled']),
@@ -317,6 +366,9 @@ function readDirectiveOptions(el, bindingValue, vnodeProps) {
 		delay,
 		followCursor,
 		maxWidth,
+		theme,
+		padX,
+		padY,
 		disabled,
 		handover,
 		hideOnClick,
@@ -487,6 +539,7 @@ export function getActiveTooltipSource() {
 
 export function showTooltip(options = {}) {
 	clearPendingHide();
+	clearHideFinalize();
 	const contentRef = resolveContentRef(firstDefined(options.contentRef, options.contentref));
 	const contentHtml = contentRef ? contentRef.innerHTML : '';
 	const content = normalizeContent(options.content);
@@ -503,6 +556,7 @@ export function showTooltip(options = {}) {
 	activeSourceEl = firstDefined(options.sourceEl, null);
 	const side = normalizeSide(firstDefined(options.side, options.position));
 	const align = normalizeAlign(firstDefined(options.align, options.alignment), side);
+	const theme = normalizeTheme(firstDefined(options.theme, options.tooltipTheme), firstDefined(options.bright, options.tooltipBright));
 	activeOptions = {
 		content,
 		side,
@@ -513,6 +567,9 @@ export function showTooltip(options = {}) {
 		arrowSize: parseArrowSize(firstDefined(options.arrowSize, options.arrowsize)),
 		followCursor: parseBoolean(options.followCursor),
 		maxWidth: parseNumber(firstDefined(options.maxWidth, options.maxwidth, options.width), DEFAULT_MAX_WIDTH),
+		theme,
+		padX: parseNumber(firstDefined(options.padX, options.padx), DEFAULT_PAD_X),
+		padY: parseNumber(firstDefined(options.padY, options.pady), DEFAULT_PAD_Y),
 		x: Number.isFinite(options.x) ? options.x : null,
 		y: Number.isFinite(options.y) ? options.y : null,
 		anchorRect: firstDefined(options.anchorRect, null),
@@ -523,6 +580,9 @@ export function showTooltip(options = {}) {
 	tooltipState.contentHtml = contentHtml;
 	tooltipState.isHtml = Boolean(contentHtml);
 	tooltipState.maxWidth = activeOptions.maxWidth;
+	tooltipState.theme = activeOptions.theme;
+	tooltipState.padX = activeOptions.padX;
+	tooltipState.padY = activeOptions.padY;
 	tooltipState.visible = true;
 	tooltipState.ready = options.immediate || wasVisible;
 
@@ -544,10 +604,16 @@ export function hideTooltip(sourceEl = null) {
 		cancelAnimationFrame(positionRaf);
 		positionRaf = null;
 	}
-	tooltipState.visible = false;
 	tooltipState.ready = false;
-	activeSourceEl = null;
-	activeOptions = null;
+	clearHideFinalize();
+	hideFinalizeTimer = setTimeout(() => {
+		hideFinalizeTimer = null;
+		if (!tooltipState.ready) {
+			tooltipState.visible = false;
+			activeSourceEl = null;
+			activeOptions = null;
+		}
+	}, HIDE_TRANSITION_MS);
 }
 
 function mountDirective(el, binding, vnodeProps) {
@@ -598,6 +664,9 @@ function mountDirective(el, binding, vnodeProps) {
 			arrowSize: options.arrowSize,
 			followCursor: options.followCursor,
 			maxWidth: options.maxWidth,
+			theme: options.theme,
+			padX: options.padX,
+			padY: options.padY,
 			force: options.force,
 			sourceEl: el,
 			x: context.lastX,
@@ -751,6 +820,13 @@ export const tooltipDirective = {
 };
 
 if (typeof window !== 'undefined') {
+	window.addEventListener('mousemove', (event) => {
+		if (!activeOptions || !activeOptions.followCursor) return;
+		activeOptions.x = event.clientX;
+		activeOptions.y = event.clientY;
+		queuePosition();
+	});
+
 	const reposition = () => {
 		if (!tooltipState.visible) return;
 		if (!activeOptions || activeOptions.followCursor) return;

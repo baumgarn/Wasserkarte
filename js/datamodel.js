@@ -75,45 +75,127 @@ export const dataModel = {
 	soil_table : soilTableData,
 
 	humus_table : {
-		"h0": { name: "Nahezu humusfrei", short:'h0', sort: 0, color: '#f7f6f6'},
-		"h1": { name: "Sehr schwach humos", short:'h1', sort: 1, color: '#fbf9f8'},
-		"h2": { name: "Schwach humos", short:'h2', sort: 2, color: '#f0e7e4'},
-		"h3": { name: "Mittel humos", short:'h3', sort: 3, color: '#decec9'},
-		"h4": { name: "Stark humos", short:'h4', sort: 4, color: '#c5aba0'},
+		"h0": {
+			name: "Nahezu humusfrei",
+			short:'h0',
+			sort: 0,
+			color: '#f7f6f6',
+			humus: '<0,2 %',
+			corg: '<0,344 %'
+		},
+		"h1": {
+			name: "Sehr schwach humos",
+			short:'h1',
+			sort: 1,
+			color: '#fbf9f8',
+			humus: '0,2 – <0,5 %',
+			corg: '0,3 – <0,9 %'
+		},
+		"h2": {
+			name: "Schwach humos",
+			short:'h2',
+			sort: 2,
+			color: '#f0e7e4',
+			humus: '0,5 – <1 %',
+			corg: '0,8 – <1,7 %'
+		},
+		"h3": {
+			name: "Mittel humos",
+			short:'h3',
+			sort: 3,
+			color: '#decec9',
+			humus: '1 – <2,5 %',
+			corg: '1,7 – <4,4 %'
+		},
+		"h4": {
+			name: "Stark humos",
+			short:'h4',
+			sort: 4,
+			color: '#c5aba0',
+			humus: '2,5 – <5 %',
+			corg: '4,3 – <8,8 %'
+		},
 		// "org": { name: "Organisch", short:'org' } 
 	},
 
 	usage_table : {
-		"G": { name: 'Grünland', img: "Nutzungsart_Gruenland.svg" },
-		"RA" : {name: 'Rasen', img: "Nutzungsart_Rasen.svg" },
-		"A" : {name: 'Acker', img: "Nutzungsart_Acker.svg" },
-		"AG" : {name: 'Gemüsegarten', img: "Nutzungsart_Gemuesegarten.svg" },
-		"B" : {name: 'Baum', img: "Nutzungsart_Baum.svg" },
-		"VB" : {name: 'Stadtbaum', img: "Nutzungsart_Stadtbaum.svg" },
-		"GB" : {name: 'Gebüsch', img: "Nutzungsart_Gebuesch.svg" },
-		"SST" : {name: 'Streuobstwiese', img: "Nutzungsart_Streuobstwiese.svg" },
-		"FP" : {name: 'Pflanzung', img: "Nutzungsart_Pflanzung.svg" },
-		"LW" : {name: 'Laubwald', img: "Nutzungsart_Laubwald.svg" },
-		"NW" : {name: 'Nadelwald', img: "Nutzungsart_Nadelwald.svg" },
-		"MW" : {name: 'Mischwald', img: "Nutzungsart_Mischwald.svg" },
+		"G": {
+			name: 'Grünland',
+			img: "Nutzungsart_Gruenland.svg",
+			description: 'Landwirtschatlich genutzt, größer als 0,2 ha'
+		},
+		"RA" : {
+			name: 'Rasen',
+			img: "Nutzungsart_Rasen.svg",
+			description: 'Kleine Wiese, kleiner als 0,2 ha'
+		},
+		"A" : {
+			name: 'Acker',
+			img: "Nutzungsart_Acker.svg",
+			description: 'Landwirtschaftlich genutzt, mind. 0,2 ha'
+		},
+		"AG" : {
+			name: 'Gemüsegarten',
+			img: "Nutzungsart_Gemuesegarten.svg",
+			description: 'Anbaufläche, kleiner als 0,2 ha'
+		},
+		"B" : {
+			name: 'Baum',
+			img: "Nutzungsart_Baum.svg",
+			description: 'Freistehender Baum'
+		},
+		"VB" : {
+			name: 'Stadtbaum',
+			img: "Nutzungsart_Stadtbaum.svg",
+			description: 'Baum am Straßenrand, versiegelt, z.B. Asphalt, Beton, Pflastersteine'
+		},
+		"GB" : {
+			name: 'Gebüsch',
+			img: "Nutzungsart_Gebuesch.svg",
+			description: 'Gebüsch, Sträucher, Stauden etc.'
+		},
+		"SST" : {
+			name: 'Streuobstwiese',
+			img: "Nutzungsart_Streuobstwiese.svg",
+		},
+		"FP" : {
+			name: 'Pflanzung',
+			img: "Nutzungsart_Pflanzung.svg",
+			description: 'Pflanzung, Agroforst oder Plantage, größer als 0,2 ha'
+		},
+		"LW" : {
+			name: 'Laubwald',
+			img: "Nutzungsart_Laubwald.svg",
+		},
+		"NW" : {
+			name: 'Nadelwald',
+			img: "Nutzungsart_Nadelwald.svg",
+		},
+		"MW" : {
+			name: 'Mischwald',
+			img: "Nutzungsart_Mischwald.svg",
+		},
 	},
 
 	bewaessert_obj : {
 		name: 'Bewässert',
 		sort: 2,
-		img: 'Bewaessert.svg'
+		img: 'Bewaessert.svg',
+		description: 'Regelmäßig bewässerte Standorte'
 	},
 	
 	grundwasser_obj : {
 		sort: 3,
 		name: 'Grundwassernah',
-		img: 'Grundwasser.svg'
+		img: 'Grundwasser.svg',
+		description: 'Höhere Wasserversorgung aufgrund von Grundwassereinfluss'
 	},
 
 	regenabhängig_obj : {
 		sort: 1,
 		name: 'Regenabhängig',
-		img: 'regenabhaengig.svg'
+		img: 'regenabhaengig.svg',
+		description: 'Keine regelmäßige Bewässerung und kein größerer Grundwassereinfluss'
 	},
 
 	bookmarkfilter_obj : {

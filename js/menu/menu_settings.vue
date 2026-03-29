@@ -87,7 +87,7 @@ export default {
 <style lang="stylus" scoped>
 
 .menuwindow.settings
-	width 440px
+	width 400px
 
 // .settings
 // 	user-select none

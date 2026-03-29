@@ -39,7 +39,14 @@ uicardgrau = #eee
 	--activecolor #b9d0eb
 	--activecolordarker #899cb399
 	--activecolorgrey #5275a055
+	--activecolorgreymid #5275a033
 	--activecolorgreybrighter #5275a022
+	--activecolorgreybrightest #5275a011
+	--menusectionheadercolor #4c88ccff
+	--menusectionheadercolor rgb(68, 102, 188)
+	--menusectionheadercolorlight rgba(68, 102, 188, 1)
+	--menusectionheadercolorlighter rgba(68, 102, 188, 0.4)
+	--menusectionheadercolorlightest rgba(68, 102, 188, 0.4)
 	--warningred  #ea4545ee
 	--windowbg #efefef
 	--uibrighter #f7f7f7
@@ -55,9 +62,6 @@ uicardgrau = #eee
 	--timelineheight unquote("min( max( 4vh, 42px), 64px )")
 	--timelineheightmobile unquote("max( 4vh, 64px)")
 	--timelinedatebg #44444499
-	--menusectionheadercolor #4c88ccff
-	--menusectionheadercolor rgb(68, 102, 188)
-	--menusectionheadercolorlight rgba(68, 102, 188, 1)
 	--menuheaderline #00000022
 
 body.is-mobile
@@ -216,7 +220,6 @@ menuwidth = 250px
 	display flex
 	flex-direction column
 	z-index 2
-	filter drop-shadow(2px 3px 2px #00000022)
 	> *
 		pointer-events all
 
@@ -245,10 +248,10 @@ menuwidth = 250px
 	display flex
 	flex-direction column
 	background #fff
-	// background #ffffffcc
-	// backdrop-filter blur(20px)
+	box-shadow 2px 2px 4px 0 #00000022
 	padding 0
 	min-width 225px
+	margin-right 6px
 
 .is-mobile .menuwindow
 	max-width 80vw !important
@@ -261,18 +264,16 @@ menuwidth = 250px
 	align-items center
 	justify-content space-between
 	height 42px
-	padding 6px 12px
+	padding 0 12px 0
 	margin 0
 	border-bottom var(--thinline)
 	h3
-		font-size 13pt
+		font-size 12pt
 		color #000000bb
 		margin 0 0 0
 
 .menuwindow-content
 	overflow-y auto
-	// overscroll-behavior: none
-	// background #fff
 	overflow auto
 	margin 0
 	padding 6px 6px
@@ -791,79 +792,6 @@ input[type=radio]
 
 // POPOVER
 
-.popover-menu
-	background #ffffffcc
-	backdrop-filter: blur(20px);
-	border 1px solid rgba(0,0,0,0.2)
-	border-radius 8px
-	box-shadow 0 2px 8px rgba(0, 0, 0, 0.2)
-	z-index 1000
-	overflow hidden
-	position absolute
-	overflow-y auto
-	.items
-		display flex
-		flex-direction column
-		margin 0
-	.item
-		width 100%
-		padding 6px 12px
-		background none
-		border none
-		text-align right
-		cursor pointer
-		font-size 9pt
-		font-weight normal
-		white-space nowrap
-		color #000000cc
-		user-select none
-		display flex
-		align-items center
-		&:hover
-			background: var(--activecolorgreybrighter)
-		&.active
-			color #000000
-			background: var(--activecolorgrey)
-			pointer-events none
-	.item.boolean.active
-		pointer-events all
-	.item.header
-		pointer-events none
-		font-weight bold
-		padding-bottom 4px
-		padding-left 5px
-	.divider
-		padding 0
-		margin 0
-		height 3px
-		background rgba(0,0,0,0.1)
-	.thinline
-		padding 0
-		margin 0
-		height 1px
-		background rgba(0,0,0,0.1)
-	.icon
-		width 16px
-		height 16px
-		margin-right 4px
-		margin-left -6px
-		background-position center center
-		background-size 100% 100%
-	.note
-		pointer-events none
-	.note + .note
-		margin-top -.5em
-	.boolean.active .icon
-		opacity .8
-		background-image url('/img/check.png')
-		background-size 100% 100%
-	.select.active .icon
-		opacity .7
-		background-image url('/img/radio_fill.png')
-		background-size 40% 40%
-
-
-
 ///
 
 .separator
@@ -1180,7 +1108,7 @@ hr
 	opacity .9
 
 .bodenkunde.icon
-	background-image url('/img/buch.png')
+	background-image url('/img/buch2.png')
 	// background-size 85% 85%
 	// opacity .8
 

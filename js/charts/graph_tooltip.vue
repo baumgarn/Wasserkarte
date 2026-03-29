@@ -13,7 +13,7 @@
 
 <script>
 
-import ToolTipContent from '@/charts/tooltip_content.vue';
+import ToolTipContent from '@/charts/graph_tooltip_content.vue';
 
 export default {
 	components: {ToolTipContent},

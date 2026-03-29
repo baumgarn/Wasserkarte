@@ -13,7 +13,6 @@
 	import ChartHeat from '@/charts/chart_heat.vue';
 	import ChartGraph from '@/charts/chart_graph.vue';
 	import ChartRange from '@/charts/chart_rangebar.vue';
-	import ToolTip from '@/charts/tooltip.vue';
 	import ChartSettings from '@/charts/chart_settings.vue';
 	import SchichtenUebersicht from '@/location/schichten_uebersicht.vue';
 	import SelectGroup from '@/ui/selectgroup.vue';
@@ -38,7 +37,6 @@
 			DebugInfo,
 			ChartRange,
 			SchichtenUebersicht,
-			ToolTip,
 			MiniMap,
 			SelectGroup
 		},

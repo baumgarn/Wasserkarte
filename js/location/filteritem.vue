@@ -41,6 +41,21 @@
 			</div>
 			
 		</template>
+
+		<template v-else-if="type=='extensive'">
+
+			<Icon :obj :size="28" shadow="true"/>
+
+			<div class="content">
+				<div class="name">
+					{{ obj.name }}
+				</div>
+				<div v-if="description" class="description">
+					{{ description }}
+				</div>
+			</div>
+
+		</template>
 		
 		<template v-else-if="type=='menuitem'">
 			
@@ -147,9 +162,12 @@ export default {
 		},
 		click(event) {
 			if (this.type == 'statusbaritem' || this.type == 'statusbaritemsmall') return;
+			const allowModifierFilters = this.type !== 'extensive';
+			const useMultiSelect = allowModifierFilters && event.shiftKey;
+			const useExcludeFilter = allowModifierFilters && event.altKey;
 
 			if (!this.includeActive) {
-				if (! event.shiftKey) {
+				if (!useMultiSelect) {
 					state.includeFilter = [];
 					state.excludeFilter = [];
 				}
@@ -159,8 +177,8 @@ export default {
 				state.hoverFilter = null;
 			}
 			if (!this.excludeActive) {
-				if (event.altKey) {
-					if (! event.shiftKey) {
+				if (useExcludeFilter) {
+					if (!useMultiSelect) {
 						state.includeFilter = [];
 						state.excludeFilter = [];
 					}
@@ -194,6 +212,9 @@ export default {
 		},
 		count() {
 			return Number(this.obj?.count || 0);
+		},
+		description() {
+			return this.obj?.description || null;
 		},
 		filterName() {
 			return this.obj && this.obj.name ? this.obj.name : null;
@@ -321,7 +342,6 @@ export default {
 		position relative
 		margin 2px
 		margin-right 6px
-		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 .filteritem.statusbaritemsmall.filter-bookmarks .name
 	margin-left -.05em
@@ -394,6 +414,59 @@ export default {
 	&.exclude
 		.bg
 			display none
+
+.filteritem.extensive
+	display flex
+	align-items flex-start
+	justify-content flex-start
+	width 100%
+	height auto
+	padding 6px
+	padding-right 0
+	border-radius 8px
+	box-shadow none
+	border none
+	background transparent
+	.bg
+		transition background-color .15s linear
+	.filtericon
+		margin 0 8px 0 0
+		flex-shrink 0
+		align-self center
+	.content
+		display block
+		min-width 0
+		z-index 1
+		align-self center
+	.name
+		margin 0
+		font-size 8.5pt
+		font-weight bold
+		display inline
+	.description
+		font-size 8pt
+		display inline
+		font-weight normal
+		line-height 1.4
+		color #000000bb
+		margin-top 2px
+		&:before
+			content '–'
+			opacity .46
+			display inline-block
+			margin 0 .4em
+	&:hover .bg
+	// &.hover .bg
+		background var(--activecolorgreybrightest)
+		opacity 1
+	&.active
+	&.active:hover
+	&.exclude
+	&.exclude:hover
+		border none
+		.bg
+			background var(--activecolorgreymid)
+			opacity 1
 
 .filteritem.menuitem
 .filteritem.popovermenuitem
