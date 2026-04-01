@@ -40,6 +40,12 @@
 					<label for="debugattributes">Geräterohdaten anzeigen</label>
 				</div>
 
+				<div class="settings-item">
+					<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
+					<label for="showinfoonstart">Infofenster bei Start anzeigen</label>
+				</div>
+				
+
 			</div>
 			
 		</div>

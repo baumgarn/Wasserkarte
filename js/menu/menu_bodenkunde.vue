@@ -108,16 +108,7 @@
 								Auf dem <a href="https://www.praxis-agrar.de/fileadmin/Medien/06_Service/00_Sammlung/0244_2397_Bodenartendreieck_interaktiv_web_01.pdf" target="_blank">Bodenartendreieck</a> werden die verschiedenen Abstufungen von Bodenarten anhand ihrer Mischung aus den Anteilen der drei Grundarten Sand, Schluff und Ton dargestellt. Für die Standorte im Fläming sind vor allem sandig-lehmige Böden relevant.
 							</p>
 
-							<SoilChart humus-key="h0" title="Unterschiedliche Bodenarten im Vergleich" />
-
-								<p class="small">
-									<strong>Feldkapazität</strong> ist die Wasserspeicherkapazität des Bodens. Wasser darüber hinaus kann nicht vom Boden gegen die Schwerkraft gehalten werden und fließt ins Grundwasser ab.
-								</p>
-
-								<p class="small">
-									<strong>Welkepunkt</strong> ist die Grenze unterhalb der das Wasser nicht mehr für die Wurzeln der Pflanzen erreichbar ist, da es zu stark an den Boden gebunden ist.
-								</p>
-
+							<SoilChart humus-key="h0" :showLegend="true" :showMouseHint="false" title="Bodenarten im Vergleich" />
 
 					
 				</section>
@@ -338,7 +329,6 @@ export default {
 <style lang="stylus" scoped>
 
 .menuwindow.bodenkunde
-	width 440px
 	width 600px
 	--paragraphwidth 500px
 
@@ -432,6 +422,16 @@ h3
 .small
 	font-size 8pt
 
+.iconrow 
+	display flex
+	align-items center
+	.icon
+		position relative
+		left -2px
+		top -2px
+		margin-top -10px
+		margin-bottom -10px
+		margin-right 1px
 p
 	margin 1.3em 0
 	max-width var(--paragraphwidth)
@@ -450,7 +450,7 @@ a
 
 
 em.note
-	font-size 7.5pt
+	font-size 8pt
 	font-style normal
 	color #00000088
 
@@ -539,7 +539,7 @@ table.nfk-table
 	margin-left auto
 	margin-right auto
 .nfk-note
-	text-align right
+	text-align center
 	display block
 	margin-bottom 32px 
 	padding-right 2px

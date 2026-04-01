@@ -407,10 +407,10 @@ const dataStore = {
 		return Math.floor(timestamp / msPerDay) * msPerDay;
 	},
 
-	// ceilToMidnight(timestamp) {
-	// 	const msPerDay = 24 * 60 * 60 * 1000;
-	// 	return Math.floor(timestamp / msPerDay) * msPerDay + msPerDay;
-	// },
+	ceilToMidnight(timestamp) {
+		const msPerDay = 24 * 60 * 60 * 1000;
+		return Math.floor(timestamp / msPerDay) * msPerDay + msPerDay;
+	},
 
 	getDataAtTimestamp(deviceIndex, timestamp) {
 		const telemetryRows = dataStore.getTelemetryForDay(timestamp);

@@ -67,8 +67,6 @@
 			</div>
 
 			<div class="chart-area" :style="{top: topPad + 'px', height: chartHeight + 'px', width: chartWidth + 'px'}" ref="chartAreaRef">
-				
-
 				<div class="chart-columns" :style="containerStyle" >
 					
 					<div
@@ -93,12 +91,12 @@
 								
 							</div>
 							<div class="label-fk" :style="{bottom: valueBottomPixel(entry.fk) + 'px'}">
-								<span class="label" v-if="!veryCompact">{{ compact ? 'FK' : 'Feldkapazität' }}</span>
+								<span class="label" v-if="!veryCompact">{{ compact ? 'FK' : 'FK' }}</span>
 								<span class="value">{{entry.fk}}</span>
 								<span class="unit">Vol %</span>
 							</div>
 							<div class="label-tw" :style="{bottom: valueBottomPixel(entry.tw) + 'px'}">
-								<span class="label" v-if="!veryCompact">{{ compact ? 'WP' : 'Welkepunkt' }}</span>
+								<span class="label" v-if="!veryCompact">{{ compact ? 'WP' : 'WP' }}</span>
 								<span class="value">{{entry.tw}}</span>
 								<span class="unit">Vol %</span>
 							</div>
@@ -134,6 +132,18 @@
 
 					</div>
 
+				</div>
+
+				<div class="mousehint legend" v-if="mouseHintVisible">
+								
+					<div class="legendrow">
+						<div class="item">
+							<Icon type="mouseclick" size="18"/> 
+						</div>
+						<div class="description">
+							Maus gedrückt halten und vertikal bewegen.
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -207,10 +217,38 @@
 
 
 				</div>
-					</div>
+			</div>
+		</div>
 
+		<div v-if="showLegend && soilMode" class="legend">
+			<div class="legendrow">
+				<div class="item">
+					FK
 				</div>
+				<div class="description">
+					<strong>Feldkapazität</strong> ist die Wasserspeicherkapazität des Bodens. Wasser darüber hinaus kann nicht vom Boden gegen die Schwerkraft gehalten werden und fließt ins Grundwasser ab.
 				</div>
+			</div>
+			<div class="legendrow">
+				<div class="item">WP</div>
+				<div class="description">
+					<strong>Welkepunkt</strong> ist die Grenze unterhalb der das Wasser nicht mehr für die Wurzeln der Pflanzen erreichbar ist, da es zu stark an den Boden gebunden ist.
+				</div>
+			</div>
+			
+			<div class="legendrow">
+				<div class="item">
+					<Icon type="mouseclick" size="18"/> 
+				</div>
+				<div class="description">
+					Maus auf Diagramm gedrückt halten und vertikal bewegen für direkten Vergleich.
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
 </template>
 
 <script>
@@ -242,6 +280,14 @@ export default {
 			type: String,
 			default: 'Ss'
 		},
+		showMouseHint: {
+			type: Boolean,
+			default: false
+		},
+		showLegend: {
+			type: Boolean,
+			default: false
+		}
 	},
 	data() {
 		return {
@@ -272,6 +318,10 @@ export default {
 		};
 	},
 	computed: {
+		mouseHintVisible() {
+			// return this.soilMode && !this.chartmousedown;
+			return this.showMouseHint && !this.chartmousedown && !this.mouseHintSeen;
+		},
 		colorScheme() {
 			return state.colorScheme;
 		},
@@ -284,7 +334,6 @@ export default {
 		},
 		topPad() {
 			return (this.humusMode && this.selectedSoil) ? 56 : 20;
-			// return (this.humusMode && this.selectedSoil) ? 56 : 20;
 		},
 		hoverPosTop() {
 			return this.chartHeight-this.hoverPos;
@@ -293,13 +342,6 @@ export default {
 			if (this.topValue) return this.topValue
 			if (this.soilMode) return this.maxFK + 7
 			return this.maxSoilTableFK + 7;
-			// // upper soil table value rounded to next tick line in 5er steps
-			// let upper = 0;
-			// while (upper <= this.maxSoilTableFK) {
-			// 	upper += 5;
-			// }
-			// return upper;
-			// return this.maxSoilTableFK;
 		},
 		maxFK() {
 			return this.chartSeries.reduce((maxValue, entry) => Math.max(maxValue, entry.fk), 0);
@@ -592,7 +634,7 @@ export default {
 		},
 		handleColumnMouseDown() {
 			this.chartmousedown = true;
-
+			this.mouseHintSeen = true;
 			if (this.chartMousemoveListener) {
 				window.removeEventListener('mousemove', this.chartMousemoveListener);
 			}
@@ -840,8 +882,6 @@ export default {
 
 <style lang="stylus" scoped>
 
-
-
 .soilchart
 	font-size 8pt
 	padding-bottom 0
@@ -877,10 +917,10 @@ export default {
 		position relative
 		width 100%
 		z-index 1
-		.chart-area
-			position absolute
-		.axis
-			position absolute
+	.chart-area
+		position absolute
+	.axis
+		position absolute
 			left 0
 			right 0
 			.axis-line
@@ -943,7 +983,8 @@ export default {
 			left 0
 			width 100%
 
-// .area-fk
+
+
 .area-sw
 .area-tw
 	position absolute
@@ -957,20 +998,10 @@ export default {
 	overflow hidden
 
 .area-tw
-	// border-top 1px solid #aa000044
 	background-image url(/img/totwasser4.png)
-	border-bottom-left-radius 4px
-	border-bottom-right-radius 4px
 
 .column-hover .area-tw
 	opacity .5
-.hoverBottom .area-tw
-	opacity 0
-	
-// .area-fk
-// 	border-top 1px solid #fff
-// 	border-top-left-radius 6px
-// 	border-top-right-radius 6px
 
 .area-sw
 	position absolute
@@ -978,10 +1009,7 @@ export default {
 	left 0
 	width 100%
 	opacity 1
-	// opacity .4
-	// background #fff
 	border-bottom 1px dashed #00000044
-	// background-image url(/img/sickerwasser5.png)
 	background-repeat repeat
 	background-position bottom left
 	background-size 8px 8px
@@ -993,11 +1021,12 @@ export default {
 	position absolute
 	left 0
 	width 100%
-	padding 1px 3px
-	text-align right
+	padding 1px 0
+	padding-left 6px
+	text-align left
 	.value
-		font-size 9.5pt
-		opacity .8
+		font-size 7.5pt
+		// opacity .8
 		margin-left .3em
 		margin-right .1em
 	.label
@@ -1024,14 +1053,14 @@ export default {
 	.value
 		font-size 7.5pt
 		opacity .8
-		margin-right .2em
+		margin-right .1em
 	.unit
 		color #00000099
 		font-size 7.5pt
 
 
 .label-fk
-	padding 1px 2px
+	padding-left 3px
 
 .label-nfk
 	bottom 0
@@ -1127,12 +1156,12 @@ export default {
 	max-width 90px
 	width 95%
 	border-radius 4px
-	border 1px solid #00000014
 	overflow hidden
+	border 1px solid #00000014
 	box-shadow 0 1px 2px 0 #00000014
+	background var(--activecolorgreybrightest)
 	cursor pointer
 	transition background-color .12s linear
-	background var(--activecolorgreybrightest)
 	.texture-row
 		display flex
 		margin 0
@@ -1175,26 +1204,28 @@ export default {
 	&.staticRows
 		cursor default
 
-.chart-textures-line
+.mousehint
+	position absolute
+	top -24px
+	left 0
+	right 0
 	display flex
-	margin 0 6px 6px
-	.texture-line-segment
-		height 5px
-		flex-direction row
+	justify-content center
+	width auto
+	opacity .6
+	color #000000aa
+	> *
+		width 100%
+		justify-content center
+		margin 0
+
 
 .chart-current-soil-wrap
 	position relative
 	width 184px
 	margin 0 auto
 	height 0
-	// width 100%
-	// border-top 6px solid var(--activecolorgreymid)
 
-
-// .humusMode .chart-info-container
-// 	background var(--activecolorgreybrighter)
-// 	border-radius 0 0 8px 8px
-// 	overflow hidden
 
 .chart-current-soil
 	display flex
@@ -1236,5 +1267,27 @@ export default {
 		border-left 6px solid transparent
 		border-right 6px solid transparent
 		border-top 9px solid black
+
+.legend
+	font-size 8pt
+	margin 0 14px
+
+.legendrow
+	margin 1.4em 0
+	display flex
+	align-items top
+	flex-direction row
+	user-select text
+	.item
+		flex-basis 24px
+		flex-shrink 0
+		flex-grow 0
+		color #000000aa
+		// font-weight bold
+	.icon
+		opacity .5 !important
+		position relative
+		left -2px
+		top -3px
 
 </style>

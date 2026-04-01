@@ -850,7 +850,7 @@ hr {
   height: 36px;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
-.map-marker.property .propertyicon .filtericon {
+.map-marker.property .propertyicon .icon {
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 50%;
 }
@@ -858,7 +858,7 @@ hr {
 .map-marker.selected .disabled,
 .map-marker.selected .schichten,
 .map-marker.einzeln.selected .schicht,
-.map-marker.property.selected .propertyicon .filtericon {
+.map-marker.property.selected .propertyicon .icon {
   border: 2px solid #888;
   outline: 2px solid rgba(255,255,255,0.867);
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
@@ -898,71 +898,4 @@ hr {
   border-radius: 50%;
   background: #666;
   pointer-events: none;
-}
-.icon {
-  position: relative;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-size: 90% 90%;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.standorttabelle.icon {
-  background-image: url("/img/table.png");
-  background-size: 66% 66%;
-  background-position: 58% center;
-  opacity: 0.6;
-}
-.orte.icon {
-  background-image: url("/img/sensor.png");
-  background-size: 77% 77%;
-  opacity: 0.7;
-}
-.bodenarten.icon {
-  background-image: url("/img/soil.png");
-  background-size: 85% 85%;
-  opacity: 0.9;
-}
-.bodenfeuchte.icon {
-  background-image: url("/img/tropfen.png");
-  background-size: 45%;
-}
-.filter.icon {
-  background-image: url("/img/filter.png");
-  background-size: 95%;
-  opacity: 0.5;
-}
-.boeden.icon {
-  background-image: url("/img/soil.png");
-  background-size: 80% 80%;
-}
-.error.icon {
-  background-image: url("/img/warningred.png");
-  background-size: 80% 80%;
-  opacity: 0.65;
-}
-.karten.icon {
-  background-image: url("/img/karten.png");
-  opacity: 0.9;
-}
-.bodenkunde.icon {
-  background-image: url("/img/buch2.png");
-}
-.einstellungen.icon {
-  background-image: url("/img/settings.png");
-  background-size: 85% 85%;
-  opacity: 0.8;
-}
-.info.icon {
-  background-image: url("/img/info.png");
-  opacity: 0.8;
-  background-size: 70% 70%;
-}
-.icon.moreinfo {
-  background-image: url("/img/morev.png");
-  background-size: 70% 70%;
-  background-color: rgba(238,238,238,0.933);
-  border-radius: 50%;
 }

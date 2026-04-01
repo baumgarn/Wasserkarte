@@ -21,7 +21,11 @@
 			tooltipalign="left"
 			@click="handleClick(item)">
 
-			<div class="icon" :class="item.key" :style="item.iconStyle || {}"></div>
+			<Icon
+				class="menubaricon"
+				:type="item.key"
+				fill
+				:style="item.iconStyle || {}" />
 
 			<div v-if="item.key =='error'" class="count">
 				{{ state.faultyDevices.length }}
@@ -36,14 +40,12 @@
 
 <script>
 import { state } from '@/state.js';
-import { dataModel } from '@/datamodel.js';
-import { IconFactory } from '@/ui/iconfactory.js';
-import ColorScheme from '@/menu/colorscheme_item.vue';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'MenuBar',
 	components: {
-		ColorScheme 
+		Icon
 	},
 	setup() {
 		return {state};
@@ -52,7 +54,6 @@ export default {
 		menuItems() {
 			return [
 				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
-				// { title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1', iconStyle: { backgroundImage: `url(${this.standorttabelleIcon})`, backgroundSize: '80% 80%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } },
 				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },
@@ -74,13 +75,6 @@ export default {
 			return this.menuItems.some(item =>
 				item.solo && state.menuOpen[item.key]
 			);
-		},
-		selectedColorScheme() {
-			return dataModel.get_color_scheme('nfk');
-		},
-		standorttabelleIcon() {
-			IconFactory.cache.delete('standorttabelle_' + state.colorScheme);
-			return IconFactory.getStandorttabelleIcon(state.colorScheme);
 		},
 		showErrorMenu() {
 			return ( this.telemetryLoaded && state.showErrors && state.faultyDevices.length > 0)
@@ -191,8 +185,9 @@ export default {
 	font-weight bold
 	opacity .75
 
-.icon.active:before
-	opacity .9
+.menubaricon
+	width 100%
+	height 100%
 
 // mobile
 

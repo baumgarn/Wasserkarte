@@ -1,7 +1,7 @@
 <template>
 
 	<div v-if="shouldRender"
-		 class="icon filtericon"
+		 class="icon icon"
 		 :class="[filterNameClass, typeClass, { excluded: exclude, shadow: shadow }]"
 		 :style="iconStyle"></div>
 
@@ -29,6 +29,23 @@ function toFilterNameClass(name) {
 	return slug ? 'filter-' + slug : null;
 }
 
+function normalizeCssSize(value) {
+	if (value === null || value === undefined || value === '') return null;
+	if (typeof value === 'number') return value + 'px';
+
+	const normalized = String(value).trim();
+	return /^-?\d+(\.\d+)?$/.test(normalized) ? normalized + 'px' : normalized;
+}
+
+function normalizePixelSize(value) {
+	if (typeof value === 'number') return value;
+	if (typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value.trim())) {
+		return Number(value);
+	}
+
+	return value;
+}
+
 
 
 export default {
@@ -44,9 +61,17 @@ export default {
 			default: null
 		},
 		size: {
-			type: Number,
+			type: [Number, String],
 			default: 24,
 			required: false
+		},
+		fill: {
+			type: Boolean,
+			default: false
+		},
+		opacity: {
+			type: [Number, String],
+			default: null
 		},
 		exclude: {
 			type: Boolean,
@@ -98,7 +123,7 @@ export default {
 				}
 
 				if (this.obj.short != null) {
-					const url = await IconFactory.getShortcodeIcon(this.obj, this.size);
+					const url = await IconFactory.getShortcodeIcon(this.obj, normalizePixelSize(this.size));
 					if (token === this._loadToken) this.inlineIcon = url;
 					return;
 				}
@@ -130,14 +155,21 @@ export default {
 			return Boolean(this.inlineIcon || this.typeClass);
 		},
 		iconStyle() {
-			const style = {
-				width: this.size + 'px',
-				height: this.size + 'px',
-				'flex-basis': this.size + 'px',
-			};
+			const style = {};
+
+			if (!this.fill && this.size !== null && this.size !== '') {
+				const sizeValue = normalizeCssSize(this.size);
+				style.width = sizeValue;
+				style.height = sizeValue;
+				style['flex-basis'] = sizeValue;
+			}
 
 			if (this.inlineIcon) {
 				style.backgroundImage = `url(${this.inlineIcon})`;
+			}
+
+			if (this.opacity !== null && this.opacity !== '') {
+				style.opacity = this.opacity;
 			}
 
 			return style;
@@ -162,7 +194,7 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.filtericon
+.icon
 	display inline-flex
 	position relative
 	background-size contain
@@ -185,56 +217,124 @@ export default {
 	&.shadow
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.22));
 
-.filtericon.filter-bookmarks
+.icon.filter-bookmarks
 	opacity .65
 	background-size 85%
 
-.filtericon.type-pflanze
+.icon.type-pflanze
 	background-image url(/img/plant.svg)
 	opacity .8
 
-.filtericon.type-soil
+.icon.type-soil
 	background-image url(/img/soil.png)
 	background-size 112%
 	opacity .7
-.filtericon.type-soil
+.icon.type-soil
 	background-image url(/img/soil.png)
 	background-size 112%
 	opacity .7
 
-.filtericon.type-soilblack
+.icon.type-soilblack
 	background-image url(/img/soilblack.png)
 	background-size 120%
 	opacity 1
 
-.filtericon.type-tropfen-flat
+.icon.type-tropfen-flat
 	background-image url(/img/tropfen_flat.png)
 
-// .filtericon.type-drop-amount
+// .icon.type-drop-amount
 	// background-image url(/img/tropfen_flat.png)
 	// background-size 60% 90%
 
-.filtericon.type-bewaessert
+.icon.type-bewaessert
 	background-image url(/img/Bewaessert.svg)
 
-.filtericon.type-grundwasser
+.icon.type-grundwasser
 	background-image url(/img/Grundwasser.svg)
 	
-.filtericon.type-cursor
+.icon.type-cursor
 	background-image url(/img/cursor.png)
 
-.filtericon.type-regenabhaengig
+.icon.type-mouseclick
+	background-image url(/img/mouseclick.png)
+
+.icon.type-mouseclicklight
+	background-image url(/img/mouseclicklight.png)
+
+.icon.type-mouseclickblau
+	background-image url(/img/mouseclickblau.png)
+
+.icon.type-regenabhaengig
 	background-image url(/img/regenabhaengig.svg)
 
-.filtericon.type-bookmarks
+.icon.type-bookmarks
 	background-image url(/img/bookmarkfill.svg)
 
-.filtericon.type-totwasser
+.icon.type-totwasser
 	background-image url(/img/totwasser2.png)
 	background-size auto
 	background-repeat repeat
 	background-position -3px 0
 
-.filtericon.type-gesamt
+.icon.type-gesamt
 	background-image url(/img/barrellflat.png)
+
+.icon.type-standorttabelle
+	background-image url(/img/table.png)
+	background-size 66% 66%
+	background-position 58% center
+	opacity .6
+
+.icon.type-orte
+	background-image url(/img/sensor.png)
+	background-size 77% 77%
+	opacity .7
+
+.icon.type-bodenarten
+	background-image url(/img/soil.png)
+	background-size 85% 85%
+	opacity .9
+
+.icon.type-bodenfeuchte
+	background-image url(/img/tropfen.png)
+	background-size 45%
+
+.icon.type-filter
+	background-image url(/img/filter.png)
+	background-size 95%
+	opacity .5
+
+.icon.type-boeden
+	background-image url(/img/soil.png)
+	background-size 80% 80%
+
+.icon.type-error
+	background-image url(/img/warningred.png)
+	background-size 80% 80%
+	opacity .65
+
+.icon.type-karten
+	background-image url(/img/karten.png)
+	background-size 90%
+	opacity .9
+
+.icon.type-bodenkunde
+	background-image url(/img/buch2.png)
+	background-size 90%
+
+.icon.type-einstellungen
+	background-image url(/img/settings.png)
+	background-size 85% 85%
+	opacity .8
+
+.icon.type-info
+	background-image url(/img/info.png)
+	opacity .8
+	background-size 70% 70%
+
+.icon.type-moreinfo
+	background-image url(/img/morev.png)
+	background-size 70% 70%
+	background-color #eeeeeeee
+	border-radius 50%
 </style>

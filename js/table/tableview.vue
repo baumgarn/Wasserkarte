@@ -254,6 +254,7 @@ import { displayutil } from '@/displayutil.js';
 import PopoverMenuMulti from '@/ui/popovermenu.vue'
 import FilterItem from '@/location/filteritem.vue'
 import TableTimeline from '@/table/table_timeline.vue'
+import { clearTimelineImagePrewarmQueue, queueTimelineImagePrewarm } from '@/table/timeline_heatmap.js'
 import DateAxis from '@/charts/dateaxis.vue'
 import StatusBar from '@/map/statusbar.vue';
 import { getActiveTooltipSource, hideTooltip } from '@/tooltip.js';
@@ -291,6 +292,10 @@ export default {
 			timelineMetricsSettleTimeout: null,
 			timelineLayoutSettling: false,
 			timelineHoverRaf: null,
+			timelinePrewarmFrameA: null,
+			timelinePrewarmFrameB: null,
+			timelinePrewarmIdle: null,
+			timelinePrewarmTimeout: null,
 			pendingTimelineHoverClientX: null,
 			pendingTimelineHoverEvent: null,
 			suppressCompactAttributeTooltip: false,
@@ -584,6 +589,79 @@ export default {
 		},
 	},
 	methods: {
+		clearTimelinePrewarmScheduling() {
+			if (this.timelinePrewarmFrameA != null) {
+				cancelAnimationFrame(this.timelinePrewarmFrameA);
+				this.timelinePrewarmFrameA = null;
+			}
+			if (this.timelinePrewarmFrameB != null) {
+				cancelAnimationFrame(this.timelinePrewarmFrameB);
+				this.timelinePrewarmFrameB = null;
+			}
+			if (this.timelinePrewarmIdle != null && typeof cancelIdleCallback === 'function') {
+				cancelIdleCallback(this.timelinePrewarmIdle);
+				this.timelinePrewarmIdle = null;
+			}
+			if (this.timelinePrewarmTimeout != null) {
+				clearTimeout(this.timelinePrewarmTimeout);
+				this.timelinePrewarmTimeout = null;
+			}
+		},
+		queueAllTimelinePrewarm() {
+			this.clearTimelinePrewarmScheduling();
+			if (!this.telemetryLoaded || !this.filteredSortedTableData.length) return;
+
+			const orderedRows = this.getTimelinePrewarmRows();
+			if (!orderedRows.length) return;
+
+			this.timelinePrewarmFrameA = requestAnimationFrame(() => {
+				this.timelinePrewarmFrameA = null;
+				this.timelinePrewarmFrameB = requestAnimationFrame(() => {
+					this.timelinePrewarmFrameB = null;
+					if (typeof requestIdleCallback === 'function') {
+						this.timelinePrewarmIdle = requestIdleCallback(() => {
+							this.timelinePrewarmIdle = null;
+							this.runTimelinePrewarm(orderedRows);
+						}, { timeout: 300 });
+						return;
+					}
+					this.timelinePrewarmTimeout = setTimeout(() => {
+						this.timelinePrewarmTimeout = null;
+						this.runTimelinePrewarm(orderedRows);
+					}, 0);
+				});
+			});
+		},
+		getTimelinePrewarmRows() {
+			const orderedRows = [];
+			const seenDeviceIds = new Set();
+			const addRow = (item) => {
+				const device = item?.row?.device;
+				const deviceId = device?.id || device?.name;
+				if (!deviceId || seenDeviceIds.has(deviceId)) return;
+				seenDeviceIds.add(deviceId);
+				orderedRows.push(item.row);
+			};
+
+			this.pinnedVisibleRows.forEach(addRow);
+			this.virtualRegularRows.forEach(addRow);
+			this.regularVisibleRows.forEach(addRow);
+
+			return orderedRows;
+		},
+		runTimelinePrewarm(rows) {
+			clearTimelineImagePrewarmQueue();
+			rows.forEach(row => {
+				queueTimelineImagePrewarm({
+					device: row.device,
+					startTimestamp: this.startTimestamp,
+					endTimestamp: this.latestTimestamp,
+					showDepths: state.tableview_showdepths,
+					showDataGaps: state.showDataGaps,
+					colorScheme: state.colorScheme,
+				});
+			});
+		},
 		queueTimelineMetricsUpdate() {
 			if (this.timelineMetricsRaf != null) {
 				cancelAnimationFrame(this.timelineMetricsRaf);
@@ -917,7 +995,10 @@ export default {
 		this.observeTimelineLayout();
 		this.tableWidth = measureTarget.clientWidth || measureTarget.getBoundingClientRect().width;
 		this.updateViewportMetrics(measureTarget);
-		this.$nextTick(() => this.queueTimelineMetricsUpdate());
+		this.$nextTick(() => {
+			this.queueTimelineMetricsUpdate();
+			this.queueAllTimelinePrewarm();
+		});
 	},
 	beforeUnmount() {
 		if (this._tableResizeObserver) this._tableResizeObserver.disconnect();
@@ -925,6 +1006,8 @@ export default {
 		if (this.timelineMetricsRaf != null) cancelAnimationFrame(this.timelineMetricsRaf);
 		if (this.timelineMetricsSettleTimeout != null) clearTimeout(this.timelineMetricsSettleTimeout);
 		if (this.timelineHoverRaf != null) cancelAnimationFrame(this.timelineHoverRaf);
+		this.clearTimelinePrewarmScheduling();
+		clearTimelineImagePrewarmQueue();
 		if (this.compactAttributeTooltipCooldownTimeout != null) clearTimeout(this.compactAttributeTooltipCooldownTimeout);
 		hideTooltip();
 	},
@@ -945,7 +1028,10 @@ export default {
 			this.$nextTick(() => this.queueSettledTimelineMetricsUpdate());
 		},
 		timelineRange() {
-			this.$nextTick(() => this.queueTimelineMetricsUpdate());
+			this.$nextTick(() => {
+				this.queueTimelineMetricsUpdate();
+				this.queueAllTimelinePrewarm();
+			});
 		},
 		selectedDevice: {
 			immediate: true,
@@ -963,14 +1049,29 @@ export default {
 				this.$el.focus();
 				this.updateViewportMetrics();
 				this.queueTimelineMetricsUpdate();
+				this.queueAllTimelinePrewarm();
 			});
 		},
 		telemetryLoaded: {
 			handler() {
+				// this.earliestTimestamp = dataStore.floorToMidnight(dataStore.earliestTimestamp);
+				// this.latestTimestamp = dataStore.floorToMidnight(dataStore.latestTimestamp);
 				this.earliestTimestamp = dataStore.earliestTimestamp;
 				this.latestTimestamp = dataStore.latestTimestamp;
-				this.$nextTick(() => this.updateViewportMetrics());
+				this.$nextTick(() => {
+					this.updateViewportMetrics();
+					this.queueAllTimelinePrewarm();
+				});
 			}
+		},
+		'state.showDataGaps'() {
+			this.$nextTick(() => this.queueAllTimelinePrewarm());
+		},
+		'state.colorScheme'() {
+			this.$nextTick(() => this.queueAllTimelinePrewarm());
+		},
+		'state.tableview_showdepths'() {
+			this.$nextTick(() => this.queueAllTimelinePrewarm());
 		},
 	},
 }

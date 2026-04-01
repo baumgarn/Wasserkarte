@@ -604,14 +604,16 @@ export function hideTooltip(sourceEl = null) {
 		cancelAnimationFrame(positionRaf);
 		positionRaf = null;
 	}
+	// Clear the active source immediately so component updates during the
+	// fade-out can't resurrect a tooltip that has already been dismissed.
+	activeSourceEl = null;
+	activeOptions = null;
 	tooltipState.ready = false;
 	clearHideFinalize();
 	hideFinalizeTimer = setTimeout(() => {
 		hideFinalizeTimer = null;
 		if (!tooltipState.ready) {
 			tooltipState.visible = false;
-			activeSourceEl = null;
-			activeOptions = null;
 		}
 	}, HIDE_TRANSITION_MS);
 }

@@ -240,7 +240,7 @@ export default {
 
 	.menuitem.eigenschaften
 		.iconspace
-			.filtericon
+			.icon
 				margin-left -6px
 				// transform scale(0.9)
 			filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));

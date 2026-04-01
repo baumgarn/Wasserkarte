@@ -34,7 +34,7 @@
 
 					<div class="legenditem clickable" @click="openMenu('standorttabelle', $event )">
 						<div class="legendimage">
-							<div class="icon standorttabelle"></div>
+							<Icon type="standorttabelle" :size="36" />
 						</div>
 						<div class="legendtext">
 							Tabellarische Zeitachse aller Sensorstandorte
@@ -42,7 +42,7 @@
 					</div>
 					<div class="legenditem clickable" @click="openMenu('orte', $event )">
 						<div class="legendimage">
-							<div class="icon orte"></div>
+							<Icon type="orte" :size="36" />
 						</div>
 						<div class="legendtext">
 							Liste aller Sensorstandorte
@@ -50,7 +50,7 @@
 					</div>
 					<div class="legenditem clickable" @click="openMenu('bodenfeuchte', $event )">
 						<div class="legendimage">
-							<div class="icon bodenfeuchte"></div>
+							<Icon type="bodenfeuchte" :size="36" />
 						</div>
 						<div class="legendtext">
 							Optionen für Standortdarstellung auf der Karte
@@ -58,7 +58,7 @@
 					</div>
 					<div class="legenditem clickable" @click="openMenu('filter', $event )">
 						<div class="legendimage">
-							<div class="icon filter"></div>
+							<Icon type="filter" :size="36" />
 						</div>
 						<div class="legendtext">
 							Filter nach Standorteigenschaften
@@ -66,7 +66,7 @@
 					</div>
 					<div class="legenditem clickable" @click="openMenu('karten', $event )">
 						<div class="legendimage">
-							<div class="icon karten"></div>
+							<Icon type="karten" :size="36" />
 						</div>
 						<div class="legendtext">
 							Geologische Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
@@ -75,7 +75,7 @@
 					
 					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">
 						<div class="legendimage">
-							<div class="icon einstellungen"></div>
+							<Icon type="einstellungen" :size="36" />
 						</div>
 						<div class="legendtext">
 							Einstellungen sowie alternative Farbschemata
@@ -83,7 +83,7 @@
 					</div>
 					<div class="legenditem clickable" @click="openMenu('bodenkunde', $event )">
 						<div class="legendimage">
-							<div class="icon bodenkunde"></div>
+							<Icon type="bodenkunde" :size="36" />
 						</div>
 						<div class="legendtext">
 							Hintergrundwissen zu Bodenkunde und Erläuterungen zur Methodik der Wasserkarte 
@@ -91,7 +91,7 @@
 					</div>
 					<div class="legenditem">
 						<div class="legendimage">
-							<div class="icon moreinfo"></div>
+							<Icon type="moreinfo" :size="28" />
 						</div>
 						<div class="legendtext">
 							In der Standortansicht lassen sich hier Iframes sowie QR Codes erstellen
@@ -104,20 +104,18 @@
 					
 					<p>
 						Die Durchführung des Projektes erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und
-						dem Smart City Modellprojekt der Stadt Bad Belzig (Zukunftsschusterei).
+						dem Smart City Modellprojekt der Stadt Bad Belzig Zukunftsschusterei.
 					</p>
 					<p>
 						Projektleitung Wassermeisterei: Daniel Diehl<br>
 						Projektleitung Zukunftsschusterei: Malte Specht<br>
 						Design und Programmierung Wasserkarte: <a href="http://nikkki.net" target="_blank">Nikolaus Baumgarten</a><br>
 					</p>
-						<div class="settings-item">
-						<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
-						<label for="showinfoonstart">Infofenster bei Start anzeigen</label>
-					</div>
+
+					
 				</div>
 				<div class="infoschicht">
-			
+						
 					<div class="logos">
 						<a href="http://wassermeisterei.org" class="wassermeisterei">
 							<img src="/img/wassermeistereilogo.png">
@@ -137,6 +135,9 @@
 						Gefördert durch:<br>
 						<img src="/img/foerderleiste.png">
 					</div>
+
+				
+				
 
 					<p class="impressum">
 						Inhaltlich Verantwortlich: Daniel Diehl, Lebendiger Lernort Arensnest e.V., Arensnest 3, 14827
@@ -163,6 +164,11 @@
 						<a href="/lizenzen/lizenzen.txt" target="_blank">Lizenzinformationen</a>
 					</p>
 
+						<div class="settings-item showinfo">
+						<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
+						<label for="showinfoonstart">Infofenster bei Start anzeigen</label>
+					</div>
+
 				</div>
 
 
@@ -186,12 +192,13 @@ import { state } from '@/state.js';
 import dataStore from '@/datastore.js';
 import Legend from '@/map/legend.vue';
 import FauxMarker from '@/map/legend_faux_marker.vue';
+import Icon from '@/ui/Icon.vue';
 
 import { dataModel } from '@/datamodel.js'
 
 export default {
 	name: 'Info',
-	components: { Legend, FauxMarker},
+	components: { Legend, FauxMarker, Icon},
 	props: {
 	},
 	setup() {
@@ -344,11 +351,15 @@ export default {
 	
 	.impressum
 		font-size 10px
+		margin-bottom 28px
 		a
 			font-weight normal
-			
+	
+	.showinfo
+		margin-bottom 4px
+
 	.foerderleiste
-		margin 24px 0 36px
+		margin 24px 0 32px
 		img
 			width 55%
 			margin-top 26px
@@ -377,12 +388,6 @@ export default {
 			justify-content center
 		.legendtext
 			flex-grow 1
-		.icon
-			width 36px !important
-			height 36px !important
-		.icon.moreinfo
-			margin 4px
-			width 28px !important
-			height 28px !important
+	.icon.type-moreinfo
+		margin 4px
 </style>
-

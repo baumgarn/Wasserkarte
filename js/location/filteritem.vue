@@ -44,7 +44,7 @@
 
 		<template v-else-if="type=='extensive'">
 
-			<Icon :obj :size="28" shadow="true"/>
+			<Icon :obj :size="24" shadow="true"/>
 
 			<div class="content">
 				<div class="name">
@@ -288,7 +288,7 @@ export default {
 		// font-size 80%
 		// display none
 		// opacity .6
-	.filtericon
+	.icon
 		z-index 1
 	&:hover .bg
 		background var(--activecolorgreybrighter)
@@ -338,7 +338,7 @@ export default {
 		margin-right 5px
 		&:hover
 			opacity .8
-	.filtericon
+	.icon
 		position relative
 		margin 2px
 		margin-right 6px
@@ -363,7 +363,7 @@ export default {
 		margin-right 4px
 	.bg
 		display none
-	.filtericon
+	.icon
 		width 24px
 		height 24px
 		position relative
@@ -400,7 +400,7 @@ export default {
 		opacity .55
 		overflow hidden
 		text-overflow ellipsis
-	.filtericon
+	.icon
 		width 18px
 		height 18px
 		flex-basis 18px
@@ -429,7 +429,7 @@ export default {
 	background transparent
 	.bg
 		transition background-color .15s linear
-	.filtericon
+	.icon
 		margin 0 8px 0 0
 		flex-shrink 0
 		align-self center
@@ -487,7 +487,7 @@ export default {
 		font-size 8.5pt
 		margin-right -.4em
 		display none
-	.filtericon
+	.icon
 		margin 0
 		margin-left 0
 		margin-right 1px
@@ -517,7 +517,7 @@ export default {
 	&:hover 
 		.bg
 			background #fff
-	.filtericon
+	.icon
 		margin-left -1px
 
 .filteritem.table
@@ -547,7 +547,7 @@ export default {
 		opacity 1
 	// &.active .bg
 		// opacity 0
-	.filtericon
+	.icon
 		flex-basis 22px 
 		flex-shrink 0
 
@@ -555,10 +555,10 @@ export default {
 	margin 0
 	padding 0
 	justify-content center
-	.filtericon
+	.icon
 		filter brightness(1)
 		transition filter linear .15s
-	&:hover .filtericon
+	&:hover .icon
 		filter brightness(.85)
 	&.active
 	&:hover

@@ -10,31 +10,12 @@
 
 <script>
 import { state } from '@/state.js';
-import { config } from '@/config.js';
-import { dataModel } from '@/dataModel.js'
-import dataStore from '@/datastore.js';
-
-const timelineImageCache = new Map();
-
-function buildTimelineImageCacheKey({
-	deviceId,
-	telemetryFingerprint,
-	startTimestamp,
-	endTimestamp,
-	showDepths,
-	showDataGaps,
-	colorScheme,
-}) {
-	return [
-		deviceId ?? 'none',
-		telemetryFingerprint ?? 'empty',
-		startTimestamp ?? 0,
-		endTimestamp ?? 0,
-		showDepths ? 1 : 0,
-		showDataGaps ? 1 : 0,
-		colorScheme ?? 'normal',
-	].join('|');
-}
+import {
+	buildDeviceTimelineTelemetryState,
+	buildTimelineImageCacheKey,
+	getCachedTimelineImage,
+	renderTimelineImage,
+} from '@/table/timeline_heatmap.js';
 
 export default {
 	name: 'TimelineInner',
@@ -94,7 +75,7 @@ export default {
 		},
 		cacheKey() {
 			return buildTimelineImageCacheKey({
-				deviceId: this.device?.id,
+				deviceId: this.device?.id || this.device?.name,
 				telemetryFingerprint: this.telemetryFingerprint,
 				startTimestamp: this.startTimestamp,
 				endTimestamp: this.endTimestamp,
@@ -129,7 +110,7 @@ export default {
 				cancelAnimationFrame(this.heatmapRenderRaf);
 			}
 
-			if (defer && !timelineImageCache.has(this.cacheKey)) {
+			if (defer && !getCachedTimelineImage(this.cacheKey)) {
 				this.deferredRenderFrameA = requestAnimationFrame(() => {
 					this.deferredRenderFrameA = null;
 					this.deferredRenderFrameB = requestAnimationFrame(() => {
@@ -156,63 +137,14 @@ export default {
 			});
 		},
 		rebuildHeatmapSegments() {
-			if (!this.telemetryData || this.telemetryData.length === 0) {
-				this.heatmapSegments = [];
-				this.heatmapNumBands = this.showDepths ? 0 : 1;
-				return;
-			}
-
-			const rows = this.telemetryData;
-			const msPerDay = 24 * 60 * 60 * 1000;
-			const limitGapLength = state.showDataGaps;
-
-			if (this.showDepths) {
-				const depthIndices = [this.nfk10_index, this.nfk30_index, this.nfk60_index, this.nfk80_index]
-					.filter(index => index !== null);
-				const segments = [];
-
-				for (let bandIdx = 0; bandIdx < depthIndices.length; bandIdx++) {
-					const dataIndex = depthIndices[bandIdx];
-					let nextTs = null;
-
-					for (let i = rows.length - 1; i >= 0; i--) {
-						const row = rows[i];
-						const ts = row[0];
-						const nfk = row[dataIndex];
-						if (nfk == null) continue;
-
-						let endTs = nextTs ?? (ts + msPerDay);
-						if (limitGapLength && (endTs - ts) > config.dataGapLength) endTs = ts + msPerDay;
-
-						segments.push({ startTs: ts, endTs, nfk, bandIdx });
-						nextTs = ts;
-					}
-				}
-
-				this.heatmapSegments = segments;
-				this.heatmapNumBands = depthIndices.length;
-				return;
-			}
-
-			const avgIndex = this.nfkavg_index;
-			const segments = [];
-
-			if (avgIndex !== null) {
-				for (let i = 0; i < rows.length; i++) {
-					const row = rows[i];
-					const ts = row[0];
-					const nfk = row[avgIndex];
-					if (nfk == null) continue;
-
-					let endTs = (i < rows.length - 1) ? rows[i + 1][0] : ts + msPerDay;
-					if (limitGapLength && (endTs - ts) > config.dataGapLength) endTs = ts + msPerDay;
-
-					segments.push({ startTs: ts, endTs, nfk, bandIdx: 0 });
-				}
-			}
-
-			this.heatmapSegments = segments;
-			this.heatmapNumBands = 1;
+			const timelineState = buildDeviceTimelineTelemetryState(this.device, {
+				showDepths: this.showDepths,
+				showDataGaps: state.showDataGaps,
+			});
+			this.telemetryData = timelineState.telemetryData;
+			this.heatmapSegments = timelineState.heatmapSegments;
+			this.heatmapNumBands = timelineState.heatmapNumBands;
+			this.telemetryFingerprint = timelineState.telemetryFingerprint;
 		},
 		renderHeatmapImage() {
 			if (!state.telemetryLoaded || !this.heatmapSegments || this.heatmapSegments.length === 0) {
@@ -220,63 +152,33 @@ export default {
 				return;
 			}
 
-			const cachedImageUrl = timelineImageCache.get(this.cacheKey);
+			const cachedImageUrl = getCachedTimelineImage(this.cacheKey);
 			if (cachedImageUrl) {
 				this.heatmapImageUrl = cachedImageUrl;
 				return;
 			}
 
-			const msPerDay = 24 * 60 * 60 * 1000;
-			const width = Math.max(1, Math.ceil((this.endTimestamp - this.startTimestamp) / msPerDay) + 1);
-			const numBands = Math.max(1, this.heatmapNumBands || 1);
-			const canvas = this._heatmapCanvas || (this._heatmapCanvas = document.createElement('canvas'));
-			canvas.width = width;
-			canvas.height = numBands;
-
-			const ctx = canvas.getContext('2d');
-			ctx.setTransform(1, 0, 0, 1, 0, 0);
-			ctx.clearRect(0, 0, width, numBands);
-
-			const visibleEndTs = this.endTimestamp + msPerDay;
-
-			for (let i = 0; i < this.heatmapSegments.length; i++) {
-				const segment = this.heatmapSegments[i];
-				const clippedStartTs = Math.max(segment.startTs, this.startTimestamp);
-				const clippedEndTs = Math.min(segment.endTs, visibleEndTs);
-				if (clippedEndTs <= clippedStartTs) continue;
-
-				const startDay = Math.max(0, Math.floor((clippedStartTs - this.startTimestamp) / msPerDay));
-				const endDay = Math.min(width, Math.ceil((clippedEndTs - this.startTimestamp) / msPerDay));
-				const segW = Math.max(1, endDay - startDay);
-
-				ctx.fillStyle = dataModel.get_nfk_color(segment.nfk);
-				ctx.fillRect(startDay, segment.bandIdx, segW, 1);
-			}
-
-			const imageUrl = canvas.toDataURL();
-			timelineImageCache.set(this.cacheKey, imageUrl);
-			this.heatmapImageUrl = imageUrl;
+			this.heatmapImageUrl = renderTimelineImage({
+				cacheKey: this.cacheKey,
+				startTimestamp: this.startTimestamp,
+				endTimestamp: this.endTimestamp,
+				colorScheme: state.colorScheme,
+				heatmapSegments: this.heatmapSegments,
+				heatmapNumBands: this.heatmapNumBands,
+			});
 		},
 		fetchTelemetry() {
+			const timelineState = buildDeviceTimelineTelemetryState(this.device, {
+				showDepths: this.showDepths,
+				showDataGaps: state.showDataGaps,
+			});
+			this.telemetryData = timelineState.telemetryData;
+			this.heatmapSegments = timelineState.heatmapSegments;
+			this.heatmapNumBands = timelineState.heatmapNumBands;
+			this.telemetryFingerprint = timelineState.telemetryFingerprint;
 			if (!this.device) {
-				this.telemetryData = null;
-				this.heatmapSegments = [];
-				this.heatmapNumBands = this.showDepths ? 0 : 1;
 				this.heatmapImageUrl = null;
-				this.telemetryFingerprint = 'empty';
-				return;
 			}
-			this.telemetryData = dataStore.fetchTelemetryCache(this.device.id).data;
-			const rows = this.telemetryData || [];
-			const firstTs = rows.length ? rows[0][0] : 0;
-			const lastTs = rows.length ? rows[rows.length - 1][0] : 0;
-			this.telemetryFingerprint = [
-				rows.length,
-				firstTs,
-				lastTs,
-				this.schema.join(','),
-			].join(':');
-			this.rebuildHeatmapSegments();
 		}
 
 	},
