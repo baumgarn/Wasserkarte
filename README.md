@@ -12,6 +12,9 @@ Projektleitung Wassermeisterei: Daniel Diehl
 Projektleitung Zukunftsschusterei: Malte Specht   
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
+![Zukunftsschusterei](./docs/zukunftsschusterei.png)
+
+
 ## Voraussetzungen
 
 Das Projekt setzt eine laufende ThingsBoard-Instanz mit angebundenen Bodenfeuchte-Sensoren voraus.
