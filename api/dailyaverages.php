@@ -61,8 +61,8 @@ function dailyAverages() {
 	// then run daily average timeseries query for all devices
 
 	$alltimeseries = [];
-	$earliest = PHP_INT_MAX;
-	$latest = 0;
+	$earliest = null;
+	$latest = null;
 	$previousLatest = getLatestTimestampFromCache();
 	$new_nfk_values = [];
 	
@@ -96,10 +96,10 @@ function dailyAverages() {
 			$firstts = $rows[0][0];
 			$lastts  = $rows[count($rows) - 1][0];
 
-			if ($earliest > $firstts) {
+			if ($earliest === null || $earliest > $firstts) {
 				$earliest = $firstts;
 			}
-			if ($latest < $lastts) {
+			if ($latest === null || $latest < $lastts) {
 				$latest = $lastts;
 			}
 			
@@ -160,8 +160,8 @@ function dailyAverages() {
 		'earliestTimestamp' => $earliest,
 		'latestTimestamp' => $latest,
 		'previousLatestTimestamp' => $previousLatest,
-		'earliestDate' => date('Y-m-d H:i:s', (int) ($earliest / 1000)),
-		'latestDate' => date('Y-m-d H:i:s', (int) ($latest / 1000)),
+		'earliestDate' => $earliest !== null ? date('Y-m-d H:i:s', (int) ($earliest / 1000)) : null,
+		'latestDate' => $latest !== null ? date('Y-m-d H:i:s', (int) ($latest / 1000)) : null,
 		'days' => $days,
 		// 'nfk_daily_averages' => $nfk_daily_averages,
 		'devices' => $alltimeseries,

@@ -22,3 +22,6 @@ dist/
 # API-specific ignores
 api/config.php
 api/cache/
+
+# Local deployment helper
+kartedist

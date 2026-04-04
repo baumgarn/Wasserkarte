@@ -57,6 +57,7 @@
 			data() {
 				return {
 					sensorData: {},
+					sensorDataLoading: false,
 					graphScale: 1.0,
 					graphPosition: 0,
 				earliestTimestamp: 0,
@@ -135,6 +136,14 @@
 			},
 			lastTelemetry() {
 				return dataStore.lastTelemetry(this.device.id)
+			},
+			aggregatedEarliestTimestamp() {
+				const rows = dataStore.fetchTelemetryCache(this.device.id)?.data;
+				return Array.isArray(rows) && rows.length ? (rows[0]?.[0] ?? 0) : this.earliestTimestamp;
+			},
+			aggregatedLatestTimestamp() {
+				const rows = dataStore.fetchTelemetryCache(this.device.id)?.data;
+				return Array.isArray(rows) && rows.length ? (rows[rows.length - 1]?.[0] ?? 0) : this.latestTimestamp;
 			},
 			numberOfDays() {
 				return Math.max(this.chartTimeRange,(this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24));
@@ -245,6 +254,7 @@
 				this.$nextTick(() => {
 					this.updateFrameWidth();
 				});
+				this.sensorDataLoading = true;
 				this.dataPresent = false;
 				await this.processSensorData({ requestId, deviceId, aggregation });
 			},
@@ -261,35 +271,46 @@
 				}
 
 				this.sensorData = this.device.telemetrySchema || { schema: [], data: [] };
-				this.earliestTimestamp = 0;
-				this.latestTimestamp = 0;
+				const cachedRows = dataStore.fetchTelemetryCache(loadContext.deviceId)?.data;
+				if (Array.isArray(cachedRows) && cachedRows.length > 0) {
+					this.earliestTimestamp = cachedRows[0]?.[0] ?? 0;
+					this.latestTimestamp = cachedRows[cachedRows.length - 1]?.[0] ?? 0;
+				} else {
+					this.earliestTimestamp = 0;
+					this.latestTimestamp = 0;
+				}
 				
-				const telemetryData = await dataStore.fetchTelemetryData(loadContext.deviceId, 'all', loadContext.aggregation);
-				if (!this.isCurrentSensorLoad(loadContext)) {
-					return;
-				}
+				try {
+					const telemetryData = await dataStore.fetchTelemetryData(loadContext.deviceId, 'all', loadContext.aggregation);
+					if (!this.isCurrentSensorLoad(loadContext)) {
+						return;
+					}
 		
-				this.sensorData = telemetryData;
-				const rows = telemetryData?.data;
-				const hasRows = Array.isArray(rows) && rows.length > 0;
-				this.dataPresent = hasRows;
+					this.sensorData = telemetryData;
+					const rows = telemetryData?.data;
+					const hasRows = Array.isArray(rows) && rows.length > 0;
+					this.dataPresent = hasRows;
 
-				if (!hasRows) {
-					return;
+					if (!hasRows) {
+						return;
+					}
+
+					this.earliestTimestamp = rows[0]?.[0] ?? 0;
+					this.latestTimestamp = rows[rows.length - 1]?.[0] ?? 0;
+
+					if (this.chartTimeRange == 0 ) {
+						this.chartTimeRange = -1
+						this.graphScale = 1
+						this.graphPosition = 0
+					}
+					if (this.chartTimeRange > 0) {
+						this.selectTimeRange(this.chartTimeRange)
+					}
+				} finally {
+					if (this.isCurrentSensorLoad(loadContext)) {
+						this.sensorDataLoading = false;
+					}
 				}
-
-				this.earliestTimestamp = rows[0]?.[0] ?? 0;
-				this.latestTimestamp = rows[rows.length - 1]?.[0] ?? 0;
-
-				if (this.chartTimeRange == 0 ) {
-					this.chartTimeRange = -1
-					this.graphScale = 1
-					this.graphPosition = 0
-				}
-				if (this.chartTimeRange > 0) {
-					this.selectTimeRange(this.chartTimeRange)
-				}
-
 			},
 			filterSensors(sensorKeys) {
 				const schema = Array.isArray(this.sensorData?.schema) ? this.sensorData.schema : [];
@@ -455,13 +476,13 @@
 
 		</div>
 	
-		<ChartSettings v-if="hasBodenfeuchteSensors" :graphScale :frameWidth :graphPosition :dataPresent @range-update="handleRangeUpdate" :earliestTimestamp :latestTimestamp />
+		<ChartSettings v-if="hasBodenfeuchteSensors" :graphScale :frameWidth :graphPosition :dataPresent @range-update="handleRangeUpdate" :earliestTimestamp="aggregatedEarliestTimestamp" :latestTimestamp="aggregatedLatestTimestamp" />
 
 		<div class="scrollcontainer" @wheel="scrollWheel">
 			
 			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 			
-				<div v-if="hasBodenfeuchteSensors && dataPresent">
+				<div v-if="hasBodenfeuchteSensors">
 				<!-- <hr/> -->
 
 				<div v-if="chartStyle === 'schichten'">
@@ -479,6 +500,7 @@
 						:latestTimestamp
 						:numberOfDays
 						:dataPresent
+						:isLoading="sensorDataLoading"
 						:hoverPosition
 						:hoverData
 						:baseline="0"
@@ -503,6 +525,7 @@
 						:latestTimestamp
 						:numberOfDays
 						:dataPresent
+						:isLoading="sensorDataLoading"
 						:hoverPosition
 						:hoverData
 						:baseline="0"
@@ -527,6 +550,7 @@
 							:startTimestamp
 							:numberOfDays
 							:dataPresent
+							:isLoading="sensorDataLoading"
 							:hoverPosition
 							:hoverData
 							/>

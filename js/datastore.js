@@ -8,6 +8,17 @@ import pako from 'pako';
 
 const cacheddevicesurl = '/api/cache/devices.json.gz'
 const alltelemetryurl = '/api/cache/alltelemetry.json.gz'
+const textDecoder = new TextDecoder();
+
+function parseCompressedOrPlainJson(buf) {
+	const bytes = new Uint8Array(buf);
+
+	if (bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b) {
+		return JSON.parse(pako.ungzip(bytes, { to: 'string' }));
+	}
+
+	return JSON.parse(textDecoder.decode(bytes));
+}
 
 const dataStore = {
 
@@ -19,10 +30,14 @@ const dataStore = {
 		try {
 			// Fetch device data file and all telemetry file 
 			const devicesPromise = fetch(cacheddevicesurl + '?' + dataStore.getTimestampForApiRequest())
-				.then(res => res.arrayBuffer())
+				.then(res => {
+					if (!res.ok) {
+						throw new Error(`HTTP ${res.status}`);
+					}
+					return res.arrayBuffer();
+				})
 				.then(buf => {
-					const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
-					const data = JSON.parse(text);
+					const data = parseCompressedOrPlainJson(buf);
 					if (data?.devices) {
 						dataStore.processDevices(data);
 					}
@@ -30,16 +45,17 @@ const dataStore = {
 				});
 
 			const telemetryPromise = fetch(alltelemetryurl + '?' + dataStore.getTimestampForApiRequest())
-				.then(res => res.arrayBuffer())
+				.then(res => {
+					if (!res.ok) {
+						throw new Error(`HTTP ${res.status}`);
+					}
+					return res.arrayBuffer();
+				})
 				.then(buf => {
 
 					let start = performance.now();
-					const text = pako.ungzip(new Uint8Array(buf), { to: 'string' });
-					console.log("Telemetry data uncompressed in", (performance.now() - start).toFixed(2), "ms");
-
-					start = performance.now();
-					const json = JSON.parse(text);
-					console.log("Telemetry data json parsed in ", (performance.now() - start).toFixed(2), "ms");
+					const json = parseCompressedOrPlainJson(buf);
+					console.log("Telemetry data decoded in", (performance.now() - start).toFixed(2), "ms");
 
 					return json;
 				});

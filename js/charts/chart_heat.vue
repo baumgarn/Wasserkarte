@@ -17,9 +17,12 @@
 				
 			</div>
 
-			<div  v-else class="latestdate">
-				{{ displayutil.formatDateShort(getLastTimestamp()) }}
-				<span class="time">{{ displayutil.formatDateTime(getLastTimestamp()) }}</span>
+			<div  v-else-if="lastTimestamp" class="latestdate">
+				{{ displayutil.formatDateShort(lastTimestamp) }}
+				<span class="time">{{ displayutil.formatDateTime(lastTimestamp) }}</span>
+			</div>
+
+			<div v-else class="latestdate">
 			</div>
 			
 		</div>
@@ -155,10 +158,10 @@
 
 			</div>
 
-			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
+			<div class="loading" v-if="isLoading && title == 'Bodenfeuchte'"></div>
 
 		</div>
-		<DateAxis 
+		<DateAxis
 		:chart-width="chartWidth" 
 		:frame-width="frameWidth" 
 		:scroll-left="scrollLeft" 
@@ -166,6 +169,7 @@
 		:number-of-days="numberOfDays"
 		:data-present="dataPresent"
 		:hover-position="hoverPosition"
+		:style="{ visibility: isLoading ? 'hidden' : 'visible' }"
 		></DateAxis>
 
 	</div>
@@ -193,7 +197,6 @@ export default {
 			lastData: [],
 			filteredSensors: [],
 			displayutil,
-			loading: true,
 		}
 	},
 	props: {
@@ -216,8 +219,15 @@ export default {
 		heatmap: { type: Boolean, required: false, default: false },
 		dataPresent: { type: Boolean, required: false },
 		hoverData: { type: Object, required: false },
+		isLoading: { type: Boolean, required: false, default: false },
 	},
 	computed: {
+		hasSensorRows() {
+			return Array.isArray(this.sensorData?.data) && this.sensorData.data.length > 0;
+		},
+		lastTimestamp() {
+			return this.hasSensorRows ? (this.sensorData.data[this.sensorData.data.length - 1]?.[0] ?? null) : null;
+		},
 		globalExtentY() {
 			if (!this.sensorData?.schema?.length || !this.sensorData?.data?.length) return [0, 100];
 
@@ -283,7 +293,7 @@ export default {
 				return state.timelineDate;
 			},
 		daysSinceLastTelemetry() {
-			const latestTimestamp = this.getLastTimestamp();
+			const latestTimestamp = this.lastTimestamp;
 			if (latestTimestamp) {
 				const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
 				const days = Math.floor(hours / 24);
@@ -509,7 +519,7 @@ export default {
 			return Number.isFinite(val) ? { ts, value: val } : null;
 		},
 		getLastTimestamp() {
-			return this.sensorData.data[this.sensorData.data.length - 1][0];
+			return this.lastTimestamp;
 		},
 		getData(key) {
 			if (this.hoverData) {
@@ -594,16 +604,6 @@ export default {
 				nextTick(() => {
 					this.drawCharts();
 				});
-
-				if (!this.dataPresent) {
-					window.setTimeout(() => {
-						if (!this.dataPresent) {
-							this.loading = true;
-						}
-					}, 200);
-				} else {
-					this.loading = false;
-				}
 			},
 			deep: true
 		},
@@ -625,12 +625,6 @@ export default {
 		},
 		colorScheme() {
 			this.drawCharts();
-		},
-		dataPresent: {
-			handler() {
-				this.loading = false;
-			},
-			immediate: true
 		},
 		showDataGaps() {
 			nextTick(() => {
@@ -660,6 +654,32 @@ export default {
 .scrollview
 	margin 0
 	position relative
+
+.loading
+	position absolute
+	inset 0
+	display flex
+	align-items center
+	justify-content center
+	background linear-gradient(to bottom, #ffffff44, #ffffff99)
+	backdrop-filter blur(1px)
+	border-radius var(--chartborderradius)
+	pointer-events none
+	z-index 3
+	&:after
+		content ''
+		width 22px
+		height 22px
+		border 2px solid #00000022
+		border-top-color #00000088
+		border-radius 50%
+		animation chartspin .8s linear infinite
+
+@keyframes chartspin
+	from
+		transform rotate(0deg)
+	to
+		transform rotate(360deg)
 
 .scrollframe
 	position: relative;

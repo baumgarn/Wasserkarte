@@ -77,12 +77,12 @@
 
 			<GraphToolTip v-if="hoverData && hoverData.ts" :mouseOverChart :sensors="sensors" :device :hoverData :hoverPosition />
 
-			<div class="loading" v-if="loading && title == 'Bodenfeuchte'"></div>
+			<div class="loading" v-if="isLoading && title == 'Bodenfeuchte'"></div>
 
 		</div>
 		<DateAxis :chart-width="chartWidth" :frame-width="frameWidth" :scroll-left="scrollLeft"
 			:start-timestamp="startTimestamp" :number-of-days="numberOfDays" :data-present="dataPresent"
-			:hover-position="hoverPosition"></DateAxis>
+			:hover-position="hoverPosition" :style="{ visibility: isLoading ? 'hidden' : 'visible' }"></DateAxis>
 
 		<div class="depths" >
 			<div class="sensor"
@@ -127,7 +127,6 @@ export default {
 			displayutil,
 			filteredSensors: [],
 			mouseOverChart: false,
-			loading: true,
 		}
 	},
 	props: {
@@ -149,8 +148,15 @@ export default {
 		coloring: { type: String, required: false, default: 'bodenfeuchteflat' },
 		hoverData: { type: Object, required: false },
 		dataPresent: { type: Boolean, required: false },
+		isLoading: { type: Boolean, required: false, default: false },
 	},
 	computed: {
+		hasSensorRows() {
+			return Array.isArray(this.sensorData?.data) && this.sensorData.data.length > 0;
+		},
+		lastTimestamp() {
+			return this.hasSensorRows ? (this.sensorData.data[this.sensorData.data.length - 1]?.[0] ?? null) : null;
+		},
 		globalExtentY() {
 			const tele = this.sensorData;
 			if (!tele?.schema?.length || !tele?.data?.length) return [0, 100];
@@ -216,7 +222,7 @@ export default {
 			return state.colorScheme;
 		},
 		daysSinceLastTelemetry() {
-			const latestTimestamp = this.getLastTimestamp();
+			const latestTimestamp = this.lastTimestamp;
 			if (latestTimestamp) {
 				const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
 				const days = Math.floor(hours / 24);
@@ -329,7 +335,7 @@ export default {
 			return displayutil.depth(key)
 		},
 		getLastTimestamp() {
-			return this.sensorData.data[this.sensorData.data.length - 1][0];
+			return this.lastTimestamp;
 		},
 		getYPosition(value) {
 			const [yMin, yMax] = this.globalExtentY;
@@ -388,16 +394,6 @@ export default {
 				nextTick(() => {
 					this.drawCharts();
 				});
-
-				if (!this.dataPresent) {
-					window.setTimeout(() => {
-						if (!this.dataPresent) {
-							this.loading = true;
-						}
-					}, 200);
-				} else {
-					this.loading = false;
-				}
 			},
 			immediate: true
 		},
@@ -419,12 +415,6 @@ export default {
 		},
 		colorScheme() {
 			this.drawCharts();
-		},
-		dataPresent: {
-			handler() {
-				this.loading = false;
-			},
-			immediate: true
 		},
 		showDataGaps() {
 			nextTick(() => {
@@ -460,6 +450,32 @@ export default {
 .scrollview
 	margin 0
 	position relative
+
+.loading
+	position absolute
+	inset 0
+	display flex
+	align-items center
+	justify-content center
+	background linear-gradient(to bottom, #ffffff44, #ffffff99)
+	backdrop-filter blur(1px)
+	border-radius var(--chartborderradius)
+	pointer-events none
+	z-index 3
+	&:after
+		content ''
+		width 22px
+		height 22px
+		border 2px solid #00000022
+		border-top-color #00000088
+		border-radius 50%
+		animation chartspin .8s linear infinite
+
+@keyframes chartspin
+	from
+		transform rotate(0deg)
+	to
+		transform rotate(360deg)
 
 .dotcontainer
 .chartcontainer

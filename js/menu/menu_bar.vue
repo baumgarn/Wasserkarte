@@ -164,6 +164,11 @@ export default {
 	&:hover
 		background-color #dbdbdb88
 
+// .menubar .menubaritem:active .icon
+	// opacity .5
+	// background #d8d8d8
+	// background #f0f0f0
+// .menubar .menubaritem.active
 .menubar .menubaritem.active
 	background #fff
 	border-bottom 1px solid #fff

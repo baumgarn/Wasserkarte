@@ -330,7 +330,6 @@ export default {
 		},
 		chartHeight() {
 			return this.chartRange * this.pixelPerVol;
-			return 200;
 		},
 		topPad() {
 			return (this.humusMode && this.selectedSoil) ? 56 : 20;
@@ -915,6 +914,7 @@ export default {
 	.chart-area-container
 		display block
 		position relative
+		cursor default
 		width 100%
 		z-index 1
 	.chart-area

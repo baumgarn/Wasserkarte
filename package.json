@@ -5,8 +5,7 @@
     "start": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "upload": "node upload-ftp.js",
-    "dist": "npm run build && npm run upload",
+    "dist": "npm run build && sh -c 'if [ -x ./kartedist ]; then ./kartedist; else printf \"Build complete. Local deploy skipped (%s not found or not executable).\\n\" \"./kartedist\"; fi'",
     "commit": "git add . && git commit -m \"update\" && git push origin main && git push opencode main"
   },
   "devDependencies": {

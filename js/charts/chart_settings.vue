@@ -6,11 +6,11 @@
 			:items="chartStyles" 
 			:stateProperty="'chartStyle'" 
 			/>
-			<div v-if="dataPresent" ref="openTimeRangeRef" class="daterange" @click="openTimeRanges" >
+			<div ref="openTimeRangeRef" class="daterange" @click="openTimeRanges" >
 
 				<template v-if="!isPopoverOpen">
 					{{ selectedTimeRange }}
-					<template v-if="selectedTimeRange == 'Gesamte Zeit'">
+					<template v-if="selectedTimeRange == 'Gesamte Zeit' && showTelemetryDuration">
 						<span class="separator"></span>
 						{{daysSinceFirstTelemetry}} Tage
 					</template>
@@ -55,6 +55,11 @@ export default {
 			required: true
 		},
 		earliestTimestamp: {
+			type: Number,
+			required: false,
+			default: 0
+		},
+		latestTimestamp: {
 			type: Number,
 			required: false,
 			default: 0
@@ -104,6 +109,9 @@ export default {
 		wideView() {
 			return (this.frameWidth > 800);
 		},
+		showTelemetryDuration() {
+			return this.earliestTimestamp > 0 && this.latestTimestamp >= this.earliestTimestamp;
+		},
 		selectedTimeRange() {
 			for (let item of this.chartTimeRanges) {
 				
@@ -113,7 +121,7 @@ export default {
 			}
 		},
 			daysSinceFirstTelemetry() {
-				return Math.floor((Date.now() - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
+				return Math.floor((this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
 			},
 			isPopoverOpen() {
 				return Boolean(this.$refs.popoverRef?.isOpen);

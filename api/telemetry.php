@@ -48,6 +48,27 @@ function getTimeseriesForDevice($token, $deviceId, $deviceInfo = null, $timerang
 		$startTs = $timerangeMapping[$timerange] ?? $now;
 		$cachedData = null;
 	}
+
+	if (!is_int($startTs)) {
+		return [
+			'name' => $deviceInfo['name'] ?? null,
+			'label' => $deviceInfo['label'] ?? null,
+			'id' => $deviceInfo['id'] ?? $deviceId,
+			'timestamp' => time(),
+			'queryTime' => microtime(true) - $startTime,
+			'newDataPoints' => 0,
+			'totalDataPoints' => 0,
+			'earliestTimestamp' => null,
+			'latestTimestamp' => null,
+			'earliestDate' => null,
+			'latestDate' => null,
+			'days' => null,
+			'telemetry' => [
+				'schema' => $schema ?? ['ts'],
+				'data' => [],
+			],
+		];
+	}
 	
 	if ($aggregation !== 'raw') {
 		$startTs = floorToLocalMidnightMs($startTs);
@@ -429,7 +450,6 @@ function getEarliestTimestamp($token, $deviceId, $sensorKeys)
 	$data = json_decode($result, true);
 
 	if (empty($data)) {
-		echo "Keine Telemetriedaten gefunden.\n";
 		return null;
 	}
 
