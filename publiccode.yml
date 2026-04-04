@@ -52,3 +52,6 @@ description:
       Bodenfeuchte-Sensordaten. 
     features:
       - 'Interaktive Datenkarte zur Visualisierung von Bodenfeuchte-Sensordaten. '
+    screenshots:
+      - >-
+        https://gitlab.opencode.de/bad-belzig/wasserkarte/-/raw/main/docs/wasserkarte.jpg
