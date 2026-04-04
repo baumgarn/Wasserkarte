@@ -73,7 +73,7 @@ php api/lasttelemetry.php
 php api/dailyaverages.php
 ```
 
-Dann den Dev-Server starten:
+Dev-Server starten:
 
 ```bash
 npm start
@@ -83,7 +83,6 @@ Build:
 
 ```bash
 npm run build
-npm run serve
 ```
 
 ## Cronjobs
@@ -95,7 +94,7 @@ Die Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die Cach
 5 0 * * * /usr/bin/php /pfad/zum/projekt/api/dailyaverages.php >> $HOME/wasserkarte.log
 ```
 
-`api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte alle zwei Stunden ausgeführt werden
+`api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte alle zwei Stunden ausgeführt werden.
 
 `api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen. Sollte täglich nach Mitternacht ausgeführt werden.
 
