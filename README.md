@@ -2,7 +2,9 @@
 
 # Wasserkarte
 
-Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-Sensordaten. Live-Version: [wasserkarte.org](https://wasserkarte.org)
+Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-Sensordaten.
+
+Live-Version: [wasserkarte.org](https://wasserkarte.org)
 
 ## Über das Projekt
 
