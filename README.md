@@ -1,6 +1,6 @@
 # Wasserkarte
 
-Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-Sensordaten.
+Interaktive Datenkarte zur Visualisierung von Bodenfeuchte-Sensordaten.
 
 Live-Version: [wasserkarte.org](https://wasserkarte.org)
 
@@ -86,18 +86,18 @@ npm run build
 npm run serve
 ```
 
-## Wichtige Cronjobs
+## Cronjobs
 
-Die Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die Cache-Dateien nicht aktuell erzeugt. Die Anwendung stellt standartmäßig nur ddurch diese Skripte aufbereitete Daten dar.
+Die Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die Cache-Dateien nicht aktuell erzeugt. Die Anwendung stellt standartmäßig nur durch diese Skripte aufbereitete Daten dar.
 
 ```cron
 0 */2 * * * /usr/bin/php /pfad/zum/projekt/api/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
 5 0 * * * /usr/bin/php /pfad/zum/projekt/api/dailyaverages.php >> $HOME/wasserkarte.log
 ```
 
-`api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
+`api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte alle zwei Stunden ausgeführt werden
 
-`api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte täglich nach Mitternacht ausgeführt werden.
+`api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen. Sollte täglich nach Mitternacht ausgeführt werden.
 
 ## Lizenz
 
