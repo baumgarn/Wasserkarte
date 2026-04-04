@@ -1,3 +1,7 @@
+<a href="https://zukunftsschusterei.de">
+  <img src="./docs/zukunftsschusterei.png" alt="Zukunftsschusterei" width="200">
+</a>
+
 # Wasserkarte
 
 Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-Sensordaten. Live-Version: [wasserkarte.org](https://wasserkarte.org)
@@ -11,6 +15,8 @@ Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort A
 Projektleitung Wassermeisterei: Daniel Diehl  
 Projektleitung Zukunftsschusterei: Malte Specht   
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
+
+## Screenshots
 
 ![Zukunftsschusterei](./docs/zukunftsschusterei.png)
 

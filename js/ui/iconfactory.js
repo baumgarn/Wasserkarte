@@ -4,10 +4,7 @@ export const IconFactory = {
 	size: 30,
 	cache: new Map(),
 	textures: {},
-	textureUrls: {
-		// soil: '/img/soil_texture.png',
-		// humus: '/img/humus_texture_6.png',
-	},
+	textureUrls: {},
 
 	soilColors: {
 		sand: '#fff1a3',

@@ -135,18 +135,4 @@ export default {
 		filter: drop-shadow(0 1px 1px rgba(0,0,0,.125));
 
 
-	// .warning
-	// .nolocationattributes
-	// .noSoilAttributes
-	// 	display block
-	// 	position absolute
-	// 	width 18px
-	// 	height 18px
-	// 	background url('/img/warning.png') no-repeat center center / 100%
-	// 	background-color #aaa
-	// 	margin 0
-	// .warning
-	// 	background url('/img/warning.png') no-repeat center center / 100%
-	// .nolocationattributes
-	// 	background url('/img/nolocblack.png') no-repeat center center / 100%
 </style>
