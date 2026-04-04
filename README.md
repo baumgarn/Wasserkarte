@@ -88,7 +88,7 @@ Die Cronjobs sind für den produktiven Betrieb notwendig. Ohne sie werden die Ca
 5 0 * * * /usr/bin/php /pfad/zum/projekt/api/dailyaverages.php >> $HOME/wasserkarte.log
 ```
 
-api/lasttelemetry.php aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
+`api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
 
 api/dailyaverages.php erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte kurz nach Mitternacht ausgeführt werden.
 
