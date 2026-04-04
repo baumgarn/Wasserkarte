@@ -12,6 +12,14 @@ Projektleitung Wassermeisterei: Daniel Diehl
 Projektleitung Zukunftsschusterei: Malte Specht   
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
+## Voraussetzungen
+
+Das Projekt setzt eine laufende ThingsBoard-Instanz mit angebundenen Bodenfeuchte-Sensoren voraus.
+
+Erwartet werden Bodenfeuchte-Messungen in den Tiefen 10cm, 30cm, 60cm, 80cm.
+
+Zusätzlich werden Standortattribute für Bodenart, Humusgehalt, Bewässerung und Grundwassereinfluss erwartet. Dokumentation folgt.
+
 ## Setup
 
 Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
@@ -91,4 +99,3 @@ Apache License 2.0. Details in [`LICENSE`](./LICENSE).
 Lizenzinformationen zu verwendeten Bibliotheken liegen unter public/lizenzen/lizenzen.txt.
 
 Hinweis: Die Apache-Lizenz gewaehrt keine Markenrechte. Namen, Logos, Foerderkennzeichen und sonstige geschuetzte Kennzeichen sollten vor einer oeffentlichen Veroeffentlichung separat geprueft werden.
-
