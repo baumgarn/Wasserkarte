@@ -17,11 +17,13 @@ Projektleitung Zukunftsschusterei: Malte Specht
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
 <a href="https://zukunftsschusterei.de">
-  <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" height="70">
+  <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" width="350">
 </a>
 
+<br>
+
 <a href="https://wassermeisterei.org">
-  <img src="./docs/wassermeisterei.jpg" alt="Wassermeisterei" height="70">
+  <img src="./docs/wassermeisterei.jpg" alt="Wassermeisterei" width="350">
 </a>
 
 
