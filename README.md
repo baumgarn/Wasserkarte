@@ -32,8 +32,6 @@ Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](
 
 <img src="./docs/wasserkarte2.jpg" >
 
-<img src="./docs/wasserkarte3.jpg" >
-
 ## Setup
 
 Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
