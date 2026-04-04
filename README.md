@@ -1,8 +1,6 @@
 # Wasserkarte
 
-Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-, Boden- und Standortdaten.
-
-Live-Version: [wasserkarte.org](https://wasserkarte.org)
+Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-Sensordaten. Live-Version: [wasserkarte.org](https://wasserkarte.org)
 
 ## Über das Projekt
 
@@ -93,3 +91,4 @@ Apache License 2.0. Details in [`LICENSE`](./LICENSE).
 Lizenzinformationen zu verwendeten Bibliotheken liegen unter public/lizenzen/lizenzen.txt.
 
 Hinweis: Die Apache-Lizenz gewaehrt keine Markenrechte. Namen, Logos, Foerderkennzeichen und sonstige geschuetzte Kennzeichen sollten vor einer oeffentlichen Veroeffentlichung separat geprueft werden.
+
