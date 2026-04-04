@@ -48,7 +48,7 @@ In `api/config.php` mindestens setzen:
 
 `api/cache/` muss fuer PHP beschreibbar sein.
 
-Die API nutzt `curl` fuer Requests an ThingsBoard und `zlib` fuer die komprimierten Cache-Dateien.
+Der API-Cache nutzt `curl` fuer Requests an ThingsBoard und `zlib` fuer die komprimierten Cache-Dateien.
 
 Der Dev-Server erwartet lokal diese Struktur:
 
@@ -86,9 +86,9 @@ Die Cronjobs sind für den produktiven Betrieb notwendig. Ohne sie werden die Ca
 0 */2 * * * /usr/bin/php /pfad/zum/projekt/api/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
 5 0 * * * /usr/bin/php /pfad/zum/projekt/api/dailyaverages.php >> $HOME/wasserkarte.log
 
-    api/lasttelemetry.php aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
+api/lasttelemetry.php aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
 
-    api/dailyaverages.php erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte kurz nach Mitternacht ausgeführt werden.
+api/dailyaverages.php erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte kurz nach Mitternacht ausgeführt werden.
 
 Die Skripte können auch manuell ausgeführt werden, etwa nach einem frischen Setup oder Deploy.
 
