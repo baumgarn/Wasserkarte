@@ -20,13 +20,6 @@ Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)
   <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" width="250">
 </a>
 
-<br>
-
-<a href="https://wassermeisterei.org">
-  <img src="./docs/wassermeisterei.jpg" alt="Wassermeisterei" width="350">
-</a>
-
-
 ## Voraussetzungen
 
 Das Projekt setzt eine laufende ThingsBoard-Instanz mit angebundenen Bodenfeuchte-Sensoren voraus.
