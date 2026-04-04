@@ -1,6 +1,6 @@
 # Wasserkarte
 
-Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-, Boden- und Standortdaten. Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
+Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-, Boden- und Standortdaten.
 
 Live-Version: [wasserkarte.org](https://wasserkarte.org)
 
@@ -15,6 +15,8 @@ Projektleitung Zukunftsschusterei: Malte Specht
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
 ## Setup
+
+Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
 
 ```bash
 cp api/config-sample.php api/config.php
