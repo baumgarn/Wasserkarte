@@ -8,7 +8,7 @@ Live-Version: [wasserkarte.org](https://wasserkarte.org)
 
 Die Wassermeisterei ist ein Citizen-Science-Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten, um Böden besser zu verstehen und Strategien fuer eine dürre-resiliente Landschaft zu entwickeln.
 
-Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und dem Smart-City-Modellprojekt der Stadt Bad Belzig, der [Zukunftsschusterei](https://zukunftsschusterei.de/).
+Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und dem Smart-City-Modellprojekt der Stadt Bad Belzig [Zukunftsschusterei](https://zukunftsschusterei.de/).
 
 Projektleitung Wassermeisterei: Daniel Diehl  
 Projektleitung Zukunftsschusterei: Malte Specht   
