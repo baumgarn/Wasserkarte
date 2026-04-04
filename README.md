@@ -4,7 +4,7 @@ Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-S
 
 ## Über das Projekt
 
-Die Wassermeisterei ist ein Citizen-Science-Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten, um Böden besser zu verstehen und Strategien fuer eine dürre-resiliente Landschaft zu entwickeln.
+Die Wassermeisterei ist ein Citizen-Science-Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten, um Böden besser zu verstehen und Strategien für eine dürre-resiliente Landschaft zu entwickeln.
 
 Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und dem Smart-City-Modellprojekt der Stadt Bad Belzig [Zukunftsschusterei](https://zukunftsschusterei.de/).
 
@@ -24,14 +24,14 @@ Zusätzlich werden Standortattribute für Bodenart, Humusgehalt, Bewässerung un
 
 Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
 
-Fuer die lokale Entwicklung werden benoetigt:
+Für die lokale Entwicklung werden benoetigt:
 
 - PHP 8+
 - Webserver mit PHP unter `http://localhost/wasserkarte/api/`
 - Node.js 18+
 - npm
 
-Fuer den Betrieb der Anwendung reicht ein Webserver mit PHP. `Node.js` und `npm` werden nur fuer lokale Entwicklung und Build-Prozesse benoetigt.
+Für den Betrieb der Anwendung reicht ein Webserver mit PHP. `Node.js` und `npm` werden nur für lokale Entwicklung und Build-Prozesse benoetigt.
 
 ```bash
 npm install
@@ -46,9 +46,9 @@ In `api/config.php` mindestens setzen:
 - `PASSWORD`
 - `REFRESH_SECRET`
 
-`api/cache/` muss fuer PHP beschreibbar sein.
+`api/cache/` muss für PHP beschreibbar sein.
 
-Der API-Cache nutzt `curl` fuer Requests an ThingsBoard und `zlib` fuer die komprimierten Cache-Dateien.
+Der API-Cache nutzt `curl` für Requests an ThingsBoard und `zlib` für die komprimierten Cache-Dateien.
 
 Der Dev-Server erwartet lokal diese Struktur:
 
@@ -72,7 +72,7 @@ Dann den Dev-Server starten:
 npm start
 ```
 
-## Build
+Build:
 
 ```bash
 npm run build
@@ -90,7 +90,7 @@ Die Cronjobs sind für den produktiven Betrieb notwendig. Ohne sie werden die Ca
 
 `api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
 
-api/dailyaverages.php erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte kurz nach Mitternacht ausgeführt werden.
+`api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte täglich kurz nach Mitternacht ausgeführt werden.
 
 ## Lizenz
 
