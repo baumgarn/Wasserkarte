@@ -88,7 +88,7 @@ npm run serve
 
 ## Wichtige Cronjobs
 
-Die Cronjobs sind für den produktiven Betrieb notwendig. Ohne sie werden die Cache-Dateien nicht aktuell erzeugt, und die Anwendung lädt unvollständig oder veraltet.
+Die Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die Cache-Dateien nicht aktuell erzeugt. Die Anwendung stellt standartmäßig nur ddurch diese Skripte aufbereitete Daten dar.
 
 ```cron
 0 */2 * * * /usr/bin/php /pfad/zum/projekt/api/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
@@ -97,7 +97,7 @@ Die Cronjobs sind für den produktiven Betrieb notwendig. Ohne sie werden die Ca
 
 `api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte mindestens alle zwei Stunden ausgeführt werden
 
-`api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte täglich kurz nach Mitternacht ausgeführt werden.
+`api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte täglich nach Mitternacht ausgeführt werden.
 
 ## Lizenz
 
