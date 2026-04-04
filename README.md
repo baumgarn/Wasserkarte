@@ -31,9 +31,7 @@ Erwartet werden Bodenfeuchte-Messungen in den Tiefen 10cm, 30cm, 60cm, 80cm.
 
 Zusätzlich werden Standortattribute für Bodenart, Humusgehalt, Bewässerung und Grundwassereinfluss erwartet. 
 
-Tutorials zur Sensorinstallation, Bodenbestimmung und vieles mehr auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei: 
-
-https://wassermeisterei.org/wasserwissen/
+Tutorials zur Sensorinstallation, Bodenbestimmung und vieles mehr auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei.
 
 ## Setup
 
