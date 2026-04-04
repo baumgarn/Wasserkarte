@@ -18,7 +18,17 @@ Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)
 
 Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
 
+Fuer die lokale Entwicklung werden benoetigt:
+
+- PHP 8+
+- Webserver mit PHP unter `http://localhost/wasserkarte/api/`
+- Node.js 18+
+- npm
+
+Fuer den Betrieb der Anwendung reicht ein Webserver mit PHP. `Node.js` und `npm` werden nur fuer lokale Entwicklung und Build-Prozesse benoetigt.
+
 ```bash
+npm install
 cp api/config-sample.php api/config.php
 mkdir -p api/cache
 ```
@@ -33,19 +43,6 @@ In `api/config.php` mindestens setzen:
 `api/cache/` muss fuer PHP beschreibbar sein.
 
 Die API nutzt `curl` fuer Requests an ThingsBoard und `zlib` fuer die komprimierten Cache-Dateien.
-
-## Lokale Entwicklung
-
-Fuer die lokale Entwicklung werden benoetigt:
-
-- PHP 8+
-- Webserver mit PHP unter `http://localhost/wasserkarte/api/`
-- Node.js 18+
-- npm
-
-```bash
-npm install
-```
 
 Der Dev-Server erwartet lokal diese Struktur:
 
