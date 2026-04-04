@@ -17,10 +17,12 @@ Projektleitung Zukunftsschusterei: Malte Specht
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
 <a href="https://zukunftsschusterei.de">
-  <img src="./docs/zukunftsschusterei.png" alt="Zukunftsschusterei" width="200">
+  <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" width="200">
 </a>
 
-## Screenshots
+<a href="https://wassermeisterei.org">
+  <img src="./docs/wassermeisterei.jpg" alt="Wassermeisterei" width="200">
+</a>
 
 
 ## Voraussetzungen
@@ -33,14 +35,17 @@ Zusätzlich werden Standortattribute für Bodenart, Humusgehalt, Bewässerung un
 
 Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei.
 
+## Screenshots
+
+
+
 ## Setup
 
 Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
 
 Für die lokale Entwicklung werden benoetigt:
 
-- PHP 8+
-- Webserver mit PHP unter `http://localhost/wasserkarte/api/`
+- Localhost-Webserver mit PHP 8+
 - Node.js 18+
 - npm
 
