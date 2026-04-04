@@ -28,7 +28,11 @@ Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](
 
 ## Screenshots
 
+<img src="./docs/wasserkarte1.jpg" >
 
+<img src="./docs/wasserkarte2.jpg" >
+
+<img src="./docs/wasserkarte3.jpg" >
 
 ## Setup
 
