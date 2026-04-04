@@ -2,6 +2,8 @@
 
 Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-, Boden- und Standortdaten. Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
 
+Live-Version: [wasserkarte.org](https://wasserkarte.org)
+
 ## Über das Projekt
 
 Die Wassermeisterei ist ein Citizen-Science-Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten, um Böden besser zu verstehen und Strategien fuer eine dürre-resiliente Landschaft zu entwickeln.
