@@ -1,10 +1,14 @@
-
+<a href="https://zukunftsschusterei.de">
+  <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" width="250">
+</a>
 
 # Wasserkarte
 
 Interaktive Datenkarte der Wassermeisterei zur Visualisierung von Bodenfeuchte-Sensordaten.
 
 Live-Version: [wasserkarte.org](https://wasserkarte.org)
+
+<img src="./docs/wasserkarte.jpg" >
 
 ## Über das Projekt
 
@@ -16,21 +20,12 @@ Projektleitung Wassermeisterei: Daniel Diehl
 Projektleitung Zukunftsschusterei: Malte Specht   
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
-<a href="https://zukunftsschusterei.de">
-  <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" width="250">
-</a>
 
 ## Voraussetzungen
 
 Das Projekt setzt eine laufende ThingsBoard-Instanz mit angebundenen Bodenfeuchte-Sensoren voraus. Erwartet werden Bodenfeuchte-Messungen in den Tiefen 10cm, 30cm, 60cm, 80cm. Zusätzlich werden Standortattribute für Bodenart, Humusgehalt, Bewässerung und Grundwassereinfluss erwartet. 
 
 Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei.
-
-## Screenshots
-
-<img src="./docs/wasserkarte1.jpg" >
-
-<img src="./docs/wasserkarte2.jpg" >
 
 ## Setup
 

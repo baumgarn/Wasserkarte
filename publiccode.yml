@@ -1,0 +1,54 @@
+# This repository adheres to the publiccode.yml standard by including this 
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/italia/publiccode.yml
+
+publiccodeYmlVersion: '0.2'
+categories:
+  - data-visualization
+name: Wasserkarte
+url: 'https://gitlab.opencode.de/bad-belzig/wasserkarte'
+landingURL: 'https://wasserkarte.org'
+releaseDate: '2026-04-07'
+developmentStatus: development
+platforms:
+  - web
+softwareType: standalone/web
+maintenance:
+  type: internal
+  contacts:
+    - name: Nikolaus Baumgarten
+      email: nikolausbaumgarten@gmail.com
+legal:
+  license: Apache-2.0
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - de
+description:
+  it:
+    genericName: Data visualization
+    longDescription: >
+      Interaktive Datenkarte der Wassermeisterei zur Visualisierung von
+      Bodenfeuchte-Sensordaten. 
+
+
+      Die [Wassermeisterei](https://wassermeisterei.org/) ist ein
+      Citizen-Science-Projekt im Hohen Fläming. In der trockensten Region
+      Deutschlands stellen Bürger\*innen Bodenfeuchte-Sensoren auf und sammeln
+      Daten, um Böden besser zu verstehen und Strategien für eine
+      dürre-resiliente Landschaft zu entwickeln.
+
+
+      Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger
+      Lernort Arensnest und dem Smart-City-Modellprojekt der Stadt Bad Belzig
+      [Zukunftsschusterei](https://zukunftsschusterei.de/).
+
+
+      Projektleitung Wassermeisterei: Daniel Diehl
+       Projektleitung Zukunftsschusterei: Malte Specht
+       Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net/)
+    shortDescription: >-
+      Interaktive Datenkarte der Wassermeisterei zur Visualisierung von
+      Bodenfeuchte-Sensordaten. 
+    features:
+      - 'Interaktive Datenkarte zur Visualisierung von Bodenfeuchte-Sensordaten. '
