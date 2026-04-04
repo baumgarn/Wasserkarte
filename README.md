@@ -64,7 +64,7 @@ http://localhost/wasserkarte/
 http://localhost/wasserkarte/api/
 ```
 
-`vite.config.js` proxyt `/api` standardmaessig an `http://localhost/wasserkarte/api/`. Das sollte in der Entwicklung aktiv bleiben, weil Vite PHP-Dateien nicht ausfuehrt.
+`vite.config.js` proxyt `/api` standardmäßig an `http://localhost/wasserkarte/api/`. Das sollte in der Entwicklung aktiv bleiben, weil Vite PHP-Dateien nicht ausfuehrt.
 
 Vor dem ersten Start die Cache-Dateien erzeugen:
 
