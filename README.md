@@ -85,8 +85,6 @@ Build:
 npm run build
 ```
 
-## Cronjobs
-
 Folgende Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die Cache-Dateien nicht aktuell erzeugt. Die Anwendung stellt standartmäßig nur durch diese Skripte aufbereitete Daten dar.
 
 ```cron
