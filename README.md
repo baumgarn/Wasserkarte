@@ -1,6 +1,4 @@
-<a href="https://zukunftsschusterei.de">
-  <img src="./docs/zukunftsschusterei.png" alt="Zukunftsschusterei" width="200">
-</a>
+
 
 # Wasserkarte
 
@@ -16,9 +14,11 @@ Projektleitung Wassermeisterei: Daniel Diehl
 Projektleitung Zukunftsschusterei: Malte Specht   
 Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
 
-## Screenshots
+<a href="https://zukunftsschusterei.de">
+  <img src="./docs/zukunftsschusterei.png" alt="Zukunftsschusterei" width="200">
+</a>
 
-![Zukunftsschusterei](./docs/zukunftsschusterei.png)
+## Screenshots
 
 
 ## Voraussetzungen
