@@ -90,8 +90,6 @@ api/lasttelemetry.php aktualisiert Gerätedaten und letzte Messwerte, sollte min
 
 api/dailyaverages.php erzeugt tägliche aggregierte Zeitreihen und die komprimierten Gesamt-Caches. Sollte kurz nach Mitternacht ausgeführt werden.
 
-Die Skripte können auch manuell ausgeführt werden, etwa nach einem frischen Setup oder Deploy.
-
 ## Lizenz
 
 Apache License 2.0. Details in [`LICENSE`](./LICENSE).
