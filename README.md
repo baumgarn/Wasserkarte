@@ -103,6 +103,8 @@ Die Cronjobs sind für den produktiven Betrieb notwendig. Ohne sie werden die Ca
 
 ## Lizenz
 
+Copyright 2026 Nikolaus Baumgarten
+
 Apache License 2.0. Details in [`LICENSE`](./LICENSE).
 
 Lizenzinformationen zu verwendeten Bibliotheken liegen unter public/lizenzen/lizenzen.txt.
