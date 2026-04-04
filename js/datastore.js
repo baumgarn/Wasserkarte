@@ -702,6 +702,10 @@ const dataStore = {
 	},
 
 	getDeviceMeasurementRange(device) {
+		const normalizeMeasurementTimestamp = timestamp => (
+			Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null
+		);
+
 		if (!device) {
 			return {
 				first: null,
@@ -712,6 +716,8 @@ const dataStore = {
 		const hasFirst = Object.prototype.hasOwnProperty.call(device, 'first_measurement_ts');
 		const hasLast = Object.prototype.hasOwnProperty.call(device, 'last_measurement_ts');
 		if (hasFirst && hasLast) {
+			device.first_measurement_ts = normalizeMeasurementTimestamp(device.first_measurement_ts);
+			device.last_measurement_ts = normalizeMeasurementTimestamp(device.last_measurement_ts);
 			return {
 				first: device.first_measurement_ts,
 				last: device.last_measurement_ts,
@@ -733,17 +739,17 @@ const dataStore = {
 
 		for (const row of rows) {
 			const ts = row?.[0];
-			if (!Number.isFinite(ts)) continue;
+			if (!Number.isFinite(ts) || ts <= 0) continue;
 			if (first == null || ts < first) first = ts;
 			if (last == null || ts > last) last = ts;
 		}
 
-		device.first_measurement_ts = first;
-		device.last_measurement_ts = last;
+		device.first_measurement_ts = normalizeMeasurementTimestamp(first);
+		device.last_measurement_ts = normalizeMeasurementTimestamp(last);
 
 		return {
-			first,
-			last,
+			first: device.first_measurement_ts,
+			last: device.last_measurement_ts,
 		};
 	}
 
