@@ -319,7 +319,7 @@ export default {
 	opacity .9
 
 .icon.type-bodenkunde
-	background-image url(/img/buch2.png)
+	background-image url(/img/buch.png)
 	background-size 90%
 
 .icon.type-einstellungen

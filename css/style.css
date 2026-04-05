@@ -336,7 +336,7 @@ button.ol-zoom-out {
 }
 .menuwindow-button.legende:after,
 .menuwindow-button.extended:after {
-  background-image: url("/img/legende2.png");
+  background-image: url("/img/legende.png");
   opacity: 1;
 }
 .menuwindow-button.transparent:after {

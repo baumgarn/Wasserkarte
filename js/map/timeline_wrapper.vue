@@ -225,7 +225,7 @@ export default {
 			top 0
 			right 0
 			bottom 0
-			background url(/img/clock2.png)
+			background url(/img/clock.png)
 			background-size 95% 95%
 			background-repeat no-repeat
 			background-position center
