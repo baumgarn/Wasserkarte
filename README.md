@@ -32,13 +32,13 @@ Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](
 
 Das Projekt besteht aus einem Vue-Frontend und einem PHP API-Cache, der Daten aus ThingsBoard lädt, aufbereitet und cached.
 
-Für die lokale Entwicklung werden benoetigt:
+Für die lokale Entwicklung werden benötigt:
 
 - Localhost-Webserver mit PHP 8+
 - Node.js 18+
 - npm
 
-Für den Betrieb der Anwendung reicht ein Webserver mit PHP. `Node.js` und `npm` werden nur für lokale Entwicklung und Build-Prozesse benoetigt.
+Für den Betrieb der Anwendung reicht ein Webserver mit PHP. `Node.js` und `npm` werden nur für lokale Entwicklung und Build-Prozesse benötigt.
 
 ```bash
 npm install
@@ -64,7 +64,7 @@ http://localhost/wasserkarte/
 http://localhost/wasserkarte/api/
 ```
 
-`vite.config.js` proxyt `/api` standardmäßig an `http://localhost/wasserkarte/api/`. Das sollte in der Entwicklung aktiv bleiben, weil Vite PHP-Dateien nicht ausfuehrt.
+`vite.config.js` proxyt `/api` standardmäßig an `http://localhost/wasserkarte/api/`. Das sollte in der Entwicklung aktiv bleiben, weil Vite PHP-Dateien nicht ausführt.
 
 Vor dem ersten Start die Cache-Dateien erzeugen:
 
