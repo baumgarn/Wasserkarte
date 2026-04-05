@@ -2,19 +2,19 @@
 
 Interaktive Datenkarte zur Visualisierung von Bodenfeuchte-Sensordaten.
 
-Live-Version: [wasserkarte.org](https://wasserkarte.org)
+Live-Version: <a href="https://wasserkarte.org" target="_blank">wasserkarte.org</a>
 
 ## Über das Projekt
 
 Die [Wassermeisterei](https://wassermeisterei.org) ist ein Citizen-Science-Projekt im Hohen Fläming. In der trockensten Region Deutschlands stellen Bürger*innen Bodenfeuchte-Sensoren auf und sammeln Daten, um Böden besser zu verstehen und Strategien für eine dürre-resiliente Landschaft zu entwickeln. Diese Datenkarte dient der Visualisierung der gesammelten Bodenfeuchte-Sensordaten.
 
-Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und dem Smart-City-Modellprojekt der Stadt Bad Belzig [Zukunftsschusterei](https://zukunftsschusterei.de/).
+Die Umsetzung erfolgt in Zusammenarbeit zwischen dem Verein Lebendiger Lernort Arensnest und dem Smart-City-Modellprojekt der Stadt Bad Belzig <a href="https://zukunftsschusterei.de" target="_blank">Zukunftsschusterei</a>
 
 Projektleitung Wassermeisterei: Daniel Diehl  
 Projektleitung Zukunftsschusterei: Malte Specht   
-Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)  
+Design und Programmierung Wasserkarte: <a href="https://nikkki.net" target="_blank">Nikolaus Baumgarten</a>
 
-<a href="https://zukunftsschusterei.de">
+<a href="https://zukunftsschusterei.de" target="_blank">
   <img src="./docs/zukunftsschusterei.jpg" alt="Zukunftsschusterei" width="250">
 </a>
 
@@ -22,7 +22,7 @@ Design und Programmierung Wasserkarte: [Nikolaus Baumgarten](https://nikkki.net)
 
 Das Projekt setzt eine laufende ThingsBoard-Instanz mit angebundenen Bodenfeuchte-Sensoren voraus. Erwartet werden Bodenfeuchte-Messungen in den Tiefen 10cm, 30cm, 60cm, 80cm. Zusätzlich werden Standortattribute für Bodenart, Humusgehalt, Bewässerung und Grundwassereinfluss erwartet. 
 
-Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei.
+Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der <a href="https://wassermeisterei.org/wasserwissen" target="_blank">Wasserwissen</a> Seite der Wassermeisterei.
 
 ## Screenshot
 
