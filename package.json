@@ -26,6 +26,7 @@
     "vue3-openlayers": "^11.5.0"
   },
   "description": "Wassermeisterei Datenkarte",
+  "license": "GPL-3.0-or-later",
   "main": "app_.js",
   "author": "Nikolaus Baumgarten"
 }

@@ -15,7 +15,7 @@ maintenance:
     - name: Nikolaus Baumgarten
       email: nikolausbaumgarten@gmail.com
 legal:
-  license: Apache-2.0
+  license: GPL-3.0-or-later
 localisation:
   localisationReady: false
   availableLanguages:

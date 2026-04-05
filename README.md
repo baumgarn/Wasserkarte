@@ -98,8 +98,10 @@ Folgende Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die
 
 ## Lizenz
 
-Apache License 2.0. Details in [`LICENSE`](./LICENSE).
+Copyright 2026 Nikolaus Baumgarten
+
+GNU General Public License, Version 3 or later (`GPL-3.0-or-later`). Details in [`LICENSE`](./LICENSE).
 
 Lizenzinformationen zu verwendeten Bibliotheken liegen unter public/lizenzen/lizenzen.txt.
 
-Hinweis: Die Apache-Lizenz gewährt keine Markenrechte. Namen, Logos, Förderkennzeichen und sonstige geschützte Kennzeichen sollten vor einer öffentlichen Veröffentlichung separat geprüft werden.
+Hinweis: Die GPL gewährt keine Markenrechte. Namen, Logos, Förderkennzeichen und sonstige geschützte Kennzeichen sollten vor einer öffentlichen Veröffentlichung separat geprüft werden.
