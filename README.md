@@ -55,7 +55,7 @@ In `api/config.php` mindestens setzen:
 
 `api/cache/` muss für PHP beschreibbar sein.
 
-Der API-Cache nutzt `curl` für Requests an ThingsBoard und `zlib` für die komprimierten Cache-Dateien.
+Der API-Cache nutzt `curl` für Requests an ThingsBoard und `zlib` zum komprimieren der Cache-Dateien.
 
 Der Dev-Server erwartet lokal diese Struktur:
 
