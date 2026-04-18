@@ -25,6 +25,53 @@ function loadSoilTable(): array
 
 $soil_table = loadSoilTable();
 
+function normalizeSoilTableKey($value): ?string
+{
+	if ($value === null) {
+		return null;
+	}
+
+	$value = trim((string) $value);
+	return $value === '' ? null : $value;
+}
+
+function normalizeHumusKey($value): ?string
+{
+	$value = normalizeSoilTableKey($value);
+	if ($value === 'h0' || $value === 'h1') {
+		return 'h0-1';
+	}
+
+	return $value;
+}
+
+function getSoilWaterCapacityValues(array $atts, int $depth, array $soilTable): ?array
+{
+	$soil = normalizeSoilTableKey($atts['Bodenart_' . $depth . 'cm'] ?? $atts['Bodenart'] ?? null);
+	$humus = normalizeHumusKey($atts['Humusgehalt_' . $depth . 'cm'] ?? $atts['Humusgehalt'] ?? null);
+
+	if ($soil === null || $humus === null) {
+		return null;
+	}
+
+	if (
+		$humus === 'h5'
+		&& !isset($soilTable[$soil]['FK'][$humus], $soilTable[$soil]['TW'][$humus])
+		&& isset($soilTable[$soil]['FK']['h4'], $soilTable[$soil]['TW']['h4'])
+	) {
+		$humus = 'h4';
+	}
+
+	if (!isset($soilTable[$soil]['FK'][$humus], $soilTable[$soil]['TW'][$humus])) {
+		return null;
+	}
+
+	return [
+		'FK' => $soilTable[$soil]['FK'][$humus],
+		'TW' => $soilTable[$soil]['TW'][$humus],
+	];
+}
+
 
 function expandSchema($schema) {
 	
@@ -75,36 +122,24 @@ function expandSensorDataWithCalculations($data, $deviceInfo) {
 	$vol_avg_index = $fieldIndex['vol_avg'] ?? null;
 
 	// nfk_10 check
-	if (in_array('Bodenfeuchte_10cm', $schema) && (array_key_exists('Bodenart_10cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil10 = $atts['Bodenart_10cm'] ?? $atts['Bodenart'];
-		$humus10 = $atts['Humusgehalt_10cm'] ?? $atts['Humusgehalt'];
-		if ($humus10 == 'h0' || $humus10 == 'h1') {$humus10 = 'h0-1';}
-		$FK10 = $soil_table[$soil10]['FK'][$humus10];
-		$TW10 = $soil_table[$soil10]['TW'][$humus10];
+	if (in_array('Bodenfeuchte_10cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 10, $soil_table)) !== null) {
+		$FK10 = $soilValues['FK'];
+		$TW10 = $soilValues['TW'];
 	}
 	// nfk_30 check
-	if (in_array('Bodenfeuchte_30cm', $schema) && (array_key_exists('Bodenart_30cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil30 = $atts['Bodenart_30cm'] ?? $atts['Bodenart'];
-		$humus30 = $atts['Humusgehalt_30cm'] ?? $atts['Humusgehalt'];
-		if ($humus30 == 'h0' || $humus30 == 'h1') {$humus30 = 'h0-1';}
-		$FK30 = $soil_table[$soil30]['FK'][$humus30];
-		$TW30 = $soil_table[$soil30]['TW'][$humus30];
+	if (in_array('Bodenfeuchte_30cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 30, $soil_table)) !== null) {
+		$FK30 = $soilValues['FK'];
+		$TW30 = $soilValues['TW'];
 	}
 	// nfk_60 check
-	if (in_array('Bodenfeuchte_60cm', $schema) && (array_key_exists('Bodenart_60cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil60 = $atts['Bodenart_60cm'] ?? $atts['Bodenart'];
-		$humus60 = $atts['Humusgehalt_60cm'] ?? $atts['Humusgehalt'];
-		if ($humus60 == 'h0' || $humus60 == 'h1') {$humus60 = 'h0-1';}
-		$FK60 = $soil_table[$soil60]['FK'][$humus60];
-		$TW60 = $soil_table[$soil60]['TW'][$humus60];
+	if (in_array('Bodenfeuchte_60cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 60, $soil_table)) !== null) {
+		$FK60 = $soilValues['FK'];
+		$TW60 = $soilValues['TW'];
 	}
 	// nfk_80 check
-	if (in_array('Bodenfeuchte_80cm', $schema) && (array_key_exists('Bodenart_80cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil80 = $atts['Bodenart_80cm'] ?? $atts['Bodenart'];
-		$humus80 = $atts['Humusgehalt_80cm'] ?? $atts['Humusgehalt'];
-		if ($humus80 == 'h0' || $humus80 == 'h1') {$humus80 = 'h0-1';}
-		$FK80 = $soil_table[$soil80]['FK'][$humus80];
-		$TW80 = $soil_table[$soil80]['TW'][$humus80];
+	if (in_array('Bodenfeuchte_80cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 80, $soil_table)) !== null) {
+		$FK80 = $soilValues['FK'];
+		$TW80 = $soilValues['TW'];
 	}
 
 	foreach ($data['data'] as &$row) {
@@ -202,36 +237,24 @@ function setAvgTWFK($deviceInfo) {
 	$FK10 = $TW10 = $FK30 = $TW30 = $FK60 = $TW60 = $FK80 = $TW80 = null;
 
 	// nfk_10 check
-	if (in_array('Bodenfeuchte_10cm', $schema) && (array_key_exists('Bodenart_10cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil10 = $atts['Bodenart_10cm'] ?? $atts['Bodenart'];
-		$humus10 = $atts['Humusgehalt_10cm'] ?? $atts['Humusgehalt'];
-		if ($humus10 == 'h0' || $humus10 == 'h1') {$humus10 = 'h0-1';}
-		$FK10 = $soil_table[$soil10]['FK'][$humus10];
-		$TW10 = $soil_table[$soil10]['TW'][$humus10];
+	if (in_array('Bodenfeuchte_10cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 10, $soil_table)) !== null) {
+		$FK10 = $soilValues['FK'];
+		$TW10 = $soilValues['TW'];
 	}
 	// nfk_30 check
-	if (in_array('Bodenfeuchte_30cm', $schema) && (array_key_exists('Bodenart_30cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil30 = $atts['Bodenart_30cm'] ?? $atts['Bodenart'];
-		$humus30 = $atts['Humusgehalt_30cm'] ?? $atts['Humusgehalt'];
-		if ($humus30 == 'h0' || $humus30 == 'h1') {$humus30 = 'h0-1';}
-		$FK30 = $soil_table[$soil30]['FK'][$humus30];
-		$TW30 = $soil_table[$soil30]['TW'][$humus30];
+	if (in_array('Bodenfeuchte_30cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 30, $soil_table)) !== null) {
+		$FK30 = $soilValues['FK'];
+		$TW30 = $soilValues['TW'];
 	}
 	// nfk_60 check
-	if (in_array('Bodenfeuchte_60cm', $schema) && (array_key_exists('Bodenart_60cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil60 = $atts['Bodenart_60cm'] ?? $atts['Bodenart'];
-		$humus60 = $atts['Humusgehalt_60cm'] ?? $atts['Humusgehalt'];
-		if ($humus60 == 'h0' || $humus60 == 'h1') {$humus60 = 'h0-1';}
-		$FK60 = $soil_table[$soil60]['FK'][$humus60];
-		$TW60 = $soil_table[$soil60]['TW'][$humus60];
+	if (in_array('Bodenfeuchte_60cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 60, $soil_table)) !== null) {
+		$FK60 = $soilValues['FK'];
+		$TW60 = $soilValues['TW'];
 	}
 	// nfk_80 check
-	if (in_array('Bodenfeuchte_80cm', $schema) && (array_key_exists('Bodenart_80cm', $atts) || array_key_exists('Bodenart', $atts))) {
-		$soil80 = $atts['Bodenart_80cm'] ?? $atts['Bodenart'];
-		$humus80 = $atts['Humusgehalt_80cm'] ?? $atts['Humusgehalt'];
-		if ($humus80 == 'h0' || $humus80 == 'h1') {$humus80 = 'h0-1';}
-		$FK80 = $soil_table[$soil80]['FK'][$humus80];
-		$TW80 = $soil_table[$soil80]['TW'][$humus80];
+	if (in_array('Bodenfeuchte_80cm', $schema) && ($soilValues = getSoilWaterCapacityValues($atts, 80, $soil_table)) !== null) {
+		$FK80 = $soilValues['FK'];
+		$TW80 = $soilValues['TW'];
 	}
 
 	$avg_FK = round(avg_value($FK10,$FK30,$FK60,$FK80), 2);

@@ -144,7 +144,8 @@ export default {
 				this.clampHeight();
 
 				setTimeout(() => {
-					document.addEventListener('mousedown', this.handleOutsideClick);
+					if (!this.isOpen) return;
+					this.addOutsideListeners();
 					window.addEventListener('resize', this.clampHeight);
 				}, 0);
 			});
@@ -152,9 +153,21 @@ export default {
 
 		close() {
 			this.isOpen = false;
-			document.removeEventListener('mousedown', this.handleOutsideClick);
+			this.removeOutsideListeners();
 			window.removeEventListener('resize', this.clampHeight);
 			state.popupMenuOpen = false;
+		},
+
+		addOutsideListeners() {
+			document.addEventListener('pointerdown', this.handleOutsideClick, true);
+			document.addEventListener('mousedown', this.handleOutsideClick, true);
+			document.addEventListener('touchstart', this.handleOutsideClick, true);
+		},
+
+		removeOutsideListeners() {
+			document.removeEventListener('pointerdown', this.handleOutsideClick, true);
+			document.removeEventListener('mousedown', this.handleOutsideClick, true);
+			document.removeEventListener('touchstart', this.handleOutsideClick, true);
 		},
 
 		clampHeight() {
@@ -168,6 +181,7 @@ export default {
 		},
 
 		handleOutsideClick(e) {
+			if (!this.isOpen) return;
 
 			if (!this.$el.contains(e.target)) {
 				this.close();
@@ -226,7 +240,7 @@ export default {
 
 	beforeUnmount() {
 		window.removeEventListener('app:close-popovers', this.handleGlobalClose);
-		document.removeEventListener('click', this.handleOutsideClick);
+		this.removeOutsideListeners();
 		window.removeEventListener('resize', this.clampHeight);
 		state.popupMenuOpen = false;
 	}

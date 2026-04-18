@@ -239,6 +239,9 @@ export default {
 	background-size 120%
 	opacity 1
 
+.icon.type-tropfen
+	background-image url(/img/tropfen.png)
+
 .icon.type-tropfen-flat
 	background-image url(/img/tropfen_flat.png)
 

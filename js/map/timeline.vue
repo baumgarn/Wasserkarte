@@ -1,6 +1,6 @@
 <template>
 
-	<div class="timeline" ref="timeline" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
+	<div class="timeline" ref="timeline" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hover" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 
 		<img v-if="heatmapImageUrl" class="heatmap-image" :src="heatmapImageUrl" alt="" draggable="false">
 
@@ -295,14 +295,26 @@ export default {
 			this.heatmapImageUrl = imageUrl;
 		},
 		hover(event) {
+			if (event.type === 'mousemove' && this._lastTouchEventAt && Date.now() - this._lastTouchEventAt < 700) {
+				return;
+			}
+
 			const rect = this.$refs.timeline.getBoundingClientRect();
 			if (event.type === 'mousemove') {
 				this.hoverPosition = event.clientX - rect.left;
 			} else if (event.type === 'touchmove' || event.type === 'touchstart') {
+				this._lastTouchEventAt = Date.now();
+				if (!event.touches?.length) {
+					this.hoverOut();
+					return;
+				}
 				this.hoverPosition = event.touches[0].clientX - rect.left;
 			}
 		},
-		hoverOut() {
+		hoverOut(event) {
+			if (event?.type?.startsWith('touch')) {
+				this._lastTouchEventAt = Date.now();
+			}
 			this.hoverPosition = -1;
 			state.timelineDate = null;
 		},
@@ -387,6 +399,10 @@ export default {
 		this.processDailyAverages();
 		this.updateSelectedDeviceTelemetry();
 		this.updateTimelineMetrics();
+		this._boundHoverOut = this.hoverOut.bind(this);
+		window.addEventListener('touchend', this._boundHoverOut, { passive: true });
+		window.addEventListener('touchcancel', this._boundHoverOut, { passive: true });
+		window.addEventListener('blur', this._boundHoverOut);
 		this._timelineResizeObserver = new ResizeObserver(() => {
 			this.updateTimelineMetrics();
 		});
@@ -395,6 +411,9 @@ export default {
 	beforeUnmount() {
 		if (this._timelineResizeObserver) this._timelineResizeObserver.disconnect();
 		if (this.heatmapRenderRaf != null) cancelAnimationFrame(this.heatmapRenderRaf);
+		window.removeEventListener('touchend', this._boundHoverOut);
+		window.removeEventListener('touchcancel', this._boundHoverOut);
+		window.removeEventListener('blur', this._boundHoverOut);
 	},
 };
 </script>
@@ -406,6 +425,7 @@ export default {
 		display block
 		width 100%
 		height var(--timelineheight);
+		user-select none
 		.heatmap-image
 			position absolute
 			inset 0

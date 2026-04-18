@@ -37,11 +37,11 @@
 	computed: {
 		barrel_width() {
 			// return (state.windowWidth < 600) ? 140 : 175;
-			return (state.windowWidth < 600) ? 140 : 160;
+			return (state.windowWidth < 600) ? 130 : 160;
 		},
 		barrel_height() {
 			// return (state.windowWidth < 600) ? 125 : 150;
-			return (state.windowWidth < 600) ? 125 : 135;
+			return (state.windowWidth < 600) ? 110 : 135;
 		},
 		canvasWidth() {
 			return this.barrel_width + this.margin * 2;

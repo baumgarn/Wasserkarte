@@ -115,6 +115,14 @@ export const dataModel = {
 			humus: '2,5 – <5 %',
 			corg: '4,3 – <8,8 %'
 		},
+		// "h5": {
+		// 	name: "Stark humos",
+		// 	short:'h4',
+		// 	sort: 4,
+		// 	color: '#c5aba0',
+		// 	humus: '2,5 – <5 %',
+		// 	corg: '4,3 – <8,8 %'
+		// },
 		// "org": { name: "Organisch", short:'org' } 
 	},
 
@@ -437,6 +445,14 @@ export const dataModel = {
 		const boden = device.attributes.Bodenart;
 
 		if (humus == 'h0' || humus == 'h1') humus = 'h0-1'
+		if (
+			humus == 'h5'
+			&& !(this.soil_table[boden]?.FK?.[humus] != null && this.soil_table[boden]?.TW?.[humus] != null)
+			&& this.soil_table[boden]?.FK?.h4 != null
+			&& this.soil_table[boden]?.TW?.h4 != null
+		) {
+			humus = 'h4'
+		}
 
 		if (!this.soil_table[boden] || !this.soil_table[boden].FK[humus] || !this.soil_table[boden].TW[humus]) {
 			console.warn("Unberücksichtigte Kombination aus Bodenart und Humusklasse:", boden, humus);

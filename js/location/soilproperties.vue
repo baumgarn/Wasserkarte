@@ -1,7 +1,6 @@
 <template>
 
 	<div class="filteritems" v-if="device" >
-
 		<FilterItem v-if="usageObj" :obj="usageObj"/>
 		
 		<FilterItem v-if="bewaessertObj" :obj="bewaessertObj"/>

@@ -350,17 +350,33 @@ export default {
 		getSensorValue() {
 			return this.device.telemetry[schicht];
 		},
+		isTouchLikeInteraction(event) {
+			if (state.isMobile) return true;
+			if (event?.pointerType === 'touch') return true;
+			if (event?.sourceCapabilities?.firesTouchEvents) return true;
+			if (typeof window === 'undefined') return false;
+			return window.matchMedia?.('(hover: none), (pointer: coarse)')?.matches || false;
+		},
+		clearHover() {
+			this.mouseover = false;
+			if (this.map?.mouseoverDevice === this.device) {
+				this.map.mouseoverDevice = null;
+			}
+		},
 		onMouseEnter(event) {
+			if (this.isTouchLikeInteraction(event)) return;
 			this.mouseover = true;
 			this.map.mouseoverDevice = this.device;
 			this.setZindex()
 		},
 		onMouseLeave(event) {
-			this.mouseover = false;
-			this.map.mouseoverDevice = null;
+			this.clearHover();
 			this.setZindex()
 		},
 		click(event) {
+			if (this.isTouchLikeInteraction(event)) {
+				this.clearHover();
+			}
 			state.markerClicked = true;
 			state.selectedDevice = this.device?.name || null;
 		},

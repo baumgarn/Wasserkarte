@@ -11,7 +11,7 @@
 
 					
 					<SelectGroup
-					:items="[	{ label: 'Schild Farbe', value: 'schild' },{ label: 'Schild SW', value: 'schildsw' }, 
+					:items="[	{ label: '162x222', value: 'schild162222' }, { label: 'A5', value: 'schild' },{ label: 'SW A5', value: 'schildsw' }, 
 								{ label: 'QR Code', value: 'qrcode' },]"
 					 	v-model="qrcodeStyle" />
 						 
@@ -35,6 +35,7 @@
 									<QrCodeContent v-if="qrcodeStyle=='qrcode'" :name="name" />
 									<QrCodeSchildContent v-else-if="qrcodeStyle=='schild'" :name="name" />
 									<QrCodeSchildContentGrau v-else-if="qrcodeStyle=='schildsw'" :name="name" />
+									<QrCodeSchildContent162222 v-else-if="qrcodeStyle=='schild162222'" :name="name" />
 								</div>
 
 							</a>
@@ -62,29 +63,36 @@ import { state } from '@/state.js';
 import dataStore from '@/datastore.js';
 import SelectGroup from '@/ui/selectgroup.vue';
 import QrCodeSchildContent from '@/views/qrcode_schildcontent.vue';
+import QrCodeSchildContent162222 from '@/views/qrcode_schildcontent_162_222.vue';
 import QrCodeSchildContentGrau from '@/views/qrcode_schildcontentgrau.vue';
 import QrCodeContent from '@/views/qrcode_qrcodecontent.vue';
 import MenuDevicesMultiselect from '@/menu/menu_devices_multiselect.vue';
 
 
 export default {
-	components: { QrCodeContent, QrCodeSchildContent, QrCodeSchildContentGrau, MenuDevicesMultiselect, SelectGroup },
+	components: { QrCodeContent, QrCodeSchildContent, QrCodeSchildContent162222, QrCodeSchildContentGrau, MenuDevicesMultiselect, SelectGroup },
 	data() {
 		return {
 			schildwidth: 148,
 			schildheight: 210,
+			schild162222width: 162,
+			schild162222height: 222,
 			qrcodewidth: 100,
 			qrcodeheight: 100,
 			scale: 1,
-			qrcodeStyle : 'schild',
+			qrcodeStyle : 'schild162222',
 		};
 	},
 	computed: {
 		pagewidth() {
-			return (this.qrcodeStyle == 'qrcode') ?  this.qrcodewidth : this.schildwidth;
+			if (this.qrcodeStyle == 'qrcode') return this.qrcodewidth;
+			if (this.qrcodeStyle == 'schild162222') return this.schild162222width;
+			return this.schildwidth;
 		} ,
 		pageheight() {
-			return (this.qrcodeStyle == 'qrcode') ? this.qrcodeheight : this.schildheight;
+			if (this.qrcodeStyle == 'qrcode') return this.qrcodeheight;
+			if (this.qrcodeStyle == 'schild162222') return this.schild162222height;
+			return this.schildheight;
 		} ,
 		devices() {
 			return state.devicesMultiselect
@@ -138,6 +146,16 @@ export default {
 			
 			const element = this.$refs.pdfelement;
 			const sections = Array.from(element.querySelectorAll('.page'));
+			const printDpi = 300;
+			const cssPixelsPerMm = 96 / 25.4;
+			const renderWidth = this.pagewidth * cssPixelsPerMm;
+			const renderHeight = this.pageheight * cssPixelsPerMm;
+			const targetCanvasWidth = Math.ceil((this.pagewidth / 25.4) * printDpi);
+			const targetCanvasHeight = Math.ceil((this.pageheight / 25.4) * printDpi);
+			const printScale = Math.max(
+				(targetCanvasWidth + 0.01) / renderWidth,
+				(targetCanvasHeight + 0.01) / renderHeight
+			);
 			
 			if (this.devices.length > 1) {
 				var filename = 'schilder_wassermeisterei.pdf'
@@ -149,7 +167,7 @@ export default {
 				margin: 0,
 				filename: filename,
 				image: { type: 'png' },
-				html2canvas: { scale: this.qrcodeStyle == 'qrcode' ? 3 : 2 },
+				html2canvas: { scale: printScale, width: renderWidth, height: renderHeight },
 				jsPDF: { unit: 'mm', format: [this.pagewidth, this.pageheight], orientation: 'portrait' }
 			};
 

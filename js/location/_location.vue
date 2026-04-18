@@ -16,6 +16,7 @@
 	import ChartSettings from '@/charts/chart_settings.vue';
 	import SchichtenUebersicht from '@/location/schichten_uebersicht.vue';
 	import SelectGroup from '@/ui/selectgroup.vue';
+	import Icon from '@/ui/Icon.vue';
 	import MiniMap from '@/map/minimap.vue';
 	import dataStore from '@/datastore.js';
 	import { state } from '@/state.js';
@@ -32,6 +33,7 @@
 			SoilProperties,
 			Beschreibung,
 			ChartHeat,
+			Icon,
 			ChartGraph,
 			ChartSettings,
 			DebugInfo,
@@ -568,9 +570,7 @@
 	/> -->
 
 	<div v-if="context=='single'" class="linktomap" @click="linktomap">
-		<div class="sensor">
-			<img src="/img/sensor.png" >
-		</div>
+		<Icon type="tropfen" size="32"/>
 		<div class="text">
 			Alle Standorte auf der Wasserkarte ansehen
 		</div>
@@ -610,20 +610,22 @@
 		cursor pointer
 		right 0
 		bottom 0
-		background #dcd8ec
-		border-top 1px solid #00000022
-		box-shadow 0 0 4px #00000011
+		background #eceaf5
+		// border-top 1px solid #00000022
+		box-shadow 0 -2px 2px #00000011
 		display flex
 		flex-direction row
 		align-items center
 		z-index 10000
+		.icon
+			margin 0 4px
 		.sensor
 			margin-right 8px
-			filter: grayscale(50%);
-			opacity .5
+			// filter: grayscale(50%);
+			// opacity .5
 			img
 				height 32px
-				width 32px
+				// width 32px
 		.text
 			font-weight bold
 			opacity .8
@@ -633,7 +635,6 @@
 		gap 24px
 		height 340px
 		.left
-			// flex-basis calc(55% - 12px)
 			flex-basis 600px
 			flex-grow 0
 			flex-shrink 0
@@ -641,7 +642,6 @@
 			.beschreibung_container
 				margin-top 12px
 		.right
-			// flex-basis calc(45% - 12px)
 			flex-grow 1
 			flex-shrink 0
 			min-width: 0
@@ -649,9 +649,7 @@
 		width 100%
 		margin 0 0 0
 		height 340px
-		// border 1px solid red
 		border-radius var(--chartborderradius)
-		// filter var(--dropshadowfilter)
 		overflow hidden
 
 	.additional

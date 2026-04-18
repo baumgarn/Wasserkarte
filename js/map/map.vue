@@ -65,6 +65,14 @@ import dataStore from '@/datastore.js';
 import { nextTick } from 'vue';
 import { boundingExtent } from 'ol/extent.js';
 
+const INITIAL_FIT_REGIONS = ['Flaeming'];
+
+function normalizeRegions(regions) {
+	if (!regions) return null;
+	if (Array.isArray(regions)) return regions.length ? regions : null;
+	return [regions];
+}
+
 export default {
 	name: 'Map',
 	components: {
@@ -141,7 +149,7 @@ export default {
 				if (!this.ensureMapSize()) return;
 
 				if (!this.hasFitRun && this.devices?.length) {
-					this.fitMarkers();
+					this.fitMarkers({ regions: INITIAL_FIT_REGIONS });
 					this.hasFitRun = true;
 				}
 			}
@@ -218,7 +226,10 @@ export default {
 
 			view.setCenter(newCenter);
 		},
-		fitMarkers() {
+		fitMarkers(options = {}) {
+			const requestedRegions = Array.isArray(options) || typeof options === 'string' ? options : options?.regions;
+			const regions = normalizeRegions(requestedRegions);
+
 			const mapComponent = this.$refs.olMap;
 			if (mapComponent && mapComponent.map) {
 
@@ -237,7 +248,8 @@ export default {
 				}
 	
 				const includedDevices = this.devices.filter(device => {
-					return !config.excludeFromMapFit.includes(device.name);
+					const deviceRegion = device.attributes?.Region ?? device.attributes?.region;
+					return !regions || regions.includes(deviceRegion);
 				});
 	
 				if (includedDevices.length === 0) {
@@ -253,14 +265,14 @@ export default {
 	
 				const extent = boundingExtent(points);
 	
-				var padding = [100, 30, 50, 30];
+				var padding = [100, 30, 100, 30];
 			
 				view.fit(extent, {
 					size: size,
 					padding: padding
 				});
 	
-			} else {
+			} else {n
 				console.warn('Map not ready');
 			}
 		},
@@ -295,7 +307,7 @@ export default {
 		devices(val) {
 			if (!this.hasFitRun && val?.length) {
 				if (this.ensureMapSize()) {
-					this.fitMarkers();
+					this.fitMarkers({ regions: INITIAL_FIT_REGIONS });
 					this.hasFitRun = true;
 				}
 			}

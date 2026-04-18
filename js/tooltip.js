@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import { state } from '@/state.js';
 
 const DEFAULT_SIDE = 'top';
@@ -384,6 +384,10 @@ function hasConfiguredContent(options) {
 	return Boolean(options.content && options.content.trim().length > 0);
 }
 
+function tooltipsDisabled(options = {}) {
+	return state.isMobile || (state.tooltips === false && !options.force);
+}
+
 function getAnchorRect(options) {
 	if (options.anchorRect) return options.anchorRect;
 	if (options.sourceEl && options.sourceEl.getBoundingClientRect) {
@@ -540,14 +544,14 @@ export function getActiveTooltipSource() {
 export function showTooltip(options = {}) {
 	clearPendingHide();
 	clearHideFinalize();
+	if (tooltipsDisabled(options)) {
+		hideTooltip();
+		return;
+	}
 	const contentRef = resolveContentRef(firstDefined(options.contentRef, options.contentref));
 	const contentHtml = contentRef ? contentRef.innerHTML : '';
 	const content = normalizeContent(options.content);
 	if (!contentHtml && content.trim().length === 0) {
-		hideTooltip(options.sourceEl);
-		return;
-	}
-	if (state.tooltips === false && !options.force) {
 		hideTooltip(options.sourceEl);
 		return;
 	}
@@ -650,6 +654,11 @@ function mountDirective(el, binding, vnodeProps) {
 	};
 
 	const showNow = (immediate = false) => {
+		if (state.isMobile) {
+			clearTimer();
+			hideTooltip();
+			return;
+		}
 		const options = readDirectiveOptions(el, context.binding && context.binding.value, context.vnodeProps);
 		if (options.disabled || !hasConfiguredContent(options)) {
 			hideTooltip(el);
@@ -679,6 +688,10 @@ function mountDirective(el, binding, vnodeProps) {
 
 	const scheduleShow = (delayOverride = null) => {
 		clearTimer();
+		if (state.isMobile) {
+			hideTooltip();
+			return;
+		}
 		const options = readDirectiveOptions(el, context.binding && context.binding.value, context.vnodeProps);
 		if (options.disabled || !hasConfiguredContent(options)) return;
 		const delay = delayOverride === null ? options.delay : delayOverride;
@@ -694,6 +707,11 @@ function mountDirective(el, binding, vnodeProps) {
 
 	context.onMouseEnter = (event) => {
 		context.isHovering = true;
+		if (state.isMobile) {
+			clearTimer();
+			hideTooltip();
+			return;
+		}
 		const options = readDirectiveOptions(el, context.binding && context.binding.value, context.vnodeProps);
 		context.lastDisabled = options.disabled;
 		updateMouse(event);
@@ -720,6 +738,11 @@ function mountDirective(el, binding, vnodeProps) {
 		scheduleShow();
 	};
 	context.onMouseMove = (event) => {
+		if (state.isMobile) {
+			clearTimer();
+			hideTooltip();
+			return;
+		}
 		updateMouse(event);
 		if (context.showTimer) return;
 		if (getActiveTooltipSource() !== el) return;
@@ -741,6 +764,11 @@ function mountDirective(el, binding, vnodeProps) {
 	};
 	context.onFocus = (event) => {
 		context.isFocused = true;
+		if (state.isMobile) {
+			clearTimer();
+			hideTooltip();
+			return;
+		}
 		clearPendingHide();
 		const options = readDirectiveOptions(el, context.binding && context.binding.value, context.vnodeProps);
 		context.lastDisabled = options.disabled;
@@ -805,6 +833,12 @@ export const tooltipDirective = {
 		context.binding = binding;
 		context.vnodeProps = vnode && vnode.props;
 		const currentOptions = readDirectiveOptions(el, context.binding && context.binding.value, context.vnodeProps);
+		if (state.isMobile) {
+			context.clearTimer();
+			hideTooltip();
+			context.lastDisabled = currentOptions.disabled;
+			return;
+		}
 		const isInside = context.isHovering || context.isFocused;
 		if (isInside && context.lastDisabled && !currentOptions.disabled) {
 			context.scheduleShow(REENABLE_DELAY);
@@ -822,6 +856,13 @@ export const tooltipDirective = {
 };
 
 if (typeof window !== 'undefined') {
+	watch(
+		() => state.isMobile,
+		(isMobile) => {
+			if (isMobile) hideTooltip();
+		}
+	);
+
 	window.addEventListener('mousemove', (event) => {
 		if (!activeOptions || !activeOptions.followCursor) return;
 		activeOptions.x = event.clientX;

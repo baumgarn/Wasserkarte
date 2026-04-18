@@ -51,7 +51,7 @@
 						<span class="value">{{ formatNumber(wassergehalt_oberboden) }} </span>
 						<span class="unit"><div class="smaller">Liter</div></span>
 					</div>
-					<div class="num light">
+					<div class="num light nomobile">
 						<span class="value">{{ vol }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
 					</div>
@@ -78,7 +78,7 @@
 					</div>
 
 
-					<div class="num light">
+					<div class="num light nomobile">
 						<span class="value">{{ nfk }}</span>
 						<span class="unit"><span class="smaller">nFK</span> %</span>
 					</div>
@@ -104,7 +104,7 @@
 						<span class="unit"><span class="smaller">Liter</span></span>
 					</div>
 
-					<div class="num light">
+					<div class="num light nomobile">
 						<span class="before"><</span>
 						<span class="value">{{ Math.round(TW) }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
@@ -132,7 +132,7 @@
 						<span class="unit"><div class="smaller">Liter</div></span>
 					</div>
 				
-					<div class="num light">
+					<div class="num light nomobile">
 						<span class="before"></span>
 						<span class="value">{{ FK }}</span>
 						<span class="unit"><span class="smaller">Vol</span> %</span>
@@ -395,23 +395,8 @@
 			font-size 11pt
 		.barrell
 			margin-right 12px
-	// 	.datarow .label
-	// 		font-size 10px
-	// 	.datarow.totwasser .icon
-	// 		top 10px
-	// 	.datarow .icon
-	// 		width 28px
-	// 		height 28px
-	// 		flex-basis 28px
-	// 	.datarow.gesamtkapazitaet
-	// 		border-bottom none
-	// 	.soilinfo
-	// 		margin 1.8em 0 1.2em
-	// 		font-size 13px
-	// 	.num.light
-	// 		display none
-	// 	.num
-	// 		flex-grow 1
-
-	
+		.nomobile
+			display none
+		.datarow .label
+			flex-grow 1
 </style>

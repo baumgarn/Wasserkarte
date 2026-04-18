@@ -3,7 +3,7 @@
 		<div
 			ref="tooltipRef"
 			class="app-tooltip"
-			:class="[{ visible: tooltipState.visible, ready: tooltipState.ready, rich: tooltipState.isHtml }, `placement-${tooltipState.placement}`, `align-${tooltipState.align}`, `theme-${tooltipState.theme}`]"
+			:class="[{ visible: tooltipVisible, ready: tooltipReady, rich: tooltipState.isHtml }, `placement-${tooltipState.placement}`, `align-${tooltipState.align}`, `theme-${tooltipState.theme}`]"
 			:style="tooltipStyle"
 			aria-hidden="true"
 		>
@@ -19,6 +19,7 @@
 <script>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { tooltipState, setTooltipElement } from '@/tooltip.js';
+import { state } from '@/state.js';
 
 export default {
 	name: 'AppTooltip',
@@ -36,6 +37,8 @@ export default {
 			'--app-tooltip-arrow-half-width': `${Math.max(2, Math.round(tooltipState.arrowWidth / 2))}px`,
 			'--app-tooltip-arrow-height': `${tooltipState.arrowHeight}px`,
 		}));
+		const tooltipVisible = computed(() => tooltipState.visible && !state.isMobile);
+		const tooltipReady = computed(() => tooltipState.ready && !state.isMobile);
 
 		onMounted(() => {
 			setTooltipElement(tooltipRef.value);
@@ -49,6 +52,8 @@ export default {
 			tooltipRef,
 			tooltipState,
 			tooltipStyle,
+			tooltipVisible,
+			tooltipReady,
 		};
 	},
 };
