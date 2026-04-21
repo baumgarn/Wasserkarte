@@ -96,6 +96,14 @@ Folgende Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die
 
 `api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen. Sollte täglich nach Mitternacht ausgeführt werden.
 
+## Haftungsausschluss
+
+Dieses Projekt wird als Open-Source-Software veröffentlicht. Die Bereitstellung erfolgt ohne Gewährleistung oder Zusicherung irgendeiner Art, soweit gesetzlich zulässig.
+
+Insbesondere wird keine Gewähr für Funktionsfähigkeit, Eignung für einen bestimmten Zweck, Fehlerfreiheit, Kompatibilität, Verfügbarkeit oder Sicherheit übernommen. Die Nutzung, Einbindung, Veränderung und Weiterverbreitung der Software erfolgt auf eigene Verantwortung.
+
+Soweit gesetzlich zulässig, wird keine Haftung für direkte oder indirekte Schäden, Datenverluste, Ausfälle oder sonstige Folgen übernommen, die aus der Nutzung der Software oder der Unmöglichkeit ihrer Nutzung entstehen.
+
 ## Lizenz
 
 Copyright 2026 Nikolaus Baumgarten
