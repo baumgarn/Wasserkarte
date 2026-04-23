@@ -24,6 +24,10 @@ Das Projekt setzt eine laufende ThingsBoard-Instanz mit angebundenen Bodenfeucht
 
 Die Thingsboard-seitigen Anpassungen sind in diesem [Repository](https://gitlab.opencode.de/bad-belzig/thingsboard-ce-klimadaten-mandanten-wasserkarte) hinterlegt. 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5bbe5ea (update)
 Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei.
 
 ## Screenshot
