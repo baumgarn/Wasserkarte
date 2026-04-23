@@ -25,10 +25,6 @@ Die Thingsboard-seitigen Anpassungen sind in diesem Repository hinterlegt: [Thin
 
 Die ThingsBoard-seitigen Anpassungen sind in diesem [Repository](https://gitlab.opencode.de/bad-belzig/thingsboard-ce-klimadaten-mandanten-wasserkarte) hinterlegt. 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5bbe5ea (update)
 Tutorials zur Sensorinstallation, Bodenbestimmung u.v.m. auf der [Wasserwissen](https://wassermeisterei.org/wasserwissen) Seite der Wassermeisterei.
 
 ## Screenshot
