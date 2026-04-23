@@ -111,6 +111,9 @@
 						Projektleitung Zukunftsschusterei: Malte Specht<br>
 						Design und Programmierung Wasserkarte: <a href="http://nikkki.net" target="_blank">Nikolaus Baumgarten</a><br>
 					</p>
+					<p>
+						Der Quellcode ist verfügbar auf <a href="https://gitlab.opencode.de/bad-belzig/wasserkarte" target="_blank">openCode</a> und <a href="https://github.com/baumgarn/Wasserkarte" target="_blank">GitHub</a>.
+					</p>
 
 					
 				</div>
