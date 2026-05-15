@@ -152,7 +152,6 @@ const dataStore = {
 			const lastTelemetryData = this.getLatestDeviceTelemetryRow(device);
 
 			// TODO fehlerhafte letzte telemetrie ausschließen
-
 			if (lastTelemetryData && this.shouldAppendTelemetryRow(telemetry.data, lastTelemetryData)) {
 				telemetry.data.push(lastTelemetryData);
 			}
@@ -164,6 +163,7 @@ const dataStore = {
 			this.dataCache[cacheKey] = telemetry;
 		}
 		this.createDeviceSchemaIndex();
+		this.createLatestProcessedTelemetry();
 		this.buildTimelineCache()
 		state.telemetryLoaded = true;
 
@@ -198,7 +198,30 @@ const dataStore = {
 			device.schemaIndex = map;
 		}
 
-		this.deviceSchemaIndex = index;
+		// this.deviceSchemaIndex = index;
+	},
+
+	// Creates latest processed telemetry object from schema data
+	createLatestProcessedTelemetry() {
+		for (const device of state.devices) {
+
+			const schema = device.telemetrySchema?.schema;
+			const schemaIndex = device.schemaIndex?.schema;
+			device.lastExpandedTelemetry
+			// if (!Array.isArray(schema)) {
+			// 	index[device.index] = null;
+			// 	continue;
+			// }
+
+			// const map = Object.create(null);
+
+			// for (let i = 0; i < schema.length; i++) {
+			// 	map[schema[i]] = i;
+			// }
+
+			// index[device.index] = map;
+			// device.schemaIndex = map;
+		}
 	},
 
 	fetchTelemetryCache(deviceId) {
@@ -319,30 +342,8 @@ const dataStore = {
 	},
 
 	hoursSinceLastTelemetry(deviceId) {
-
-		if (this.dataCache[deviceId]) {
-			const latestTimestamp = this.dataCache[deviceId].latestTimestamp;
-			const hours = (Date.now() - latestTimestamp) / (1000 * 60 * 60);
-			return hours
-		}
-
 		const device = this.getDeviceById(deviceId);
-
-		let latestTimestamp = 0;
-
-		// Traverse all telemetry properties
-		Object.entries(device.telemetry).forEach(([key, dataArray]) => {
-			if (config.allowedTelemetryKeys.includes(key) && Array.isArray(dataArray) && dataArray.length > 0) {
-				const latestEntry = dataArray[dataArray.length - 1];
-				if (latestEntry.ts > latestTimestamp) {
-					latestTimestamp = latestEntry.ts;
-				}
-			}
-		});
-
-		if (latestTimestamp == 0) {
-			return -1
-		}
+		const latestTimestamp = device.lastExpandedTelemetry.ts;
 		const ms = (Date.now() - latestTimestamp);
 		const hours = ms / (1000 * 60 * 60);
 		return hours;
@@ -350,11 +351,11 @@ const dataStore = {
 
 	lastTelemetry(deviceId) {
 		const device = this.getDeviceById(deviceId);
-		if (!device || !device.telemetry || !device.telemetry.received_at) {
+		if (!device || !device.lastExpandedTelemetry || !device.lastExpandedTelemetry.received_at) {
 			return '-';
 		}
 
-		const measurements = device.telemetry.received_at;
+		const measurements = device.lastExpandedTelemetry.received_at;
 		if (!Array.isArray(measurements) || measurements.length === 0) {
 			return '-';
 		}
@@ -388,7 +389,11 @@ const dataStore = {
 			) {
 				state.faultyDevices.push(device);
 			}
+			
 		}
+
+
+
 
 		state.faultyDevices.sort((a, b) => {
 			const hoursA = this.hoursSinceLastTelemetry(a.id);

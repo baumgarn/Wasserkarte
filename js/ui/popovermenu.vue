@@ -65,6 +65,8 @@
 			<div
 				v-else-if="item.type === 'note'"
 				class="item note"
+				:class="{ small: item.small }"
+				:style="noteStyle(item)"
 				v-html="item.label"
 			></div>
 
@@ -227,6 +229,12 @@ export default {
 			}
 			this.close();
 		},
+		noteStyle(item) {
+			if (item.width == null) return null;
+			return {
+				width: item.width + 'px'
+			};
+		},
 		handleGlobalClose() {
 			if (this.isOpen) {
 				this.close();
@@ -323,6 +331,11 @@ export default {
 		background-size 100% 100%
 	.note
 		pointer-events none
+		text-align left
+		white-space normal
+		overflow-wrap anywhere
+		&.small
+			font-size 8pt
 	.note + .note
 		margin-top -.5em
 	.boolean.active .popovericon

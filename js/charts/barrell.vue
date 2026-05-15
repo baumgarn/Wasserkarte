@@ -65,12 +65,12 @@
 		},
 		vol() {
 			const vol = this.hoverOrLastData.vol_avg;
-			if (isNaN(vol)) return '–'
+			if (isNaN(vol) || vol == null) return '–'
 			return parseFloat(vol.toFixed(0));
 		},
 		nfk() {
 			const nfk = this.hoverOrLastData.nfk_avg;
-			if (isNaN(nfk)) return '–'
+			if (isNaN(nfk) || nfk == null) return '–'
 			return parseFloat(nfk.toFixed(0));
 		},
 		hasSoilAttributes() {

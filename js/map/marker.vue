@@ -150,10 +150,10 @@ export default {
 	},
 	computed: {
 		telemetry() {
-			return this.device.telemetry || {};
+			return this.device.lastExpandedTelemetry || {};
 		},
 		hasTelemetry() {
-			return Object.keys(this.device.telemetry).length > 0;
+			return Object.keys(this.device.lastExpandedTelemetry).length > 0;
 		},
 		getLastValue() {
 			return (array) => array ? array[array.length - 1].value : null;
@@ -247,16 +247,16 @@ export default {
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
-			sidebarFullView() {
-				return state.sidebarFullView;
-			},
-			firstDate() {
-				return this.telemetryData?.data?.[0]?.[0] ?? null;
-			},
-			lastDate() {
-				const rows = this.telemetryData?.data;
-				return rows?.length ? rows[rows.length - 1]?.[0] ?? null : null;
-			},
+		sidebarFullView() {
+			return state.sidebarFullView;
+		},
+		firstDate() {
+			return this.telemetryData?.data?.[0]?.[0] ?? null;
+		},
+		lastDate() {
+			const rows = this.telemetryData?.data;
+			return rows?.length ? rows[rows.length - 1]?.[0] ?? null : null;
+		},
 		isVisible() {
 			if (!this.timelineDate && this.hoursSinceLastTelemetry < config.noTelemetryCutoff ) {
 				return true;
@@ -286,7 +286,13 @@ export default {
 			});
 			return isfiltered;
 		},
-		isInactive() { // no current telemetry
+		isInactive() { 
+
+			// no current telemetry
+			if (this.device.lastExpandedTelemetry.nfk_avg == null) {
+				return true;
+			}
+
 			if (!this.timelineDate && this.hoursSinceLastTelemetry > config.noTelemetryCutoff ) {
 				return true;
 			} 
@@ -348,7 +354,7 @@ export default {
 			return fromLonLat([device.attributes?.longitude, device.attributes?.latitude])
 		},
 		getSensorValue() {
-			return this.device.telemetry[schicht];
+			return this.device.lastExpandedTelemetry[schicht];
 		},
 		isTouchLikeInteraction(event) {
 			if (state.isMobile) return true;

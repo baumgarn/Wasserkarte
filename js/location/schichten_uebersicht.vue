@@ -93,7 +93,7 @@ export default {
 	computed: {
 		depths() {
 			// get depths from locationdata.telemetry and filter by allowedTelemetryKeys, before actual sensordata is available
-			const telemetryKeys = Object.keys(this.device.telemetry || {});
+			const telemetryKeys = Object.keys(this.device.lastExpandedTelemetry || {});
 			return [...new Set(telemetryKeys
 				.filter(key => config.allowedTelemetryKeys.includes(key))
 				.map(key => this.getDepthValue(key))

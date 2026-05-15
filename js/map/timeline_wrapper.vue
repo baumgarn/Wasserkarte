@@ -153,6 +153,11 @@ export default {
 				{type:'select', label:'Durchschnitt nFK', value:'nfk_avg', group:'style', stateProp:'timelineStyle'},
 				{type:'select', label:'Trockenheitsstufen', value:'levels', group:'style', stateProp:'timelineStyle'},
 			);
+			
+			menu.push(
+				{type:'divider'},
+				{type:'note', small:true, width: 245, label:"Hinweis: mit der Zeit sind immer mehr Standorte hinzugekommen, daher ist die Zeitachsenvisualisierung kein ganz objektiver Vergleich sondern abhängig von den Bedingungen der vorliegenden Standorte."},
+			)
 
 			return menu;
 		},

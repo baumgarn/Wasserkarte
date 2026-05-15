@@ -18,8 +18,14 @@ export default {
 		}
 	},
 	computed: {
-		telemetryData() {
-			const telemetry = this.device.telemetry || {};
+		rawTelemetryData() {
+			const telemetry = this.device.lastRawTelemetry || {};
+			return Object.fromEntries(
+				Object.entries(telemetry).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+			);
+		},
+		expandedTelemetryData() {
+			const telemetry = this.device.lastExpandedTelemetry || {};
 			return Object.fromEntries(
 				Object.entries(telemetry).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
 			);
@@ -72,14 +78,31 @@ export default {
 			</div> -->
 		</div>
 
-		<h3>Telemetrie</h3>
+		<h3>Letzte Telemetrie Rohdaten</h3>
+		<div class="datagroup raw">
+			<div class="datarow" :class="key" v-for="(values, key) in rawTelemetryData" :key="key">
+				<div class="label">{{ key }}</div>
+				<div class="ts">{{ formatTs(values[0].ts) }}</div>
+				<div class="value">{{ values[0].value }}</div>
+			</div>
+		</div>
+		
+		<h3>Letzte Telemetrie Verarbeitet</h3>
+		<div class="datagroup expanded">
+			<div class="datarow" :class="key" v-for="(value, key) in expandedTelemetryData" :key="key">
+				<div class="label">{{ key }}</div>
+				<div class="value">{{ value }}</div>
+			</div>
+		</div>
+
+		<!-- <h3>Letzte Telemetrie Rohdaten</h3>
 		<div class="datagroup">
 			<div class="datarow" :class="key" v-for="(values, key) in telemetryData" :key="key">
 				<div class="label">{{ key }}</div>
 				<div class="ts">{{ formatTs(values[0].ts) }}</div>
 				<div class="value">{{ values[0].value }}</div>
 			</div>
-		</div>
+		</div> -->
 		
 		<h3>Attribute</h3>
 		<div class="datagroup">
@@ -142,7 +165,7 @@ export default {
 				flex-basis 40%
 				font-weight bold
 				text-align right
-			.ts	
+			&raw .ts	
 				flex-basis 30%
 				text-align right
 			.false_value_note 

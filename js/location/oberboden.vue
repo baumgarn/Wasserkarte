@@ -208,13 +208,13 @@
 			vol() {
 				if (this.isInactive) return '–';
 				const vol = this.hoverOrLastData.vol_avg;
-				if (isNaN(vol)) return '–'
+				if (isNaN(vol) || vol == null) return '–'
 				return parseFloat(vol.toFixed(0));
 			},
 			nfk() {
 				if (this.isInactive) return '–';
 				const nfk = Math.max(0,this.hoverOrLastData.nfk_avg);
-				if (isNaN(nfk)) return '–'
+				if (isNaN(nfk) || nfk == null) return '–'
 				return parseFloat(nfk.toFixed(0));
 			},
 			nfk_liter() {

@@ -269,6 +269,10 @@ function setAvgTWFK($deviceInfo) {
 
 function avg_value($v10,$v30,$v60,$v80)
 {
+
+	if (!isset($v10) && !isset($v30) && !isset($v60) && !isset($v80)) {
+		return null;
+	}
   
     // Interpolate 60 from 30 & 80 if 60 missing but 10 & 30 & 80 available
     if (isset($v10) && isset($v30) && !isset($v60) && isset($v80)) {

@@ -123,7 +123,7 @@ export default {
 	},
 	computed: {
 		telemetry() {
-			return this.device.telemetry || {};
+			return this.device.lastExpandedTelemetry || {};
 		},
 		bodenfeuchteSensors() {
 			return Object.entries(this.telemetry)
@@ -156,11 +156,11 @@ export default {
 		},
 		nfk() {
 			const nfk = this.lastData.nfk_avg;
-			if (isNaN(nfk)) return '–'
+			if (isNaN(nfk) || nfk == null) return '–';
 			return parseFloat(nfk.toFixed(0));
 		},
 		nfk_liter() {
-			if (isNaN(this.nfk)) return '–'
+			if (isNaN(this.nfk) || this.nfk == null) return '–'
 			let l =  Math.max(0, this.wassergehalt_oberboden - this.TW_liter);
 			return parseFloat(l.toFixed(0));
 		},

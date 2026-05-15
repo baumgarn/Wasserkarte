@@ -265,10 +265,10 @@ export const dataModel = {
 			bodenfeuchte60 = hoverData.Bodenfeuchte_60cm ? parseFloat( hoverData.Bodenfeuchte_60cm.value) : null;
 			bodenfeuchte80 = hoverData.Bodenfeuchte_80cm ? parseFloat( hoverData.Bodenfeuchte_80cm.value) : null;
 		} else {
-			bodenfeuchte10 = device.telemetry.Bodenfeuchte_10cm ? parseFloat( device.telemetry.Bodenfeuchte_10cm[0].value) : null;
-			bodenfeuchte30 = device.telemetry.Bodenfeuchte_30cm ? parseFloat( device.telemetry.Bodenfeuchte_30cm[0].value) : null;
-			bodenfeuchte60 = device.telemetry.Bodenfeuchte_60cm ? parseFloat( device.telemetry.Bodenfeuchte_60cm[0].value) : null;
-			bodenfeuchte80 = device.telemetry.Bodenfeuchte_80cm ? parseFloat( device.telemetry.Bodenfeuchte_80cm[0].value) : null;
+			bodenfeuchte10 = device.lastExpandedTelemetry.Bodenfeuchte_10cm ? parseFloat( device.lastExpandedTelemetry.Bodenfeuchte_10cm[0].value) : null;
+			bodenfeuchte30 = device.lastExpandedTelemetry.Bodenfeuchte_30cm ? parseFloat( device.lastExpandedTelemetry.Bodenfeuchte_30cm[0].value) : null;
+			bodenfeuchte60 = device.lastExpandedTelemetry.Bodenfeuchte_60cm ? parseFloat( device.lastExpandedTelemetry.Bodenfeuchte_60cm[0].value) : null;
+			bodenfeuchte80 = device.lastExpandedTelemetry.Bodenfeuchte_80cm ? parseFloat( device.lastExpandedTelemetry.Bodenfeuchte_80cm[0].value) : null;
 		}
 
 		// 10, 30, 60

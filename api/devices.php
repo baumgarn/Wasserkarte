@@ -92,6 +92,7 @@ function fetchDevicesFromThingsBoard($token)
 			$device['label'] = $deviceData['label'];
 			$device['id'] = $deviceId;
 			$device['attributes'] = [];
+			
 			foreach ($allAttributes[$deviceId] as $attribute) {
 				if (!in_array( $attribute['key'], EXCLUDED_ATTRIBUTES)) {
 					$device['attributes'][$attribute['key']] = $attribute['value'];
@@ -102,12 +103,11 @@ function fetchDevicesFromThingsBoard($token)
 				
 				ksort($device['attributes']);
 	
-				$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
-	
 				$device['telemetrySchema'] = expandSensorDataWithCalculations($allTelemetry[$deviceId]['schema'] ?? [], $device) ;
+				$device['lastRawTelemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
+				$device['lastExpandedTelemetry'] = telemetryArrayFromSchema($device['telemetrySchema']);
 
 				$device = setAvgTWFK($device);
-
 
 				$allDevices[] = $device;
 			}
@@ -240,7 +240,6 @@ function getBatchAttributesAndLastTelemetry(string $token, array $deviceIds): ar
 }
 
 
-
 // Format our latest telemetry to our schema format used in our timeseries telemtry for more efficient formatting 
 function normalizeLatestTelemetryToSchema(array $tbResponse): array
 {
@@ -260,6 +259,10 @@ function normalizeLatestTelemetryToSchema(array $tbResponse): array
 	// Build schema
 	$schema = array_merge(['ts'], $present);
 	$schema = expandSchema(($schema));
+	$schemaIndex = [];
+	foreach ($schema as $index => $name) {
+		$schemaIndex[$name] = $index;
+	}
 
 	// Canonical ts = max ts across present keys; fallback to received_at; else 0
 	$tsCandidates = [];
@@ -278,9 +281,20 @@ function normalizeLatestTelemetryToSchema(array $tbResponse): array
 	foreach ($present as $k) {
 		$row[] = isset($tele[$k][0]['value']) ? formatValue($tele[$k][0]['value']) : null;
 	}
-	return ['schema' => $schema, 'data' => [$row]];
+	return ['schema' => $schema,'schemaIndex' => $schemaIndex, 'data' => [$row]];
 }
 
+// Creates a convenient array from schema data format
+function telemetryArrayFromSchema(array $telemetrySchema): array
+{
+    $schemaIndex = $telemetrySchema['schemaIndex'] ?? [];
+    $data = $telemetrySchema['data'][0] ?? [];
+    $result = [];
+    foreach ($schemaIndex as $name => $index) {
+        $result[$name] = $data[$index] ?? null;
+    }
+    return $result;
+}
 
 // Update last telemetry for cached devices, this is requested in certain intervals instead of a full cache reload
 function fetchLastTelemetryForCachedDevices($token, $cache)
@@ -297,13 +311,14 @@ function fetchLastTelemetryForCachedDevices($token, $cache)
 		return $device['id'];
 	}, $cachedDevices);
 
-	$allTelemetry = getBatchLastTelemetry($token, $deviceIds);
+	$lastTelemetry = getBatchLastTelemetry($token, $deviceIds);
 
 	foreach ($cachedDevices as &$device) {
 		$deviceId = $device['id'];
-		$device['telemetry'] = $allTelemetry[$deviceId]['flat'] ?? [];
-		$device['telemetrySchema'] = $allTelemetry[$deviceId]['schema'] ?? [];
-		$device['telemetrySchema'] = expandSensorDataWithCalculations($device['telemetrySchema'], $device);
+		$telemetrySchema = normalizeLatestTelemetryToSchema($device['lastRawTelemetry']);
+		$device['telemetrySchema'] = expandSensorDataWithCalculations($telemetrySchema, $device);
+		$device['lastRawTelemetry'] = $lastTelemetry[$deviceId] ?? [];
+		$device['lastExpandedTelemetry'] = telemetryArrayFromSchema($device['telemetrySchema']);
 	}
 	unset($device);
 
@@ -322,7 +337,7 @@ function fetchLastTelemetryForCachedDevices($token, $cache)
 // Thingsboard request for last telemetry for cached devices for above function
 function getBatchLastTelemetry($token, $deviceIds)
 {
-	$allTelemetry = [];
+	$lastTelemetry = [];
 
 	$MAX_DEVICES_PER_BATCH = 10;
 	$CONNECT_TIMEOUT = 5;
@@ -369,8 +384,7 @@ function getBatchLastTelemetry($token, $deviceIds)
 				$data = json_decode($body, true);
 				if (!empty($data)) {
 					$deviceId = substr($key, 5);
-					$allTelemetry[$deviceId]['flat']   = $data;
-					$allTelemetry[$deviceId]['schema'] = normalizeLatestTelemetryToSchema($data);
+					$lastTelemetry[$deviceId]   = $data;
 				}
 			} else {
 				error_log("ThingsBoard last-telemetry request failed [$httpCode] for $key");
@@ -383,5 +397,5 @@ function getBatchLastTelemetry($token, $deviceIds)
 		curl_multi_close($multiHandle);
 	}
 
-	return $allTelemetry;
+	return $lastTelemetry;
 }

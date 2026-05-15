@@ -85,11 +85,12 @@ export function toggleBookmark(device) {
 
 	if (isBookmarked(device)) {
 		state.bookmarks = state.bookmarks.filter((id) => id !== deviceId);
+		dataModel.bookmarkfilter_obj.count = state.bookmarks.length;
 		return false;
 	}
 
-	dataModel.bookmarkfilter_obj.count = state.bookmarks.length;
 	state.bookmarks = [...state.bookmarks, deviceId];
+	dataModel.bookmarkfilter_obj.count = state.bookmarks.length;
 	return true;
 }
 
