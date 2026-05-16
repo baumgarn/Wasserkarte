@@ -258,6 +258,11 @@ export default {
 			return rows?.length ? rows[rows.length - 1]?.[0] ?? null : null;
 		},
 		isVisible() {
+			// no valid telemetry
+			if (this.timelineDate && this.device.lastExpandedTelemetry.nfk_avg == null) {
+				return false;
+			}
+
 			if (!this.timelineDate && this.hoursSinceLastTelemetry < config.noTelemetryCutoff ) {
 				return true;
 			} 
@@ -288,14 +293,19 @@ export default {
 		},
 		isInactive() { 
 
-			// no current telemetry
-			if (this.device.lastExpandedTelemetry.nfk_avg == null) {
+
+			// no valid telemetry
+			if (!this.timelineDate && this.device.lastExpandedTelemetry.nfk_avg == null) {
+				console.log('hours', dataStore.hoursSinceLastTelemetry(this.device.id))
 				return true;
 			}
 
+
 			if (!this.timelineDate && this.hoursSinceLastTelemetry > config.noTelemetryCutoff ) {
 				return true;
-			} 
+			}
+
+
 			// TODO return true if inactive on timeline
 		},
 		showErrors() {
