@@ -108,7 +108,13 @@
 								Auf dem <a href="https://www.praxis-agrar.de/fileadmin/Medien/06_Service/00_Sammlung/0244_2397_Bodenartendreieck_interaktiv_web_01.pdf" target="_blank">Bodenartendreieck</a> werden die verschiedenen Abstufungen von Bodenarten anhand ihrer Mischung aus den Anteilen der drei Grundarten Sand, Schluff und Ton dargestellt. Für die Standorte im Fläming sind vor allem sandig-lehmige Böden relevant.
 							</p>
 
-							<SoilChart humus-key="h0" :showLegend="true" :showMouseHint="false" title="Bodenarten im Vergleich" />
+							<SoilChart
+								humus-key="h0"
+								:soil-keys="['Ss', 'Sl2', 'Sl3', 'Uu', 'Ls4', 'Tt']"
+								:showLegend="true"
+								:showMouseHint="false"
+								title="Bodenarten im Vergleich"
+							/>
 
 					
 				</section>

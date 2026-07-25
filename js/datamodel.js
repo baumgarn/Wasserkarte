@@ -16,6 +16,14 @@ export const dataModel = {
 		Sl2: { sand: 0.8, lehm: 0.2 },
 		Sl3: { sand: 0.65, lehm: 0.35 },
 		Ls4: { sand: 0.35, lehm: 0.65 },
+		Uu: { schluff: 1 },
+		Ut2: { schluff: 0.85, ton: 0.15 },
+		Ut3: { schluff: 0.75, ton: 0.25 },
+		Ut4: { schluff: 0.65, ton: 0.35 },
+		Tu4: { schluff: 0.7, ton: 0.3 },
+		Tu3: { schluff: 0.55, ton: 0.45 },
+		Tu2: { schluff: 0.35, ton: 0.65 },
+		Tt: { ton: 1 },
 	},
 
 	color_schemes: {
@@ -133,7 +141,7 @@ export const dataModel = {
 			description: 'Landwirtschatlich genutzt, größer als 0,2 ha'
 		},
 		"RA" : {
-			name: 'Rasen',
+			name: 'Wiese',
 			img: "Nutzungsart_Rasen.svg",
 			description: 'Kleine Wiese, kleiner als 0,2 ha'
 		},

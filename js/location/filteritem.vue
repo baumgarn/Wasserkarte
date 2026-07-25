@@ -385,7 +385,7 @@ export default {
 	font-weight normal
 	justify-content flex-start
 	border none
-	height 20px
+	height 24px
 	flex-basis 50%
 	flex-shrink 0
 	flex-grow 0

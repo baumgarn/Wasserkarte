@@ -257,8 +257,8 @@ function setAvgTWFK($deviceInfo) {
 		$TW80 = $soilValues['TW'];
 	}
 
-	$avg_FK = round(avg_value($FK10,$FK30,$FK60,$FK80), 2);
-	$avg_TW = round(avg_value($TW10,$TW30,$TW60,$TW80), 2);
+	$avg_FK = avg_value($FK10, $FK30, $FK60, $FK80);
+	$avg_TW = avg_value($TW10, $TW30, $TW60, $TW80);
 
 
 	$deviceInfo['attributes']['avg_FK'] = $avg_FK;
@@ -316,6 +316,10 @@ function avg_value($v10,$v30,$v60,$v80)
     // 80
     elseif (isset($v80) && !isset($v10) && !isset($v30) && !isset($v60)) {
         $result = $v80 * 6.0;
+    }
+
+    if ($result === null) {
+        return null;
     }
 
     return round($result / 6, 2);

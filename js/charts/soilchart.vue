@@ -280,6 +280,10 @@ export default {
 			type: String,
 			default: 'Ss'
 		},
+		soilKeys: {
+			type: Array,
+			default: null
+		},
 		showMouseHint: {
 			type: Boolean,
 			default: false
@@ -431,10 +435,19 @@ export default {
 		soilMode() {
 			return this.mode === 'soil';
 		},
-		soilSeries() {
+		availableSoils() {
+			if (Array.isArray(this.soilKeys) && this.soilKeys.length) {
+				return [...new Set(this.soilKeys)]
+					.map(soilKey => dataModel.soil_table[soilKey])
+					.filter(Boolean);
+			}
+
 			return Object.values(dataModel.soil_table)
+				.sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999));
+		},
+		soilSeries() {
+			return this.availableSoils
 				.filter(soil => soil?.FK?.[this.normalizedHumusKey] != null && soil?.TW?.[this.normalizedHumusKey] != null)
-				.sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999))
 				.map(soil => ({
 					...soil,
 					fk: soil.FK[this.normalizedHumusKey],
@@ -442,7 +455,7 @@ export default {
 				}));
 		},
 		selectedSoil() {
-			return dataModel.soil_table[this.soilKey] || null;
+			return this.availableSoils.find(soil => soil.short === this.soilKey) || this.availableSoils[0] || null;
 		},
 		humusSeries() {
 			const soil = this.selectedSoil;
@@ -502,13 +515,11 @@ export default {
 			return state.soilchart_texture_showbars;
 		},
 		soilPickerItems() {
-			return Object.values(dataModel.soil_table)
-				.sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999))
-				.map(soil => ({
+			return this.availableSoils.map(soil => ({
 					type: 'select',
 					obj: soil,
 					label: soil.name,
-					active: this.soilKey === soil.short,
+					active: this.selectedSoil?.short === soil.short,
 					onSelect: () => this.selectSoilKey(soil.short)
 				}));
 		},
@@ -517,7 +528,7 @@ export default {
 	},
 	methods: {
 		getMaxSoilTableFK() {
-			return Object.values(dataModel.soil_table).reduce((maxValue, soil) => {
+			return this.availableSoils.reduce((maxValue, soil) => {
 				const soilMax = Object.values(soil?.FK || {}).reduce((currentMax, fkValue) => {
 					return typeof fkValue === 'number' ? Math.max(currentMax, fkValue) : currentMax;
 				}, 0);
