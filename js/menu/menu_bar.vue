@@ -53,6 +53,7 @@ export default {
 	computed: {
 		menuItems() {
 			return [
+				{ title: 'Account', tooltip: 'Account', key: 'account', group: '1' },
 				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
 				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
@@ -69,7 +70,6 @@ export default {
 			return this.menuItems.some(item =>
 				item.group && !item.solo && state.menuOpen[item.key]
 			);
-			// return Object.values(state.menuOpen).some(isActive => isActive);
 		},
 		isSoloActive() {
 			return this.menuItems.some(item =>
@@ -132,7 +132,6 @@ export default {
 
 <style scoped lang="stylus">
 
-
 .menubar
 	display flex
 	flex-direction row
@@ -149,7 +148,6 @@ export default {
 	height var(--menubariconsize)
 	background-color var(--menuinactivebg)
 	background-color #eaeaea
-	// background-color #fff
 	border-bottom 1px solid #ccc
 	position relative
 	cursor pointer
@@ -164,16 +162,13 @@ export default {
 	&:hover
 		background-color #dbdbdb88
 
-// .menubar .menubaritem:active .icon
-	// opacity .5
-	// background #d8d8d8
-	// background #f0f0f0
-// .menubar .menubaritem.active
 .menubar .menubaritem.active
 	background #fff
 	border-bottom 1px solid #fff
 	z-index 10
 	position relative
+.menubar .menubaritem:active
+	background: var(--menuactivebg)
 
 .menubar .menubaritem.solo.active
 	border-bottom 1px solid #ccc

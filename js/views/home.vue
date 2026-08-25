@@ -23,6 +23,7 @@
 
 					<div class="menuwindows">	
 
+						<AccountMenu v-if="state.menuOpen.account"/>
 						<GeraeteMenu v-if="state.menuOpen.orte"/>
 						<ErrorMenu v-if="state.menuOpen.error"/>
 						<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
@@ -90,6 +91,7 @@ import ColorschemeMenu from '@/menu/menu_colorscheme.vue';
 import ColorschemeGradient from '@/menu/colorscheme_gradient.vue';
 import SoilMenu from '@/menu/menu_soil.vue';
 import GeraeteMenu from '@/menu/menu_devices.vue';
+import AccountMenu from '@/menu/menu_account.vue';
 import StatusBar from '@/map/statusbar.vue';
 import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
@@ -122,6 +124,7 @@ export default {
 		GeraeteMenu,
 		ColorschemeMenu,
 		ColorschemeGradient,
+		AccountMenu,
 		SoilMenu,
 		TimelineWrapper,
 		StatusBar,

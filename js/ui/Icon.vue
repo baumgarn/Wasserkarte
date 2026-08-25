@@ -221,6 +221,11 @@ export default {
 	opacity .65
 	background-size 85%
 
+.icon.type-account
+	background-image url(/img/user.png)
+	background-size 75%
+	opacity 1
+
 .icon.type-pflanze
 	background-image url(/img/plant.svg)
 	opacity .8
