@@ -4,6 +4,7 @@ import App from '@/app.vue';
 import router from '@/router.js';
 import { createApp } from 'vue';
 import { tooltipDirective } from '@/tooltip.js';
+import { managementAuth } from '@/management/auth.js';
 
 export const app = createApp(App);
 app.use(OpenLayersMap);
@@ -24,3 +25,5 @@ app.directive('click-hide-tooltip', {
 });
 
 export const vm = app.mount('#app');
+
+managementAuth.restoreSession();

@@ -53,6 +53,50 @@
 		<BodenkundeMenu v-if="state.menuOpen.bodenkunde"/>
 		<!-- <BodenkundeMenu v-if="state.isMobile && state.menuOpen.bodenkunde"/> -->
 
+	<Modal
+		v-if="state.accountDetailsOpen"
+		title="Konto"
+		:min-width="320"
+		:max-width="560"
+		:min-height="180"
+		:max-height="600"
+		@close="state.accountDetailsOpen = false">
+		<AccountSettings />
+	</Modal>
+
+	<Modal
+		v-if="state.accountsOpen"
+		title="Accounts"
+		:min-width="560"
+		:max-width="820"
+		:min-height="180"
+		:max-height="600"
+		@close="state.accountsOpen = false">
+		<Accounts @create="state.createAccountOpen = true" />
+	</Modal>
+
+	<Modal
+		v-if="state.createAccountOpen"
+		title="Neuer Account"
+		:min-width="360"
+		:max-width="640"
+		:min-height="180"
+		:max-height="600"
+		@close="state.createAccountOpen = false">
+		<CreateAccount />
+	</Modal>
+
+	<Modal
+		v-if="activationRequested"
+		title="Wasserkarte-Account aktivieren"
+		:min-width="320"
+		:max-width="480"
+		:min-height="180"
+		:max-height="520"
+		@close="closeActivation">
+		<ActivateAccount @close="closeActivation" />
+	</Modal>
+
 	</div>
 
 	<div class="rightui">
@@ -92,6 +136,11 @@ import ColorschemeGradient from '@/menu/colorscheme_gradient.vue';
 import SoilMenu from '@/menu/menu_soil.vue';
 import GeraeteMenu from '@/menu/menu_devices.vue';
 import AccountMenu from '@/menu/menu_account.vue';
+import Modal from '@/views/modal.vue';
+import AccountSettings from '@/management/account_settings.vue';
+import Accounts from '@/management/accounts.vue';
+import CreateAccount from '@/management/create_account.vue';
+import ActivateAccount from '@/management/activate_account.vue';
 import StatusBar from '@/map/statusbar.vue';
 import { state } from '@/state.js';
 import { dataModel } from '@/datamodel.js';
@@ -125,6 +174,11 @@ export default {
 		ColorschemeMenu,
 		ColorschemeGradient,
 		AccountMenu,
+		Modal,
+		AccountSettings,
+		Accounts,
+		CreateAccount,
+		ActivateAccount,
 		SoilMenu,
 		TimelineWrapper,
 		StatusBar,
@@ -132,21 +186,30 @@ export default {
 		Info
 	},
 	computed: {
+		activationRequested() {
+			return typeof this.$route.query.activateToken === 'string' && this.$route.query.activateToken !== '';
+		},
 		telemetryLoaded() {
 			return state.telemetryLoaded;
 		},
 	},
+	methods: {
+		closeActivation() {
+			const query = { ...this.$route.query };
+			delete query.activateToken;
+			this.$router.replace({ name: 'home', query });
+		},
+	},
 	watch: {
+		'state.menuOpen.standorttabelle'(isOpen, wasOpen) {
+			if (isOpen && !wasOpen && this.activationRequested) this.closeActivation();
+		},
 	}
 };
 </script>
 
 <style lang="stylus" scoped>
 
-
-
-			
-		
 	.klimadaten
 		user-select none
 		background white

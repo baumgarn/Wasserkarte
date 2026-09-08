@@ -2,11 +2,11 @@
 
 // Updates last telemetry values for devices.json (all devices data, attributes and last telemetry).
 // Should update through a cronjob several times a day. Add to crontab -e:
-// 0 */2 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
+// 0 */2 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/telemetry/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
 
 
-require_once 'config.php';
-require_once 'auth.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../auth.php';
 
 requireRefreshSecretIfNeeded();
 
@@ -23,11 +23,10 @@ if (file_exists(CACHE_FILE_DEVICES) && !isset($_GET['refresh'])) {
 }
 //
 
-require_once 'telemetry.php';
-require_once 'devices.php';
-require_once 'datamodel.php';
-require_once 'cache.php';
-require_once 'auth.php';
+require_once __DIR__ . '/telemetry.php';
+require_once __DIR__ . '/devices.php';
+require_once __DIR__ . '/datamodel.php';
+require_once __DIR__ . '/cache.php';
 
 if (version_compare(phpversion(), '7.1', '>=')) {
 	ini_set('precision', 17);

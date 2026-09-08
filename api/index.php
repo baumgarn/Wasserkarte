@@ -5,12 +5,12 @@ if (version_compare(phpversion(), '7.1', '>=')) {
 	ini_set('serialize_precision', -1);
 }
 
-require_once 'config.php';
-require_once 'telemetry.php';
-require_once 'devices.php';
-require_once 'datamodel.php';
-require_once 'cache.php';
-require_once 'auth.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/telemetry/telemetry.php';
+require_once __DIR__ . '/telemetry/devices.php';
+require_once __DIR__ . '/telemetry/datamodel.php';
+require_once __DIR__ . '/telemetry/cache.php';
+require_once __DIR__ . '/auth.php';
 
 requireRefreshSecretIfNeeded();
 

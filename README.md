@@ -71,8 +71,8 @@ http://localhost/wasserkarte/api/
 Vor dem ersten Start die Cache-Dateien erzeugen:
 
 ```bash
-php api/lasttelemetry.php
-php api/dailyaverages.php
+php api/telemetry/lasttelemetry.php
+php api/telemetry/dailyaverages.php
 ```
 
 Dev-Server starten:
@@ -90,13 +90,13 @@ npm run build
 Folgende Cronjobs sind für den laufenden Betrieb notwendig. Ohne sie werden die Cache-Dateien nicht aktuell erzeugt. Die Anwendung stellt standartmäßig nur durch diese Skripte aufbereitete Daten dar.
 
 ```cron
-0 */2 * * * /usr/bin/php /pfad/zum/projekt/api/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
-5 0 * * * /usr/bin/php /pfad/zum/projekt/api/dailyaverages.php >> $HOME/wasserkarte.log
+0 */2 * * * /usr/bin/php /pfad/zum/projekt/api/telemetry/lasttelemetry.php >> $HOME/wasserkarte.log 2>&1
+5 0 * * * /usr/bin/php /pfad/zum/projekt/api/telemetry/dailyaverages.php >> $HOME/wasserkarte.log
 ```
 
-`api/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte alle zwei Stunden ausgeführt werden.
+`api/telemetry/lasttelemetry.php` aktualisiert Gerätedaten und letzte Messwerte, sollte alle zwei Stunden ausgeführt werden.
 
-`api/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen. Sollte täglich nach Mitternacht ausgeführt werden.
+`api/telemetry/dailyaverages.php` erzeugt tägliche aggregierte Zeitreihen. Sollte täglich nach Mitternacht ausgeführt werden.
 
 ## Haftungsausschluss
 

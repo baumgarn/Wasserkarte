@@ -23,7 +23,9 @@
 
 			<Icon
 				class="menubaricon"
-				:type="item.key"
+				:type="item.iconType !== undefined ? item.iconType : item.key"
+				:obj="item.iconObj || null"
+				:size="42"
 				fill
 				:style="item.iconStyle || {}" />
 
@@ -51,10 +53,22 @@ export default {
 		return {state};
 	},
 	computed: {
+		accountIcon() {
+			const user = state.account.user;
+			if (!state.account.authenticated || !user) return null;
+			const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email || '?';
+			return { userInitial: name.charAt(0) };
+		},
 		menuItems() {
 			return [
-				{ title: 'Account', tooltip: 'Account', key: 'account', group: '1' },
-				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
+				{
+					title: 'Account',
+					tooltip: 'Account',
+					key: 'account',
+					group: '1',
+					iconType: this.accountIcon ? 'account-login' : 'account',
+					iconObj: this.accountIcon,
+				},
 				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },
@@ -63,6 +77,7 @@ export default {
 				// { title: 'Bodenarten', tooltip: 'Bodenarten', key: 'bodenarten', group: '1' },
 				{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' },
 				{ title: 'Bodenkunde', tooltip: 'Hintergrundwissen Bodenkunde', key: 'bodenkunde', group: '1' },
+				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
 				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '2' },
 			];
 		},

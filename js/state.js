@@ -28,6 +28,9 @@ export const state = reactive({
 	wsmtransparency: false,
 	wsmlegends: false,
 	menuOpen: {},
+	accountDetailsOpen: false,
+	accountsOpen: false,
+	createAccountOpen: false,
 	chartTimeRange: -1,
 	dataAggregation: '1d',
 	iframeWidth: '800',
@@ -40,6 +43,13 @@ export const state = reactive({
 	popupMenuOpen: false,
 	markerClicked: false,
 	timelineDate: null,
+	account: {
+		loading: true,
+		authenticated: false,
+		user: null,
+		permissions: {},
+		csrfToken: null,
+	},
 });
 
 localStorageState('markerStyle', 'Bodenfeuchte_Farbkreis');
@@ -134,6 +144,19 @@ export function closeAllMenuWindowsAndSidebar() {
 	state.mobilemenuOpen = false;
 	window.dispatchEvent(new CustomEvent('app:close-popovers'));
 }
+
+export function closeAllModals() {
+	state.accountDetailsOpen = false;
+	state.accountsOpen = false;
+	state.createAccountOpen = false;
+}
+
+watch(
+	() => state.menuOpen.standorttabelle,
+	(isOpen, wasOpen) => {
+		if (isOpen && !wasOpen) closeAllModals();
+	}
+);
 
 // FILTER
 

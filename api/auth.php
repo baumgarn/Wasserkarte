@@ -15,6 +15,14 @@ function getRefreshBlocksFile(): string
 	return CACHE_DIR . '/refresh_blocks.json';
 }
 
+function getRefreshBlockKey(string $source): string
+{
+	$secret = defined('REFRESH_SECRET') ? (string) REFRESH_SECRET : '';
+	return $secret !== ''
+		? hash_hmac('sha256', $source, $secret)
+		: hash('sha256', $source);
+}
+
 function loadRefreshBlocks(): array
 {
 	$blocksFile = getRefreshBlocksFile();
@@ -41,7 +49,10 @@ function pruneRefreshBlocks(array $blocks): array
 	foreach ($blocks as $source => $blockData) {
 		$blockedUntil = isset($blockData['blocked_until']) ? (int) $blockData['blocked_until'] : 0;
 		if ($blockedUntil > $now) {
-			$prunedBlocks[$source] = $blockData;
+			// Einträge älterer Versionen hatten die IP noch als Schlüssel. Beim
+			// nächsten Zugriff werden sie ohne Klartext-IP weitergeführt.
+			$key = preg_match('/^[a-f0-9]{64}$/i', $source) ? $source : getRefreshBlockKey($source);
+			$prunedBlocks[$key] = ['blocked_until' => $blockedUntil];
 		}
 	}
 
@@ -52,15 +63,15 @@ function getActiveRefreshBlock(string $source): ?array
 {
 	$blocks = pruneRefreshBlocks(loadRefreshBlocks());
 	saveRefreshBlocks($blocks);
+	$key = getRefreshBlockKey($source);
 
-	return isset($blocks[$source]) && is_array($blocks[$source]) ? $blocks[$source] : null;
+	return isset($blocks[$key]) && is_array($blocks[$key]) ? $blocks[$key] : null;
 }
 
 function registerRefreshBlock(string $source): void
 {
 	$blocks = pruneRefreshBlocks(loadRefreshBlocks());
-	$blocks[$source] = [
-		'source' => $source,
+	$blocks[getRefreshBlockKey($source)] = [
 		'blocked_until' => time() + (defined('REFRESH_BLOCK_SECONDS') ? (int) REFRESH_BLOCK_SECONDS : 300),
 	];
 

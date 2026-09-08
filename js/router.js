@@ -14,5 +14,7 @@ export default createRouter({
 		{ path: '/einbetten/', name: 'embed', component: LocationEmbed, props: true },
 		{ path: '/qrcode/', name: 'qrcode', component: LocationQrCode, props: true },
 		{ path: '/iframe/:name', name: 'iframe', component: LocationIFrame, props: true },
+		// Die Aktivierung bleibt Teil der Wasserkarte; der Token öffnet dort ein Modal.
+		{ path: '/aktivieren', name: 'activate-account', redirect: to => ({ name: 'home', query: to.query }) },
 	]
 })

@@ -2,7 +2,7 @@
 
 // Updates all daily aggregated telemetry for all devices.
 // Should run through a cronjob right after midnight. Add to crontab -e:
-// 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/dailyaverages.php >> $HOME/wasserkarte.log
+// 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/telemetry/dailyaverages.php >> $HOME/wasserkarte.log
 
 set_time_limit(600); // 10 minutes in seconds
 
@@ -14,8 +14,8 @@ $nfk_labels = [
     [ "value" => 120, "name" => "Sehr nass"    ], // 100+
 ];
 
-require_once 'config.php';
-require_once 'auth.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../auth.php';
 
 requireRefreshSecretIfNeeded();
 
@@ -41,11 +41,10 @@ if (version_compare(phpversion(), '7.1', '>=')) {
 	ini_set('serialize_precision', -1);
 }
 
-require_once 'telemetry.php';
-require_once 'devices.php';
-require_once 'datamodel.php';
-require_once 'cache.php';
-require_once 'auth.php';
+require_once __DIR__ . '/telemetry.php';
+require_once __DIR__ . '/devices.php';
+require_once __DIR__ . '/datamodel.php';
+require_once __DIR__ . '/cache.php';
 
 
 function dailyAverages() {

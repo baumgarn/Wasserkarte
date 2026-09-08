@@ -3,7 +3,9 @@
 	<div v-if="shouldRender"
 		 class="icon icon"
 		 :class="[filterNameClass, typeClass, { excluded: exclude, shadow: shadow }]"
-		 :style="iconStyle"></div>
+		 :style="iconStyle">
+		<span v-if="inlineIcon" class="icon-initial" :style="initialStyle"></span>
+	</div>
 
 </template>
 
@@ -110,7 +112,7 @@ export default {
 
 			this.inlineIcon = null;
 
-			if (this.normalizedType()) return;
+			if (this.normalizedType() && this.obj?.userInitial == null) return;
 
 			if (!this.obj) return;
 
@@ -119,6 +121,12 @@ export default {
 					if (token === this._loadToken) {
 						this.inlineIcon = '/img/' + this.obj.img;
 					}
+					return;
+				}
+
+				if (this.obj.userInitial != null) {
+					const url = await IconFactory.getUserInitialIcon(this.obj.userInitial, normalizePixelSize(this.size));
+					if (token === this._loadToken) this.inlineIcon = url;
 					return;
 				}
 
@@ -164,15 +172,14 @@ export default {
 				style['flex-basis'] = sizeValue;
 			}
 
-			if (this.inlineIcon) {
-				style.backgroundImage = `url(${this.inlineIcon})`;
-			}
-
 			if (this.opacity !== null && this.opacity !== '') {
 				style.opacity = this.opacity;
 			}
 
 			return style;
+		},
+		initialStyle() {
+			return this.inlineIcon ? { backgroundImage: `url(${this.inlineIcon})` } : {};
 		},
 		filterName() {
 			return this.obj && this.obj.name ? this.obj.name : null;
@@ -223,8 +230,20 @@ export default {
 
 .icon.type-account
 	background-image url(/img/user.png)
-	background-size 75%
+	background-size 70%
 	opacity 1
+
+.icon.type-account-login
+	background-image url(/img/user_fill.png)
+	background-size 70%
+	opacity 1
+
+.icon-initial
+	position absolute
+	inset 0
+	background-size contain
+	background-position center
+	background-repeat no-repeat
 
 .icon.type-pflanze
 	background-image url(/img/plant.svg)

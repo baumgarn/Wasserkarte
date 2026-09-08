@@ -80,6 +80,25 @@ export const IconFactory = {
 		this.cache.set(key, dataUrl);
 		return dataUrl;
 	},
+
+	async getUserInitialIcon(initial, size) {
+		if (!size) size = this.size;
+
+		const letter = String(initial || '?').trim().charAt(0).toLocaleUpperCase('de-DE') || '?';
+		const key = `user_initial_${letter}_${size}`;
+		if (this.cache.has(key)) return this.cache.get(key);
+
+		const { canvas, ctx } = this.createCanvas(size);
+		ctx.font = `400 ${size * 0.52}px Ubuntu, Arial, sans-serif`;
+		ctx.fillStyle = '#ffffff';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(letter, size / 2, size * 0.52);
+
+		const dataUrl = canvas.toDataURL();
+		this.cache.set(key, dataUrl);
+		return dataUrl;
+	},
 	
 
 	getStandorttabelleIcon(colorScheme) {
