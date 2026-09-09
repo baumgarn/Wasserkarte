@@ -72,7 +72,7 @@
 		:min-height="180"
 		:max-height="600"
 		@close="state.accountsOpen = false">
-		<Accounts @create="state.createAccountOpen = true" />
+		<Accounts @create="state.createAccountOpen = true" @permissions="openAccountPermissions" />
 	</Modal>
 
 	<Modal
@@ -84,6 +84,17 @@
 		:max-height="600"
 		@close="state.createAccountOpen = false">
 		<CreateAccount />
+	</Modal>
+
+	<Modal
+		v-if="state.accountPermissionsOpen && state.accountPermissionsUser"
+		title="Account Berechtigungen"
+		:min-width="320"
+		:max-width="480"
+		:min-height="180"
+		:max-height="480"
+		@close="closeAccountPermissions">
+		<AccountPermissions :key="state.accountPermissionsUser.id" :user="state.accountPermissionsUser" />
 	</Modal>
 
 	<Modal
@@ -140,6 +151,7 @@ import Modal from '@/views/modal.vue';
 import AccountSettings from '@/management/account_settings.vue';
 import Accounts from '@/management/accounts.vue';
 import CreateAccount from '@/management/create_account.vue';
+import AccountPermissions from '@/management/account_permissions.vue';
 import ActivateAccount from '@/management/activate_account.vue';
 import StatusBar from '@/map/statusbar.vue';
 import { state } from '@/state.js';
@@ -178,6 +190,7 @@ export default {
 		AccountSettings,
 		Accounts,
 		CreateAccount,
+		AccountPermissions,
 		ActivateAccount,
 		SoilMenu,
 		TimelineWrapper,
@@ -194,6 +207,14 @@ export default {
 		},
 	},
 	methods: {
+		openAccountPermissions(user) {
+			state.accountPermissionsUser = user;
+			state.accountPermissionsOpen = true;
+		},
+		closeAccountPermissions() {
+			state.accountPermissionsOpen = false;
+			state.accountPermissionsUser = null;
+		},
 		closeActivation() {
 			const query = { ...this.$route.query };
 			delete query.activateToken;

@@ -1,21 +1,21 @@
 <template>
 	<main class="activation-page">
-		<section class="activation-card">
-			<h1>Wasserkarte-Account aktivieren</h1>
-			<form v-if="!activated" @submit.prevent="activate">
-				<label>
+		<section class="management-panel activation-card">
+			<h1 class="management-section-title">Wasserkarte-Account aktivieren</h1>
+			<form v-if="!activated" class="management-form" @submit.prevent="activate">
+				<label class="management-field">
 					<span>Passwort festlegen</span>
 					<input v-model="password" type="password" autocomplete="new-password" required autofocus>
 				</label>
-				<label>
+				<label class="management-field">
 					<span>Passwort wiederholen</span>
 					<input v-model="passwordConfirmation" type="password" autocomplete="new-password" required>
 				</label>
-				<p v-if="error" class="error">{{ error }}</p>
+				<p v-if="error" class="management-note management-error">{{ error }}</p>
 				<button type="submit" :disabled="submitting">{{ submitting ? 'Aktiviert …' : 'Account aktivieren' }}</button>
 			</form>
 			<div v-else>
-				<p>Dein Account wurde aktiviert. Du kannst dich jetzt anmelden.</p>
+				<p class="management-note management-success">Dein Account wurde aktiviert. Du kannst dich jetzt anmelden.</p>
 			</div>
 		</section>
 	</main>
@@ -69,28 +69,8 @@ export default {
 
 <style lang="stylus" scoped>
 .activation-card
-	padding 24px
+	min-width 280px
 
-h1
-	margin 0 0 20px
-	font-size 16pt
-
-form
-	display grid
-	gap 12px
-
-label
-	display grid
-	gap 4px
-	font-size 9pt
-
-input
-	padding 8px
-	border 1px solid #00000033
-	border-radius 4px
-	font inherit
-
-.error
-	margin 0
-	color #b52323
+.activation-card .management-section-title
+	margin-bottom 8px
 </style>

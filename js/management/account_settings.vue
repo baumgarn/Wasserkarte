@@ -1,38 +1,38 @@
 <template>
-	<div class="account-settings">
+	<div class="management-panel account-settings">
 
-		<form @submit.prevent="saveProfile">
-			<label>
+		<form class="management-form" @submit.prevent="saveProfile">
+			<label class="management-field">
 				<span>E-Mail-Adresse</span>
 				<input :value="user.email" type="email" disabled>
 			</label>
-			<label>
+			<label class="management-field">
 				<span>Vorname</span>
 				<input v-model.trim="firstName" autocomplete="given-name" maxlength="255">
 			</label>
-			<label>
+			<label class="management-field">
 				<span>Nachname</span>
 				<input v-model.trim="lastName" autocomplete="family-name" maxlength="255">
 			</label>
-			<p v-if="profileMessage" :class="profileError ? 'error' : 'success'">{{ profileMessage }}</p>
+			<p v-if="profileMessage" :class="['management-note', profileError ? 'management-error' : 'management-success']">{{ profileMessage }}</p>
 			<button type="submit" :disabled="savingProfile">{{ savingProfile ? 'Speichert …' : 'Speichern' }}</button>
 		</form>
 
-		<form @submit.prevent="changePassword">
-			<h3>Passwort ändern</h3>
-			<label>
+		<form class="management-form" @submit.prevent="changePassword">
+			<h3 class="management-section-title">Passwort ändern</h3>
+			<label class="management-field">
 				<span>Aktuelles Passwort</span>
 				<input v-model="currentPassword" type="password" autocomplete="current-password" required>
 			</label>
-			<label>
+			<label class="management-field">
 				<span>Neues Passwort</span>
 				<input v-model="newPassword" type="password" autocomplete="new-password" required>
 			</label>
-			<label>
+			<label class="management-field">
 				<span>Neues Passwort wiederholen</span>
 				<input v-model="newPasswordConfirmation" type="password" autocomplete="new-password" required>
 			</label>
-			<p v-if="passwordMessage" :class="passwordError ? 'error' : 'success'">{{ passwordMessage }}</p>
+			<p v-if="passwordMessage" :class="['management-note', passwordError ? 'management-error' : 'management-success']">{{ passwordMessage }}</p>
 			<button type="submit" :disabled="savingPassword">{{ savingPassword ? 'Ändert …' : 'Passwort ändern' }}</button>
 		</form>
 
@@ -108,43 +108,6 @@ export default {
 
 <style lang="stylus" scoped>
 .account-settings
-	padding 14px
 	display grid
 	gap 24px
-
-form
-	display grid
-	gap 10px
-
-h3
-	margin 0
-	font-size 11pt
-
-label
-	display grid
-	gap 3px
-	font-size 9pt
-
-input
-	padding 7px
-	border 1px solid #00000033
-	border-radius 4px
-	font inherit
-
-input:disabled
-	background #f1f1f1
-	color #555
-
-// button
-	// justify-self start
-
-p
-	margin 0
-	font-size 9pt
-
-.error
-	color #b52323
-
-.success
-	color #177143
 </style>

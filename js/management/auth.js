@@ -83,6 +83,18 @@ export const managementAuth = {
 		});
 	},
 
+	async getUserPermissions(userId) {
+		return request(`user-permissions&id=${encodeURIComponent(userId)}`);
+	},
+
+	async updateUserPermissions(userId, role) {
+		return request('user-permissions', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: userId, role }),
+		});
+	},
+
 	async activateAccount(activateToken, password) {
 		return request('activate', {
 			method: 'POST',

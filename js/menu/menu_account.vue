@@ -7,22 +7,22 @@
 		</div>
 
 		<div class="menuwindow-content">
-			<div v-if="state.account.loading" class="notice">Sitzung wird geprüft …</div>
+			<div v-if="state.account.loading" class="management-note management-notice">Sitzung wird geprüft …</div>
 
-			<form v-else-if="!state.account.authenticated" class="account-form" @submit.prevent="login">
-				<label>
+			<form v-else-if="!state.account.authenticated" class="management-form account-form" @submit.prevent="login">
+				<label class="management-field">
 					<span>E-Mail-Adresse</span>
 					<input v-model.trim="email" type="email" autocomplete="username" required>
 				</label>
-				<label>
+				<label class="management-field">
 					<span>Passwort</span>
 					<input v-model="password" type="password" autocomplete="current-password" required>
 				</label>
-				<label class="remember-me">
-					<input v-model="rememberMe" type="checkbox">
-					<span>Eingeloggt bleiben</span>
-				</label>
-				<p v-if="error" class="error">{{ error }}</p>
+				<div class="settings-item">
+					<input id="remember-me" v-model="rememberMe" type="checkbox">
+					<label for="remember-me">Eingeloggt bleiben</label>
+				</div>
+				<p v-if="error" class="management-note management-error">{{ error }}</p>
 				<button class="" type="submit" :disabled="submitting">
 					{{ submitting ? 'Anmeldung läuft …' : 'Anmelden' }}
 				</button>
@@ -30,8 +30,8 @@
 
 			<div v-else class="account-summary">
 				<div class="account-type">{{ thingsboardAccountType }}</div>
-				<button class="" type="button" @click="state.accountDetailsOpen = true">Konto</button>
-				<button v-if="isAdmin" class="" type="button" @click="state.accountsOpen = true">Accounts</button>
+				<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
+				<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
 				<button class="" type="button" @click="logout">Abmelden</button>
 			</div>
 		</div>
@@ -42,7 +42,7 @@
 
 <script>
 
-import { state } from '../state.js' 
+import { state, closeAllModals, toggleModal } from '../state.js'
 import { dataModel } from '@/datamodel.js'
 import { managementAuth } from '@/management/auth.js'
 
@@ -72,10 +72,10 @@ export default {
 			const authority = state.account.user?.thingsboardAuthority;
 			const labels = {
 				TENANT_ADMIN: 'Tenant Administrator',
-				CUSTOMER_USER: 'Customer User',
 				SYS_ADMIN: 'System Administrator',
 			};
-			return labels[authority] || 'ThingsBoard-Benutzer';
+			if (labels[authority]) return labels[authority];
+			return state.account.user?.wasserkarteRole === 'wassermeister' ? 'Wassermeister*in' : 'Keine Rechte';
 		},
 		isAdmin() {
 			const authority = state.account.user?.thingsboardAuthority;
@@ -85,6 +85,9 @@ export default {
 	props: {
 	},
 	methods: {
+		toggleAccountModal(modalStateKey) {
+			toggleModal(modalStateKey);
+		},
 		async login() {
 			this.error = '';
 			this.submitting = true;
@@ -99,8 +102,9 @@ export default {
 		},
 		async logout() {
 			this.error = '';
-			try {
+		try {
 				await managementAuth.logout();
+				closeAllModals();
 			} catch (error) {
 				this.error = error.message || 'Abmeldung fehlgeschlagen.';
 			}
@@ -120,33 +124,13 @@ export default {
 	width 275px
 
 .account-form
+	padding 6px
+
 .account-summary
 	display flex
 	flex-direction column
 	gap 10px
 	padding 6px
-
-.account-form label
-	display flex
-	flex-direction column
-	gap 3px
-	font-size 9pt
-
-.account-form input
-	padding 7px
-	border 1px solid #00000033
-	border-radius 4px
-	font inherit
-
-.account-form .remember-me
-	flex-direction row
-	align-items center
-	gap 6px
-
-.error
-	margin 0
-	color #b52323
-	font-size 9pt
 
 .account-type
 	font-size 9pt
@@ -154,9 +138,6 @@ export default {
 
 // .settings
 // 	user-select none
-
-.notice
-	opacity .5
 
 .split
 	margin-top -2px

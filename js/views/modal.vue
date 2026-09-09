@@ -7,7 +7,6 @@
 			<section
 				ref="window"
 				class="modal-window"
-				:style="dimensions"
 				role="dialog"
 				aria-modal="true"
 				:aria-label="title || 'Dialog'">
@@ -42,22 +41,6 @@ export default {
 			type: String,
 			default: '',
 		},
-		minWidth: {
-			type: [Number, String],
-			default: 400,
-		},
-		maxWidth: {
-			type: [Number, String],
-			default: 640,
-		},
-		minHeight: {
-			type: [Number, String],
-			default: 400,
-		},
-		maxHeight: {
-			type: [Number, String],
-			default: 640,
-		},
 		closeClickOutside: {
 			type: Boolean,
 			default: false,
@@ -65,12 +48,7 @@ export default {
 	},
 	computed: {
 		dimensions() {
-			return {
-				minWidth: toCssLength(this.minWidth),
-				maxWidth: toCssLength(this.maxWidth),
-				minHeight: toCssLength(this.minHeight),
-				maxHeight: toCssLength(this.maxHeight),
-			};
+
 		},
 	},
 	methods: {
@@ -120,6 +98,9 @@ export default {
 	pointer-events auto
 	background #fff
 	box-shadow 0 4px 18px #00000044
+	min-width 400px
+	max-width 100vw
+	max-height 100vh
 
 .modal-titlebar
 	height 36px
@@ -142,8 +123,6 @@ export default {
 	margin-right 4px
 
 .modal-content
-	min-width 0
-	min-height 0
 	flex 1 1 auto
 	overflow auto
 

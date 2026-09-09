@@ -1,16 +1,27 @@
 <template>
-	<div class="accounts">
-		<div v-if="loading" class="notice">Accounts werden geladen …</div>
-		<p v-else-if="error" class="error">{{ error }}</p>
+	<div class="management-panel accounts">
+		<div v-if="loading" class="management-note management-notice">Accounts werden geladen …</div>
+		<p v-else-if="error" class="management-note management-error">{{ error }}</p>
 		<div v-else class="accounts-list">
-			<div v-for="user in users" :key="user.id" class="account-row">
-				<div class="account-name">{{ userName(user) }}</div>
-				<div class="account-email">{{ user.email }}</div>
-				<div class="account-authority">{{ authorityLabel(user.authority) }}</div>
-			</div>
-			<p v-if="users.length === 0" class="notice">Keine Accounts gefunden.</p>
+			<table v-if="users.length" class="accounts-table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>E-Mail-Adresse</th>
+						<th>Berechtigung</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="user in users" :key="user.id" class="account-row" tabindex="0" @click="$emit('permissions', user)" @keydown.enter="$emit('permissions', user)">
+						<td class="account-name" :title="userName(user)">{{ userName(user) }}</td>
+						<td class="account-email" :title="user.email">{{ user.email }}</td>
+						<td class="account-authority">{{ permissionLabel(user.role) }}</td>
+					</tr>
+				</tbody>
+			</table>
+			<p v-else class="management-note management-notice">Keine Accounts gefunden.</p>
 		</div>
-		<div class="accounts-actions">
+		<div class="management-actions accounts-actions">
 			<button type="button" @click="$emit('create')">Neuer Account</button>
 		</div>
 	</div>
@@ -21,7 +32,7 @@ import { managementAuth } from '@/management/auth.js';
 
 export default {
 	name: 'Accounts',
-	emits: ['create'],
+	emits: ['create', 'permissions'],
 	data() {
 		return {
 			loading: true,
@@ -33,12 +44,8 @@ export default {
 		userName(user) {
 			return [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Ohne Namen';
 		},
-		authorityLabel(authority) {
-			return {
-				TENANT_ADMIN: 'Tenant Administrator',
-				SYS_ADMIN: 'System Administrator',
-				CUSTOMER_USER: 'Customer User',
-			}[authority] || authority || 'Unbekannt';
+		permissionLabel(role) {
+			return role === 'wassermeister' ? 'Wassermeister*in' : 'Keine Rechte';
 		},
 		async loadUsers() {
 			this.loading = true;
@@ -60,40 +67,68 @@ export default {
 
 <style lang="stylus" scoped>
 .accounts
-	padding 10px
+	display flex
+	flex-direction column
+	gap 10px
 
 .accounts-list
-	display grid
-	gap 1px
+	flex-grow 1
+	flex-shrink 1
+	overflow auto
+	align-self flex-start
+
+.accounts-table
+	width 600px
+	max-width calc(100vw - 32px)
+	table-layout fixed
+	border-collapse collapse
+	font-size 9pt
+
+.accounts-table th
+	padding 6px
+	border-bottom 1px solid #00000022
+	text-align left
+	font-size 8pt
+	font-weight 500
+	color var(--menusectionheadercolor)
+
+.accounts-actions
+	padding-top 4px
+	flex-grow 0
+	flex-shrink 0
 
 .account-row
-	display grid
-	grid-template-columns minmax(120px, 1fr) minmax(160px, 1.4fr) auto
-	gap 14px
-	align-items center
-	padding 9px
+	cursor pointer
 	background #f4f4f4
+	transition background linear .2s
+	&:hover
+	&:focus
+		background: #e0e0e0
+		outline none
+
+.account-row td
+	padding 6px
+	overflow hidden
+	text-overflow ellipsis
+	white-space nowrap
+
+.account-name
+	max-width 180px
+
+.account-email
+	max-width 260px
+
+.account-authority
+	max-width 180px
 
 .account-name
 	font-weight 500
 
-.account-email
-	font-size 9pt
-	color #555
+// .account-email
+	// color #555
 
 .account-authority
-	font-size 8.5pt
 	color var(--menusectionheadercolor)
 	white-space nowrap
 
-.notice
-	margin 0
-	opacity .65
-
-.error
-	margin 0
-	color #b52323
-
-.accounts-actions
-	margin-top 12px
 </style>

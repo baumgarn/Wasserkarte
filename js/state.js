@@ -31,6 +31,8 @@ export const state = reactive({
 	accountDetailsOpen: false,
 	accountsOpen: false,
 	createAccountOpen: false,
+	accountPermissionsOpen: false,
+	accountPermissionsUser: null,
 	chartTimeRange: -1,
 	dataAggregation: '1d',
 	iframeWidth: '800',
@@ -149,6 +151,14 @@ export function closeAllModals() {
 	state.accountDetailsOpen = false;
 	state.accountsOpen = false;
 	state.createAccountOpen = false;
+	state.accountPermissionsOpen = false;
+	state.accountPermissionsUser = null;
+}
+
+export function toggleModal(modalStateKey) {
+	const wasOpen = state[modalStateKey] === true;
+	closeAllModals();
+	state[modalStateKey] = !wasOpen;
 }
 
 watch(

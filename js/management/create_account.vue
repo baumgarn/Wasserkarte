@@ -1,27 +1,27 @@
 <template>
-	<div class="create-account">
-		<form v-if="!created" @submit.prevent="createAccount">
-			<label>
+	<div class="management-panel create-account">
+		<form v-if="!created" class="management-form" @submit.prevent="createAccount">
+			<label class="management-field">
 				<span>Vorname</span>
 				<input v-model.trim="firstName" autocomplete="given-name" maxlength="255">
 			</label>
-			<label>
+			<label class="management-field">
 				<span>Nachname</span>
 				<input v-model.trim="lastName" autocomplete="family-name" maxlength="255">
 			</label>
-			<label>
+			<label class="management-field">
 				<span>E-Mail-Adresse</span>
 				<input v-model.trim="email" type="email" autocomplete="email" required>
 			</label>
-			<p v-if="error" class="error">{{ error }}</p>
+			<p v-if="error" class="management-note management-error">{{ error }}</p>
 			<button type="submit" :disabled="saving">{{ saving ? 'Erstellt …' : 'Account erstellen' }}</button>
 		</form>
 
 		<div v-else class="activation-result">
-			<p v-if="mailSent">Die Aktivierungs-E-Mail wurde an {{ email }} versendet.</p>
+			<p v-if="mailSent" class="management-note management-success">Die Aktivierungs-E-Mail wurde an {{ email }} versendet.</p>
 			<template v-else>
-				<p>Der Account wurde angelegt. Der Mailversand ist derzeit deaktiviert.</p>
-				<label>
+				<p class="management-note management-notice">Der Account wurde angelegt. Der Mailversand ist derzeit deaktiviert.</p>
+				<label class="management-field">
 					<span>Aktivierungslink</span>
 					<input ref="activationLink" :value="activationLink" readonly>
 				</label>
@@ -78,31 +78,11 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.create-account
-	padding 14px
-
-form
 .activation-result
 	display grid
 	gap 10px
 
-label
-	display grid
-	gap 3px
-	font-size 9pt
-
-input
-	padding 7px
-	border 1px solid #00000033
-	border-radius 4px
-	font inherit
-
 .activation-result input
 	font-size 8pt
 
-p
-	margin 0
-
-.error
-	color #b52323
 </style>

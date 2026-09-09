@@ -318,7 +318,7 @@ export default {
 	.settings-item
 		margin 16px 0 10px
 	.sidebar.info
-		z-index 1000
+		z-index 79
 		background #fff
 		line-height 1.4
 		height 100vh
