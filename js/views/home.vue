@@ -72,7 +72,7 @@
 		:min-height="180"
 		:max-height="600"
 		@close="state.accountsOpen = false">
-		<Accounts @create="state.createAccountOpen = true" @permissions="openAccountPermissions" />
+		<Accounts ref="accounts" @create="state.createAccountOpen = true" @permissions="openAccountPermissions" />
 	</Modal>
 
 	<Modal
@@ -88,13 +88,20 @@
 
 	<Modal
 		v-if="state.accountPermissionsOpen && state.accountPermissionsUser"
-		title="Account Berechtigungen"
+		title="Berechtigungen"
 		:min-width="320"
 		:max-width="480"
 		:min-height="180"
 		:max-height="480"
 		@close="closeAccountPermissions">
-		<AccountPermissions :key="state.accountPermissionsUser.id" :user="state.accountPermissionsUser" />
+		<AccountPermissions :key="state.accountPermissionsUser.id" :user="state.accountPermissionsUser" @delete-account="openDeleteAccount" @saved="closeAccountPermissions" />
+	</Modal>
+
+	<Modal
+		v-if="state.deleteAccountOpen && state.accountPermissionsUser"
+		title="Account löschen"
+		@close="closeDeleteAccount">
+		<DeleteAccount :user="state.accountPermissionsUser" @close="closeDeleteAccount" @deleted="accountDeleted" />
 	</Modal>
 
 	<Modal
@@ -152,6 +159,7 @@ import AccountSettings from '@/management/account_settings.vue';
 import Accounts from '@/management/accounts.vue';
 import CreateAccount from '@/management/create_account.vue';
 import AccountPermissions from '@/management/account_permissions.vue';
+import DeleteAccount from '@/management/delete_account.vue';
 import ActivateAccount from '@/management/activate_account.vue';
 import StatusBar from '@/map/statusbar.vue';
 import { state } from '@/state.js';
@@ -191,6 +199,7 @@ export default {
 		Accounts,
 		CreateAccount,
 		AccountPermissions,
+		DeleteAccount,
 		ActivateAccount,
 		SoilMenu,
 		TimelineWrapper,
@@ -214,6 +223,17 @@ export default {
 		closeAccountPermissions() {
 			state.accountPermissionsOpen = false;
 			state.accountPermissionsUser = null;
+		},
+		openDeleteAccount() {
+			state.deleteAccountOpen = true;
+		},
+		closeDeleteAccount() {
+			state.deleteAccountOpen = false;
+		},
+		accountDeleted() {
+			state.deleteAccountOpen = false;
+			this.closeAccountPermissions();
+			this.$refs.accounts?.loadUsers(true);
 		},
 		closeActivation() {
 			const query = { ...this.$route.query };

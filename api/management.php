@@ -99,25 +99,48 @@ function managementRequireCustomerUser(string $userId, string $token): array
 	return $user;
 }
 
-function managementUserRole(string $userId, string $token): string
+function managementLocationIdsFromAttribute($value): array
+{
+	if (is_string($value)) {
+		$decoded = json_decode($value, true);
+		$value = is_array($decoded) ? $decoded : [];
+	}
+	if (!is_array($value)) {
+		return [];
+	}
+
+	return array_values(array_filter($value, static fn ($id) => is_string($id) && preg_match('/^[a-f0-9-]{36}$/i', $id)));
+}
+
+function managementUserPermissions(string $userId, string $token): array
 {
 	$response = thingsBoardManagementRequest(
 		'GET',
-		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_role',
+		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_role,wasserkarte_locations',
 		null,
 		$token
 	);
 	if ($response['status'] !== 200 || !is_array($response['body'])) {
-		return 'none';
+		return ['role' => 'none', 'locations' => []];
 	}
 
+	$role = 'none';
+	$locations = [];
 	foreach ($response['body'] as $attribute) {
 		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_role' && ($attribute['value'] ?? '') === 'wassermeister') {
-			return 'wassermeister';
+			$role = 'wassermeister';
+		}
+		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_locations') {
+			$locations = managementLocationIdsFromAttribute($attribute['value'] ?? null);
 		}
 	}
 
-	return 'none';
+	return ['role' => $role, 'locations' => $locations];
+}
+
+function managementUserRole(string $userId, string $token): string
+{
+	return managementUserPermissions($userId, $token)['role'];
 }
 
 function managementMailEnabled(): bool
@@ -195,6 +218,12 @@ function managementSessionPayload(): array
 	if ($identity === null) {
 		return ['authenticated' => false];
 	}
+	if (($identity['thingsboardAuthority'] ?? '') === 'CUSTOMER_USER' && !array_key_exists('wasserkarteLocations', $identity)) {
+		$userPermissions = managementUserPermissions((string) $identity['id'], managementServiceToken());
+		$identity['wasserkarteRole'] = $userPermissions['role'];
+		$identity['wasserkarteLocations'] = $userPermissions['locations'];
+		updateManagementIdentity($identity);
+	}
 
 	return [
 		'authenticated' => true,
@@ -205,6 +234,7 @@ function managementSessionPayload(): array
 			'lastName' => $identity['lastName'],
 			'thingsboardAuthority' => $identity['thingsboardAuthority'],
 			'wasserkarteRole' => $identity['wasserkarteRole'] ?? 'none',
+			'wasserkarteLocations' => $identity['wasserkarteLocations'] ?? [],
 		],
 		'permissions' => managementPermissions($identity['thingsboardAuthority']),
 		'csrfToken' => getManagementCsrfToken(),
@@ -239,13 +269,16 @@ if ($action === 'users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 				continue;
 			}
 			$userId = $user['id']['id'] ?? null;
+			$userPermissions = is_string($userId) ? managementUserPermissions($userId, $token) : ['role' => 'none', 'locations' => []];
 			$users[] = [
 				'id' => $userId,
 				'email' => $user['email'] ?? '',
 				'firstName' => $user['firstName'] ?? '',
 				'lastName' => $user['lastName'] ?? '',
 				'authority' => $user['authority'] ?? '',
-				'role' => is_string($userId) ? managementUserRole($userId, $token) : 'none',
+				'role' => $userPermissions['role'],
+				'locations' => $userPermissions['locations'],
+				'locationCount' => count($userPermissions['locations']),
 				'createdTime' => $user['createdTime'] ?? null,
 			];
 		}
@@ -263,7 +296,7 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 	managementRequireCustomerUser($userId, $token);
 	$response = thingsBoardManagementRequest(
 		'GET',
-		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_role',
+		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_role,wasserkarte_locations',
 		null,
 		$token
 	);
@@ -272,13 +305,16 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 	}
 
 	$role = 'none';
+	$locations = [];
 	foreach ($response['body'] as $attribute) {
 		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_role' && ($attribute['value'] ?? '') === 'wassermeister') {
 			$role = 'wassermeister';
-			break;
+		}
+		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_locations') {
+			$locations = managementLocationIdsFromAttribute($attribute['value'] ?? null);
 		}
 	}
-	managementRespond(['role' => $role]);
+	managementRespond(['role' => $role, 'locations' => $locations]);
 }
 
 if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -287,8 +323,13 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$input = managementReadJsonBody();
 	$userId = is_array($input) ? (string) ($input['id'] ?? '') : '';
 	$role = is_array($input) ? (string) ($input['role'] ?? '') : '';
+	$locations = is_array($input) && is_array($input['locations'] ?? null) ? $input['locations'] : [];
 	if (!in_array($role, ['none', 'wassermeister'], true)) {
 		managementRespond(['error' => 'Ungültige Berechtigungsstufe.'], 400);
+	}
+	$locations = array_values(array_unique(array_filter($locations, static fn ($id) => is_string($id) && preg_match('/^[a-f0-9-]{36}$/i', $id))));
+	if (count($locations) > 500) {
+		managementRespond(['error' => 'Es können höchstens 500 Standorte zugeordnet werden.'], 400);
 	}
 
 	$token = managementServiceToken();
@@ -296,13 +337,27 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$saved = thingsBoardManagementRequest(
 		'POST',
 		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/attributes/SERVER_SCOPE',
-		['wasserkarte_role' => $role],
+		['wasserkarte_role' => $role, 'wasserkarte_locations' => $locations],
 		$token
 	);
 	if ($saved['status'] !== 200) {
 		managementRespond(['error' => 'Berechtigungen konnten nicht gespeichert werden.'], 502);
 	}
-	managementRespond(['role' => $role]);
+	managementRespond(['role' => $role, 'locations' => $locations]);
+}
+
+if ($action === 'delete-user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	managementRequireAdmin();
+	managementRequireCsrfToken();
+	$input = managementReadJsonBody();
+	$userId = is_array($input) ? (string) ($input['id'] ?? '') : '';
+	$token = managementServiceToken();
+	managementRequireCustomerUser($userId, $token);
+	$deleted = thingsBoardManagementRequest('DELETE', '/user/' . rawurlencode($userId), null, $token);
+	if (!in_array($deleted['status'], [200, 204], true)) {
+		managementRespond(['error' => 'Account konnte nicht gelöscht werden.'], 502);
+	}
+	managementRespond(['success' => true]);
 }
 
 if ($action === 'create-user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -448,9 +503,9 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		managementRespond(['error' => 'Das ThingsBoard-Nutzerprofil ist unvollständig.'], 502);
 	}
 	$authority = (string) ($profile['authority'] ?? '');
-	$wasserkarteRole = $authority === 'CUSTOMER_USER'
-		? managementUserRole($id, managementServiceToken())
-		: 'none';
+	$userPermissions = $authority === 'CUSTOMER_USER'
+		? managementUserPermissions($id, managementServiceToken())
+		: ['role' => 'none', 'locations' => []];
 
 	setManagementIdentity([
 		'id' => $id,
@@ -458,7 +513,8 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		'firstName' => (string) ($profile['firstName'] ?? ''),
 		'lastName' => (string) ($profile['lastName'] ?? ''),
 		'thingsboardAuthority' => $authority,
-		'wasserkarteRole' => $wasserkarteRole,
+		'wasserkarteRole' => $userPermissions['role'],
+		'wasserkarteLocations' => $userPermissions['locations'],
 	], $remember);
 	managementRespond(managementSessionPayload());
 }

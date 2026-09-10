@@ -8,7 +8,7 @@ function loadSoilTable(): array
 		return $soilTable;
 	}
 
-	$path = dirname(__DIR__) . '/data/soil-table.json';
+	$path = dirname(__DIR__, 2) . '/data/soil-table.json';
 	$json = @file_get_contents($path);
 	if ($json === false) {
 		throw new RuntimeException("Failed to read soil table from {$path}");

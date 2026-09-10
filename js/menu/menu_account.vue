@@ -7,6 +7,7 @@
 		</div>
 
 		<div class="menuwindow-content">
+			
 			<div v-if="state.account.loading" class="management-note management-notice">Sitzung wird geprüft …</div>
 
 			<form v-else-if="!state.account.authenticated" class="management-form account-form" @submit.prevent="login">
@@ -30,9 +31,23 @@
 
 			<div v-else class="account-summary">
 				<div class="account-type">{{ thingsboardAccountType }}</div>
-				<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
-				<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
-				<button class="" type="button" @click="logout">Abmelden</button>
+				<div class="account-actions">
+					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
+					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
+					<button class="" type="button" @click="logout">Abmelden</button>
+				</div>
+				<div v-if="isWassermeister" class="account-locations-divider"></div>
+				<div v-if="isWassermeister" class="account-locations">
+					<div
+						v-for="device in assignedDevices"
+						:key="device.id"
+						class="menuitem"
+						:class="{ selected: state.selectedDevice === device.name }"
+						@click="selectDevice(device)">
+						<ColorDot :device />
+						<div class="title">{{ device.attributes?.Anzeigename || device.name }}</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -43,12 +58,13 @@
 <script>
 
 import { state, closeAllModals, toggleModal } from '../state.js'
-import { dataModel } from '@/datamodel.js'
 import { managementAuth } from '@/management/auth.js'
+import ColorDot from '@/menu/colordot.vue'
 
 export default {
 	name: 'AccountMenu',
 	components: {
+		ColorDot,
 	},
 	setup() {
 		return {state};
@@ -81,12 +97,28 @@ export default {
 			const authority = state.account.user?.thingsboardAuthority;
 			return authority === 'TENANT_ADMIN' || authority === 'SYS_ADMIN';
 		},
+		isWassermeister() {
+			return state.account.user?.wasserkarteRole === 'wassermeister';
+		},
+		assignedDevices() {
+			const locationIds = state.account.user?.wasserkarteLocations;
+			if (!Array.isArray(locationIds)) return [];
+			const assignedIds = new Set(locationIds);
+			return state.devices
+				.filter(device => assignedIds.has(device.id))
+				.sort((a, b) => (a.attributes?.Anzeigename || a.name).localeCompare(b.attributes?.Anzeigename || b.name, 'de'));
+		},
 	},
 	props: {
 	},
 	methods: {
 		toggleAccountModal(modalStateKey) {
 			toggleModal(modalStateKey);
+		},
+		selectDevice(device) {
+			state.selectedDevice = device?.name || null;
+			window.dispatchEvent(new CustomEvent('sidebar:open', { detail: device }));
+			window.dispatchEvent(new CustomEvent('device-selected', { detail: device }));
 		},
 		async login() {
 			this.error = '';
@@ -134,7 +166,40 @@ export default {
 
 .account-type
 	font-size 9pt
+	font-weight bold
 	color var(--menusectionheadercolor)
+
+.account-actions
+	display flex
+	flex-direction column
+	gap 8px
+
+.account-actions button
+	flex 0 0 auto
+
+.account-locations-divider
+	border-top var(--thinline)
+	margin 2px 0
+
+.account-locations
+	display flex
+	flex-direction column
+	gap 0
+	margin -4px 0
+
+.account-locations .menuitem
+	display flex
+	align-items center
+	padding-right 2px
+
+.account-locations .title
+	min-width 0
+	flex-grow 1
+	flex-shrink 1
+	overflow hidden
+	white-space nowrap
+	text-overflow ellipsis
+	font-weight normal
 
 // .settings
 // 	user-select none

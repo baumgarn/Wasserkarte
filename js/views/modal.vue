@@ -28,11 +28,6 @@
 </template>
 
 <script>
-
-function toCssLength(value) {
-	return typeof value === 'number' ? `${value}px` : value;
-}
-
 export default {
 	name: 'Modal',
 	emits: ['close'],
@@ -44,11 +39,6 @@ export default {
 		closeClickOutside: {
 			type: Boolean,
 			default: false,
-		},
-	},
-	computed: {
-		dimensions() {
-
 		},
 	},
 	methods: {
@@ -82,7 +72,7 @@ export default {
 	justify-content center
 	padding 0
 	box-sizing border-box
-	z-index 80
+	z-index 400
 	pointer-events none
 
 .modal-backdrop.close-click-outside

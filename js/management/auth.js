@@ -87,11 +87,19 @@ export const managementAuth = {
 		return request(`user-permissions&id=${encodeURIComponent(userId)}`);
 	},
 
-	async updateUserPermissions(userId, role) {
+	async updateUserPermissions(userId, role, locations) {
 		return request('user-permissions', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id: userId, role }),
+			body: JSON.stringify({ id: userId, role, locations }),
+		});
+	},
+
+	async deleteUser(userId) {
+		return request('delete-user', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: userId }),
 		});
 	},
 

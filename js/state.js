@@ -33,6 +33,7 @@ export const state = reactive({
 	createAccountOpen: false,
 	accountPermissionsOpen: false,
 	accountPermissionsUser: null,
+	deleteAccountOpen: false,
 	chartTimeRange: -1,
 	dataAggregation: '1d',
 	iframeWidth: '800',
@@ -51,6 +52,12 @@ export const state = reactive({
 		user: null,
 		permissions: {},
 		csrfToken: null,
+	},
+	accountManagement: {
+		users: [],
+		loading: false,
+		loaded: false,
+		error: '',
 	},
 });
 
@@ -153,6 +160,7 @@ export function closeAllModals() {
 	state.createAccountOpen = false;
 	state.accountPermissionsOpen = false;
 	state.accountPermissionsUser = null;
+	state.deleteAccountOpen = false;
 }
 
 export function toggleModal(modalStateKey) {

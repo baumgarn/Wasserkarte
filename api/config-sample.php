@@ -9,8 +9,9 @@
 	define('CACHE_TELEMETRY_SINGLE_DURATION', 60*60*1); // 1 Hour
 	define('TOKEN_FILE', 'cache/token.json');
 	define('THINGSBOARD_URL', 'https://...');
-	define('USERNAME', 'username');
-	define('PASSWORD', 'password');
+	define('USERNAME', '');
+	define('PASSWORD', '');
+	define('API_KEY', '');
 	// In Produktion auf true setzen. Für http://localhost muss der Wert false bleiben.
 	define('SESSION_COOKIE_SECURE', false);
 	define('REMEMBER_ME_SESSION_LIFETIME', 60 * 60 * 24 * 30); // 30 Tage
