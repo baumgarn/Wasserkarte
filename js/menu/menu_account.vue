@@ -7,7 +7,7 @@
 		</div>
 
 		<div class="menuwindow-content">
-			
+
 			<div v-if="state.account.loading" class="management-note management-notice">Sitzung wird geprüft …</div>
 
 			<form v-else-if="!state.account.authenticated" class="management-form account-form" @submit.prevent="login">
@@ -33,8 +33,8 @@
 				<div class="account-type">{{ thingsboardAccountType }}</div>
 				<div class="account-actions">
 					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
-					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
 					<button class="" type="button" @click="logout">Abmelden</button>
+					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
 				</div>
 				<div v-if="isWassermeister" class="account-locations-divider"></div>
 				<div v-if="isWassermeister" class="account-locations">
@@ -91,6 +91,7 @@ export default {
 				SYS_ADMIN: 'System Administrator',
 			};
 			if (labels[authority]) return labels[authority];
+			if (state.account.user?.wasserkarteRole === 'super_wassermeister') return 'Super Wassermeister*in';
 			return state.account.user?.wasserkarteRole === 'wassermeister' ? 'Wassermeister*in' : 'Keine Rechte';
 		},
 		isAdmin() {
@@ -98,7 +99,7 @@ export default {
 			return authority === 'TENANT_ADMIN' || authority === 'SYS_ADMIN';
 		},
 		isWassermeister() {
-			return state.account.user?.wasserkarteRole === 'wassermeister';
+			return ['wassermeister', 'super_wassermeister'].includes(state.account.user?.wasserkarteRole);
 		},
 		assignedDevices() {
 			const locationIds = state.account.user?.wasserkarteLocations;

@@ -54,7 +54,7 @@ function dailyAverages() {
 
 	// first get all devices query
 
-	$token = getAuthToken();
+	$token = getThingsBoardAuthorization();
 	$deviceData = getThingsBoardDevices();
 
 	// then run daily average timeseries query for all devices

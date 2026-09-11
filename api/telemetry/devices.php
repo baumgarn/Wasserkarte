@@ -8,8 +8,8 @@ function getThingsBoardDevices() {
 		$deviceCacheAge = time() - $cache['deviceCacheTimestamp'];
 		$telemetryCacheAge = time() - $cache['telemetryCacheTimestamp'];
 		if ($telemetryCacheAge > CACHE_TELEMETRY_ALL_DURATION && $deviceCacheAge < CACHE_DEVICES_DURATION) {
-			$token = getAuthToken();
-			$data = fetchLastTelemetryForCachedDevices( $token, $cache);
+			$authorization = getThingsBoardAuthorization();
+			$data = fetchLastTelemetryForCachedDevices($authorization, $cache);
 			if ($data) {
 				saveCache($data);
 			}
@@ -20,8 +20,8 @@ function getThingsBoardDevices() {
 		}
     }
 	
-	$token = getAuthToken();
-	$data = fetchDevicesFromThingsBoard($token);
+	$authorization = getThingsBoardAuthorization();
+	$data = fetchDevicesFromThingsBoard($authorization);
 	if ($data) {
 		saveCache($data);
 	}
@@ -50,7 +50,7 @@ function fetchDevicesFromThingsBoard($token)
 
 		$options = [
 			"http" => [
-				"header" => "X-Authorization: Bearer " . $token . "\r\n" .
+				"header" => "X-Authorization: " . $token . "\r\n" .
 					"Content-Type: application/json\r\n",
 				"method" => "GET"
 			]
@@ -157,7 +157,7 @@ function getBatchAttributesAndLastTelemetry(string $token, array $deviceIds): ar
         foreach ($chunk as $deviceId) {
 
             $headers = [
-                "X-Authorization: Bearer $token",
+				"X-Authorization: $token",
                 "Content-Type: application/json"
             ];
 
@@ -344,7 +344,7 @@ function getBatchLastTelemetry($token, $deviceIds)
 	$REQUEST_TIMEOUT = 15;
 
 	$headers = [
-		"X-Authorization: Bearer $token",
+		"X-Authorization: $token",
 		"Content-Type: application/json"
 	];
 

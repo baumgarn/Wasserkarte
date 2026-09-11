@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { applyAccountSettings, state } from '../state.js';
 
 const endpoint = '/api/management.php';
 
@@ -24,6 +24,7 @@ function applySession(session) {
 	state.account.user = session.user || null;
 	state.account.permissions = session.permissions || {};
 	state.account.csrfToken = session.csrfToken || null;
+	if (state.account.authenticated) applyAccountSettings(session.user?.settings);
 }
 
 export const managementAuth = {
@@ -67,6 +68,14 @@ export const managementAuth = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ currentPassword, newPassword }),
+		});
+	},
+
+	async updateSettings(settings) {
+		return request('settings', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ settings }),
 		});
 	},
 

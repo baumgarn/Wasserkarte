@@ -4,7 +4,7 @@
 		<div class="windowrow">
 			<MenuDevices :sideview="true" v-if="sidebarFullView"/>
 			<div class="scrollcontent">
-				<LocationView :device="device" />
+				<LocationView :device="device" @create-post="$emit('create-post', $event)" />
 			</div>
 			<WindowButtons :device="device" :close="close"/>
 		</div>
@@ -22,6 +22,7 @@ import MenuDevices from '@/menu/menu_devices.vue';
 
 
 export default {
+	emits: ['create-post'],
 	components: { WindowButtons, LocationView, MenuDevices},
 	props: {
 	},

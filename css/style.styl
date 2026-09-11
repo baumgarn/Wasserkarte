@@ -39,6 +39,7 @@ uicardgrau = #eee
 	--activecolor #b9d0eb
 	--activecolordarker #899cb399
 	--activecolorgrey #5275a055
+	--activecolorgreydarker #5275a088
 	--activecolorgreymid #5275a033
 	--activecolorgreybrighter #5275a022
 	--activecolorgreybrightest #5275a011
@@ -446,7 +447,7 @@ button
 	background var(--activecolorgrey)
 
 button:active
-	background var(--activecolorgreymid)
+	background var(--activecolorgreydarker)
 
 button.danger
 	background #f5d2d2
@@ -454,10 +455,14 @@ button.danger
 button.success
 	background #bde5c5
 
-button.active
-	background var(--activecolorgreymid)
+// button.active
+	// background var(--activecolorgreydarker)
 
 // MANAGEMENT
+
+.split
+	display flex
+	justify-content space-between
 
 .management-panel
 	padding 14px
@@ -479,6 +484,7 @@ button.active
 
 .management-field input
 .management-field select
+.management-field textarea
 	box-sizing border-box
 	min-width 0
 	padding 7px
@@ -486,6 +492,12 @@ button.active
 	border-radius 4px
 	background #fff
 	font inherit
+
+.management-readonly-value
+	padding 7px
+	border 1px solid #00000033
+	border-radius 4px
+	background #00000008
 
 .management-field input:disabled
 	background #f1f1f1

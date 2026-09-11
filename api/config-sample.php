@@ -11,6 +11,7 @@
 	define('THINGSBOARD_URL', 'https://...');
 	define('USERNAME', '');
 	define('PASSWORD', '');
+	// Optional: wird gegenüber USERNAME/PASSWORD bevorzugt und als `ApiKey` verwendet.
 	define('API_KEY', '');
 	// In Produktion auf true setzen. Für http://localhost muss der Wert false bleiben.
 	define('SESSION_COOKIE_SECURE', false);

@@ -7,6 +7,7 @@
 				<select v-model="role" :disabled="loading || saving" @change="previewRole">
 					<option value="none">Keine Rechte</option>
 					<option value="wassermeister">Wassermeister*in</option>
+					<option value="super_wassermeister">Super Wassermeister*in</option>
 				</select>
 			</label>
 			<div class="management-field">
@@ -36,9 +37,10 @@ export default {
 		},
 	},
 	data() {
+		const role = ['wassermeister', 'super_wassermeister'].includes(this.user.role) ? this.user.role : 'none';
 		return {
-			role: this.user.role === 'wassermeister' ? 'wassermeister' : 'none',
-			savedRole: this.user.role === 'wassermeister' ? 'wassermeister' : 'none',
+			role,
+			savedRole: role,
 			locations: Array.isArray(this.user.locations) ? [...this.user.locations] : [],
 			saved: false,
 			loading: false,

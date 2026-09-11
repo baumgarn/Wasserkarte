@@ -63,11 +63,11 @@ function managementRequireAdmin(): array
 
 function managementServiceToken(): string
 {
-	$token = getAuthToken();
-	if (!is_string($token) || $token === '') {
+	$authorization = getThingsBoardAuthorization();
+	if (!is_string($authorization) || $authorization === '') {
 		managementRespond(['error' => 'ThingsBoard ist momentan nicht erreichbar.'], 502);
 	}
-	return $token;
+	return $authorization;
 }
 
 function managementCustomerId(): string
@@ -112,6 +112,11 @@ function managementLocationIdsFromAttribute($value): array
 	return array_values(array_filter($value, static fn ($id) => is_string($id) && preg_match('/^[a-f0-9-]{36}$/i', $id)));
 }
 
+function managementUserRoleFromValue($value): string
+{
+	return in_array($value, ['wassermeister', 'super_wassermeister'], true) ? $value : 'none';
+}
+
 function managementUserPermissions(string $userId, string $token): array
 {
 	$response = thingsBoardManagementRequest(
@@ -127,8 +132,8 @@ function managementUserPermissions(string $userId, string $token): array
 	$role = 'none';
 	$locations = [];
 	foreach ($response['body'] as $attribute) {
-		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_role' && ($attribute['value'] ?? '') === 'wassermeister') {
-			$role = 'wassermeister';
+		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_role') {
+			$role = managementUserRoleFromValue($attribute['value'] ?? null);
 		}
 		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_locations') {
 			$locations = managementLocationIdsFromAttribute($attribute['value'] ?? null);
@@ -141,6 +146,76 @@ function managementUserPermissions(string $userId, string $token): array
 function managementUserRole(string $userId, string $token): string
 {
 	return managementUserPermissions($userId, $token)['role'];
+}
+
+function managementUserSettingsFromValue($value): array
+{
+	if (is_string($value)) {
+		$value = json_decode($value, true);
+	}
+	if (!is_array($value)) {
+		return [];
+	}
+
+	$settings = [];
+	foreach ([
+		'focusMode',
+		'showDataGaps',
+		'showErrors',
+		'debugAttributes',
+		'showInfoOnStart',
+		'tableview_col_bookmarks',
+		'tableview_col_attributes',
+		'tableview_col_nfkavg',
+		'tableview_col_von',
+		'tableview_compact',
+		'tableview_bookmarksontop',
+		'tableview_showdepths',
+	] as $key) {
+		if (array_key_exists($key, $value) && is_bool($value[$key])) {
+			$settings[$key] = $value[$key];
+		}
+	}
+	if (isset($value['colorScheme']) && in_array($value['colorScheme'], ['normal', 'dwd', 'blau'], true)) {
+		$settings['colorScheme'] = $value['colorScheme'];
+	}
+	if (isset($value['tableview_timelinerange']) && in_array($value['tableview_timelinerange'], ['all', '365d', '180d', '90d'], true)) {
+		$settings['tableview_timelinerange'] = $value['tableview_timelinerange'];
+	}
+	if (isset($value['tableview_timelinestyle']) && $value['tableview_timelinestyle'] === 'nfk_avg') {
+		$settings['tableview_timelinestyle'] = $value['tableview_timelinestyle'];
+	}
+	if (array_key_exists('bookmarks', $value) && is_array($value['bookmarks'])) {
+		$settings['bookmarks'] = array_values(array_unique(array_filter(
+			$value['bookmarks'],
+			static fn ($id) => is_string($id) && preg_match('/^[a-f0-9-]{36}$/i', $id)
+		)));
+		if (count($settings['bookmarks']) > 500) {
+			$settings['bookmarks'] = array_slice($settings['bookmarks'], 0, 500);
+		}
+	}
+
+	return $settings;
+}
+
+function managementUserSettings(string $userId, string $token): array
+{
+	$response = thingsBoardManagementRequest(
+		'GET',
+		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_settings',
+		null,
+		$token
+	);
+	if ($response['status'] !== 200 || !is_array($response['body'])) {
+		return [];
+	}
+	foreach ($response['body'] as $attribute) {
+		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_settings') {
+			return managementUserSettingsFromValue($attribute['value'] ?? null);
+		}
+	}
+
+	return [];
 }
 
 function managementMailEnabled(): bool
@@ -218,10 +293,16 @@ function managementSessionPayload(): array
 	if ($identity === null) {
 		return ['authenticated' => false];
 	}
-	if (($identity['thingsboardAuthority'] ?? '') === 'CUSTOMER_USER' && !array_key_exists('wasserkarteLocations', $identity)) {
-		$userPermissions = managementUserPermissions((string) $identity['id'], managementServiceToken());
-		$identity['wasserkarteRole'] = $userPermissions['role'];
-		$identity['wasserkarteLocations'] = $userPermissions['locations'];
+	if (!array_key_exists('wasserkarteSettings', $identity) || (($identity['thingsboardAuthority'] ?? '') === 'CUSTOMER_USER' && !array_key_exists('wasserkarteLocations', $identity))) {
+		$token = managementServiceToken();
+		if (($identity['thingsboardAuthority'] ?? '') === 'CUSTOMER_USER' && !array_key_exists('wasserkarteLocations', $identity)) {
+			$userPermissions = managementUserPermissions((string) $identity['id'], $token);
+			$identity['wasserkarteRole'] = $userPermissions['role'];
+			$identity['wasserkarteLocations'] = $userPermissions['locations'];
+		}
+		if (!array_key_exists('wasserkarteSettings', $identity)) {
+			$identity['wasserkarteSettings'] = managementUserSettings((string) $identity['id'], $token);
+		}
 		updateManagementIdentity($identity);
 	}
 
@@ -235,6 +316,7 @@ function managementSessionPayload(): array
 			'thingsboardAuthority' => $identity['thingsboardAuthority'],
 			'wasserkarteRole' => $identity['wasserkarteRole'] ?? 'none',
 			'wasserkarteLocations' => $identity['wasserkarteLocations'] ?? [],
+			'settings' => $identity['wasserkarteSettings'] ?? [],
 		],
 		'permissions' => managementPermissions($identity['thingsboardAuthority']),
 		'csrfToken' => getManagementCsrfToken(),
@@ -307,8 +389,8 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 	$role = 'none';
 	$locations = [];
 	foreach ($response['body'] as $attribute) {
-		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_role' && ($attribute['value'] ?? '') === 'wassermeister') {
-			$role = 'wassermeister';
+		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_role') {
+			$role = managementUserRoleFromValue($attribute['value'] ?? null);
 		}
 		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_locations') {
 			$locations = managementLocationIdsFromAttribute($attribute['value'] ?? null);
@@ -324,7 +406,7 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$userId = is_array($input) ? (string) ($input['id'] ?? '') : '';
 	$role = is_array($input) ? (string) ($input['role'] ?? '') : '';
 	$locations = is_array($input) && is_array($input['locations'] ?? null) ? $input['locations'] : [];
-	if (!in_array($role, ['none', 'wassermeister'], true)) {
+	if (!in_array($role, ['none', 'wassermeister', 'super_wassermeister'], true)) {
 		managementRespond(['error' => 'Ungültige Berechtigungsstufe.'], 400);
 	}
 	$locations = array_values(array_unique(array_filter($locations, static fn ($id) => is_string($id) && preg_match('/^[a-f0-9-]{36}$/i', $id))));
@@ -427,6 +509,26 @@ if ($action === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	managementRespond(['authenticated' => false]);
 }
 
+if ($action === 'settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	$identity = managementRequireIdentity();
+	managementRequireCsrfToken();
+	$input = managementReadJsonBody();
+	$settings = managementUserSettingsFromValue(is_array($input) ? ($input['settings'] ?? null) : null);
+	$token = managementServiceToken();
+	$saved = thingsBoardManagementRequest(
+		'POST',
+		'/plugins/telemetry/USER/' . rawurlencode($identity['id']) . '/attributes/SERVER_SCOPE',
+		['wasserkarte_settings' => $settings],
+		$token
+	);
+	if ($saved['status'] !== 200) {
+		managementRespond(['error' => 'Einstellungen konnten nicht gespeichert werden.'], 502);
+	}
+
+	updateManagementIdentity(['wasserkarteSettings' => $settings]);
+	managementRespond(['settings' => $settings]);
+}
+
 if ($action === 'profile' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$identity = managementRequireIdentity();
 	managementRequireCsrfToken();
@@ -472,7 +574,7 @@ if ($action === 'password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$changed = thingsBoardManagementRequest('POST', '/auth/changePassword', [
 		'currentPassword' => $currentPassword,
 		'newPassword' => $newPassword,
-	], $login['token']);
+	], 'Bearer ' . $login['token']);
 	if ($changed['status'] !== 200) {
 		managementRespond(['error' => 'Das Passwort entspricht nicht den ThingsBoard-Anforderungen.'], 400);
 	}
@@ -506,6 +608,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$userPermissions = $authority === 'CUSTOMER_USER'
 		? managementUserPermissions($id, managementServiceToken())
 		: ['role' => 'none', 'locations' => []];
+	$userSettings = managementUserSettings($id, managementServiceToken());
 
 	setManagementIdentity([
 		'id' => $id,
@@ -515,6 +618,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		'thingsboardAuthority' => $authority,
 		'wasserkarteRole' => $userPermissions['role'],
 		'wasserkarteLocations' => $userPermissions['locations'],
+		'wasserkarteSettings' => $userSettings,
 	], $remember);
 	managementRespond(managementSessionPayload());
 }

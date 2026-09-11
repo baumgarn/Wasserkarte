@@ -34,6 +34,8 @@ export const state = reactive({
 	accountPermissionsOpen: false,
 	accountPermissionsUser: null,
 	deleteAccountOpen: false,
+	postCreateOpen: false,
+	postCreateDevice: null,
 	chartTimeRange: -1,
 	dataAggregation: '1d',
 	iframeWidth: '800',
@@ -85,6 +87,41 @@ localStorageState('tableview_bookmarksontop', false);
 localStorageState('tableview_timelinerange', 'all');
 localStorageState('tableview_timelinestyle', 'nfk_avg');
 localStorageState('tableview_showdepths', false);
+
+export const accountSettingsKeys = [
+	'colorScheme',
+	'focusMode',
+	'showDataGaps',
+	'showErrors',
+	'debugAttributes',
+	'showInfoOnStart',
+	'bookmarks',
+	'tableview_col_bookmarks',
+	'tableview_col_attributes',
+	'tableview_col_nfkavg',
+	'tableview_col_von',
+	'tableview_compact',
+	'tableview_bookmarksontop',
+	'tableview_timelinerange',
+	'tableview_timelinestyle',
+	'tableview_showdepths',
+];
+
+export function getAccountSettings() {
+	return accountSettingsKeys.reduce((settings, key) => {
+		settings[key] = state[key];
+		return settings;
+	}, {});
+}
+
+export function applyAccountSettings(settings) {
+	if (!settings || typeof settings !== 'object') return;
+	for (const key of accountSettingsKeys) {
+		if (Object.prototype.hasOwnProperty.call(settings, key)) {
+			state[key] = settings[key];
+		}
+	}
+}
 
 computedState('sidebarOpen',()=> state.selectedDevice || state.menuOpen.info );
 
@@ -161,6 +198,8 @@ export function closeAllModals() {
 	state.accountPermissionsOpen = false;
 	state.accountPermissionsUser = null;
 	state.deleteAccountOpen = false;
+	state.postCreateOpen = false;
+	state.postCreateDevice = null;
 }
 
 export function toggleModal(modalStateKey) {

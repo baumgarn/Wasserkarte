@@ -37,7 +37,7 @@ function updateLastTelemetry() {
 	$startTime = microtime(true);
 
 	$cache = getDevicesCache();
-	$token = getAuthToken();
+	$token = getThingsBoardAuthorization();
 	$data = fetchLastTelemetryForCachedDevices( $token, $cache);
 	if ($data) {
 		saveCache($data);

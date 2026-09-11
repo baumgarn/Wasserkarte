@@ -11,6 +11,7 @@
   --activecolor: #b9d0eb;
   --activecolordarker: rgba(137,156,179,0.6);
   --activecolorgrey: rgba(82,117,160,0.333);
+  --activecolorgreydarker: rgba(82,117,160,0.533);
   --activecolorgreymid: rgba(82,117,160,0.2);
   --activecolorgreybrighter: rgba(82,117,160,0.133);
   --activecolorgreybrightest: rgba(82,117,160,0.067);
@@ -418,7 +419,7 @@ button {
   background: var(--activecolorgrey);
 }
 button:active {
-  background: var(--activecolorgreymid);
+  background: var(--activecolorgreydarker);
 }
 button.danger {
   background: #f5d2d2;
@@ -426,8 +427,9 @@ button.danger {
 button.success {
   background: #bde5c5;
 }
-button.active {
-  background: var(--activecolorgreymid);
+.split {
+  display: flex;
+  justify-content: space-between;
 }
 .management-panel {
   padding: 14px;
@@ -448,7 +450,8 @@ button.active {
   gap: 4px;
 }
 .management-field input,
-.management-field select {
+.management-field select,
+.management-field textarea {
   box-sizing: border-box;
   min-width: 0;
   padding: 7px;
@@ -456,6 +459,12 @@ button.active {
   border-radius: 4px;
   background: #fff;
   font: inherit;
+}
+.management-readonly-value {
+  padding: 7px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.031);
 }
 .management-field input:disabled {
   background: #f1f1f1;

@@ -69,8 +69,7 @@ export default {
 		return {state};
 	},
 	data() {
-		return {
-		}
+		return {}
 	},
 	computed: {
 		selectedColorSchemeName() {
@@ -80,10 +79,6 @@ export default {
 	props: {
 	},
 	methods: {
-	
-	},
-	watch: {
-	
 	},
 	mounted() {
 	}

@@ -385,7 +385,7 @@ function fetchTelemetryChunk($token, $deviceId, $sensorKeys, $startTs, $endTs, $
 	$url = THINGSBOARD_URL . "/plugins/telemetry/DEVICE/$deviceId/values/timeseries?" . http_build_query($params);
 
 	$headers = [
-		"X-Authorization: Bearer $token",
+		"X-Authorization: $token",
 		"Content-Type: application/json"
 	];
 
@@ -433,7 +433,7 @@ function getEarliestTimestamp($token, $deviceId, $sensorKeys)
 
 	$options = [
 		"http" => [
-			"header" => "X-Authorization: Bearer $token\r\n" .
+			"header" => "X-Authorization: $token\r\n" .
 				"Content-Type: application/json\r\n",
 			"method" => "GET"
 		]

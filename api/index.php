@@ -53,9 +53,9 @@ function entry() {
 			return;
 		}
 
-		$token = getAuthToken();
-		if ($token) {
-			$data = getTimeseriesForDevice($token, $deviceId, null, $timerange, $aggregation);
+		$authorization = getThingsBoardAuthorization();
+		if ($authorization) {
+			$data = getTimeseriesForDevice($authorization, $deviceId, null, $timerange, $aggregation);
 			if (!is_array($data) || !isset($data['telemetry']) || !is_array($data['telemetry'])) {
 				respondJson(['error' => 'Invalid telemetry response'], 502);
 				return;

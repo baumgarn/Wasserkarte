@@ -115,6 +115,12 @@
 		<ActivateAccount @close="closeActivation" />
 	</Modal>
 
+	<PostCreate
+		v-if="state.postCreateOpen && state.postCreateDevice"
+		:key="state.postCreateDevice.id"
+		:device="state.postCreateDevice"
+		@close="closePostCreate" />
+
 	</div>
 
 	<div class="rightui">
@@ -122,7 +128,7 @@
 		<Info v-if="state.menuOpen.info"/>
 		
 
-		<Sidebar />
+		<Sidebar @create-post="openPostCreate" />
 		
 		<LayerLegends />
 
@@ -135,7 +141,6 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
 import { nextTick } from 'vue';
 import TableView from '@/table/tableview.vue';
 import Sidebar from '@/views/sidebar.vue';
@@ -161,8 +166,10 @@ import CreateAccount from '@/management/create_account.vue';
 import AccountPermissions from '@/management/account_permissions.vue';
 import DeleteAccount from '@/management/delete_account.vue';
 import ActivateAccount from '@/management/activate_account.vue';
+import PostCreate from '@/posts/post_create.vue';
 import StatusBar from '@/map/statusbar.vue';
-import { state } from '@/state.js';
+import { accountSettingsKeys, getAccountSettings, state } from '@/state.js';
+import { managementAuth } from '@/management/auth.js';
 import { dataModel } from '@/datamodel.js';
 import { config } from '@/config.js';
 import Map from '@/map/map.vue';
@@ -175,7 +182,7 @@ export default {
 	},
 	data(){
 		return {
-			// loaded: false
+			settingsSaveTimer: null,
 		}
 	}, 
 	components: {
@@ -201,6 +208,7 @@ export default {
 		AccountPermissions,
 		DeleteAccount,
 		ActivateAccount,
+		PostCreate,
 		SoilMenu,
 		TimelineWrapper,
 		StatusBar,
@@ -213,6 +221,9 @@ export default {
 		},
 		telemetryLoaded() {
 			return state.telemetryLoaded;
+		},
+		accountSettings() {
+			return accountSettingsKeys.map(key => state[key]);
 		},
 	},
 	methods: {
@@ -240,12 +251,40 @@ export default {
 			delete query.activateToken;
 			this.$router.replace({ name: 'home', query });
 		},
+		openPostCreate(device) {
+			state.postCreateDevice = device;
+			state.postCreateOpen = true;
+		},
+		closePostCreate() {
+			state.postCreateOpen = false;
+			state.postCreateDevice = null;
+		},
+		scheduleAccountSettingsSave() {
+			if (!state.account.authenticated) return;
+			window.clearTimeout(this.settingsSaveTimer);
+			this.settingsSaveTimer = window.setTimeout(async () => {
+				try {
+					await managementAuth.updateSettings(getAccountSettings());
+				} catch (error) {
+					console.error('Einstellungen konnten nicht gespeichert werden.', error);
+				}
+			}, 300);
+		},
 	},
 	watch: {
+		accountSettings: {
+			deep: true,
+			handler() {
+				this.scheduleAccountSettingsSave();
+			},
+		},
 		'state.menuOpen.standorttabelle'(isOpen, wasOpen) {
 			if (isOpen && !wasOpen && this.activationRequested) this.closeActivation();
 		},
-	}
+	},
+	beforeUnmount() {
+		window.clearTimeout(this.settingsSaveTimer);
+	},
 };
 </script>
 

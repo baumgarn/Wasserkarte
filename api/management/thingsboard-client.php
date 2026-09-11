@@ -1,10 +1,10 @@
 <?php
 
-function thingsBoardManagementRequest(string $method, string $path, ?array $payload = null, ?string $token = null): array
+function thingsBoardManagementRequest(string $method, string $path, ?array $payload = null, ?string $authorization = null): array
 {
 	$headers = ["Content-Type: application/json"];
-	if ($token !== null) {
-		$headers[] = "X-Authorization: Bearer {$token}";
+	if ($authorization !== null) {
+		$headers[] = "X-Authorization: {$authorization}";
 	}
 
 	$options = [
@@ -46,7 +46,7 @@ function loginManagementUser(string $email, string $password): ?array
 		return null;
 	}
 
-	$profile = thingsBoardManagementRequest('GET', '/auth/user', null, $token);
+	$profile = thingsBoardManagementRequest('GET', '/auth/user', null, 'Bearer ' . $token);
 	if ($profile['status'] !== 200 || !is_array($profile['body'])) {
 		return null;
 	}

@@ -18,6 +18,7 @@
 	import SelectGroup from '@/ui/selectgroup.vue';
 	import Icon from '@/ui/Icon.vue';
 	import MiniMap from '@/map/minimap.vue';
+	import LocationPosts from '@/posts/location_posts.vue';
 	import dataStore from '@/datastore.js';
 	import { state } from '@/state.js';
 	import { dataModel } from '@/dataModel.js'
@@ -26,6 +27,7 @@
 	export default {
 
 		name: 'LocationView',
+		emits: ['create-post'],
 		
 		components: {
 			HeaderInfo,
@@ -40,6 +42,7 @@
 			ChartRange,
 			SchichtenUebersicht,
 			MiniMap,
+			LocationPosts,
 			SelectGroup
 		},
 		setup() {
@@ -561,9 +564,11 @@
 				</div>
 			</div>
 		</div>
-	</div>
+		</div>
 
-	<!-- <ChartRange 
+		<LocationPosts :device @create="$emit('create-post', device)" />
+
+		<!-- <ChartRange
 		:dataPresent
 		:graphScale
 		:graphPosition

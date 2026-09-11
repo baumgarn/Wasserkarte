@@ -126,7 +126,24 @@ function getAuthToken() {
     return null;
 }
 
+function getThingsBoardAuthorization(): ?string
+{
+	$apiKey = defined('API_KEY') ? trim((string) API_KEY) : '';
+	if ($apiKey !== '') {
+		if (preg_match('/[\r\n]/', $apiKey)) {
+			return null;
+		}
+		return 'ApiKey ' . $apiKey;
+	}
+
+	$token = getAuthToken();
+	return is_string($token) && $token !== '' ? 'Bearer ' . $token : null;
+}
+
 function loginToThingsBoard() {
+	if (!defined('USERNAME') || !defined('PASSWORD') || USERNAME === '' || PASSWORD === '') {
+		return null;
+	}
     $url = THINGSBOARD_URL . "/auth/login";
     $data = json_encode([
     	"username" => USERNAME,

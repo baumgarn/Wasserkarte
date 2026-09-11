@@ -52,6 +52,7 @@ export default {
 			return [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Ohne Namen';
 		},
 		permissionLabel(role) {
+			if (role === 'super_wassermeister') return 'Super Wassermeister*in';
 			return role === 'wassermeister' ? 'Wassermeister*in' : 'Keine Rechte';
 		},
 		async loadUsers(force = false) {
