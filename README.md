@@ -75,6 +75,13 @@ php api/telemetry/lasttelemetry.php
 php api/telemetry/dailyaverages.php
 ```
 
+Wenn die Produktionsdaten bereits per FTP erreichbar sind, können die aktuellen
+Aggregationen stattdessen mit `npm run pulldata` nach `api/cache/` geladen werden.
+Das Skript verwendet dieselben `FTP_*`-Variablen aus `.env` wie `kartedist`, lädt
+`alltelemetry.json`, `alltelemetry.json.gz`, `devices.json` und `devices.json.gz`
+und ersetzt die lokalen Dateien erst, nachdem jedes JSON/Gzip-Paar geprüft wurde.
+`posts.json` wird ebenfalls geladen, wenn es auf dem FTP-Server vorhanden ist.
+
 Dev-Server starten:
 
 ```bash

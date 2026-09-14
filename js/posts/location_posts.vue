@@ -1,15 +1,25 @@
 <template>
 	<section class="location-posts">
-		<button v-if="canCreateEntry" type="button" @click="$emit('create')">Neuen Post erstellen</button>
+		<div class="location-posts-header">
+			<button v-if="canCreateEntry" type="button" @click="$emit('create')">Neuen Post erstellen</button>
+		</div>
+		<p v-if="loading" class="management-note management-notice">Einträge werden geladen …</p>
+		<p v-else-if="error" class="management-note management-error">{{ error }}</p>
+		<div v-else-if="posts.length" class="location-posts-list">
+			<PostItem v-for="post in posts" :key="post.id" :post context="location" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
+		</div>
 	</section>
 </template>
 
 <script>
 import { state } from '@/state.js';
+import PostItem from '@/posts/post_item.vue';
+import { loadPosts } from '@/posts/store.js';
 
 export default {
 	name: 'LocationPosts',
-	emits: ['create'],
+	components: { PostItem },
+	emits: ['create', 'edit', 'delete'],
 	props: {
 		device: {
 			type: Object,
@@ -17,6 +27,15 @@ export default {
 		},
 	},
 	computed: {
+		posts() {
+			return state.posts.filter((post) => post?.deviceId === this.device.id);
+		},
+		loading() {
+			return state.postsLoading;
+		},
+		error() {
+			return state.postsError;
+		},
 		isAdmin() {
 			const authority = state.account.user?.thingsboardAuthority;
 			return authority === 'TENANT_ADMIN' || authority === 'SYS_ADMIN';
@@ -32,11 +51,32 @@ export default {
 				&& state.account.user.wasserkarteLocations.includes(this.device.id);
 		},
 	},
+	mounted() {
+		loadPosts().catch(() => {});
+	},
 };
 </script>
 
 <style lang="stylus" scoped>
 .location-posts
-	margin 8px 0
+	margin 16px var(--sidebartextmargin) 8px
+
+.location-posts-header
+	display flex
+	align-items center
+	justify-content space-between
+	gap 12px
+
+.location-posts-header h3
+	margin 0
+	font-size 11pt
+
+.location-posts-list
+	margin 12px 0
+	min-width 0
+	max-width 100%
+	border-top var(--thinline)
+	border-bottom var(--thinline)
+
 
 </style>

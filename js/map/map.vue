@@ -265,7 +265,7 @@ export default {
 	
 				const extent = boundingExtent(points);
 	
-				var padding = [100, 30, 100, 30];
+				var padding = [70, 70, 70, 70];
 			
 				view.fit(extent, {
 					size: size,

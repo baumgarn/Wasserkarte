@@ -317,6 +317,11 @@ export default {
 	background-size 77% 77%
 	opacity .7
 
+.icon.type-posts
+	background-image url(/img/comm2.png)
+	background-size 82%
+	opacity .8
+
 .icon.type-bodenarten
 	background-image url(/img/soil.png)
 	background-size 85% 85%
@@ -364,4 +369,9 @@ export default {
 	background-size 70% 70%
 	background-color #eeeeeeee
 	border-radius 50%
+
+.icon.type-morev
+	background-image url(/img/morev.png)
+	background-size 75%
+	opacity .7
 </style>

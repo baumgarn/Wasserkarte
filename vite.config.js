@@ -28,6 +28,7 @@ function copyApiToDist() {
 					const relativePath = path.relative(sourceDir, src);
 					if (!relativePath) return true;
 					if (relativePath === '.DS_Store') return false;
+					if (relativePath === 'config.php') return false;
 					if (relativePath === 'cache') return false;
 					if (relativePath.startsWith(`cache${path.sep}`)) return false;
 					return true;

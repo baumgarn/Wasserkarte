@@ -27,7 +27,7 @@
 	export default {
 
 		name: 'LocationView',
-		emits: ['create-post'],
+		emits: ['create-post', 'edit-post', 'delete-post'],
 		
 		components: {
 			HeaderInfo,
@@ -566,7 +566,7 @@
 		</div>
 		</div>
 
-		<LocationPosts :device @create="$emit('create-post', device)" />
+		<LocationPosts :device @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)" />
 
 		<!-- <ChartRange
 		:dataPresent

@@ -25,3 +25,4 @@ api/cache/
 
 # Local deployment helper
 kartedist
+pulldata

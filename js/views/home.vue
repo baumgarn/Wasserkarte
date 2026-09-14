@@ -24,6 +24,7 @@
 					<div class="menuwindows">	
 
 						<AccountMenu v-if="state.menuOpen.account"/>
+						<PostsMenu v-if="state.menuOpen.posts" @edit="openPostEdit" @delete="openPostDelete" />
 						<GeraeteMenu v-if="state.menuOpen.orte"/>
 						<ErrorMenu v-if="state.menuOpen.error"/>
 						<MarkerMenu v-if="state.menuOpen.bodenfeuchte"/>
@@ -119,7 +120,22 @@
 		v-if="state.postCreateOpen && state.postCreateDevice"
 		:key="state.postCreateDevice.id"
 		:device="state.postCreateDevice"
+		@create="postCreated"
 		@close="closePostCreate" />
+
+	<PostCreate
+		v-if="state.postEditOpen && state.postEdit"
+		:key="state.postEdit.id"
+		:post="state.postEdit"
+		@saved="postUpdated"
+		@close="closePostEdit" />
+
+	<PostDelete
+		v-if="state.postDeleteOpen && state.postDelete"
+		:key="state.postDelete.id"
+		:post="state.postDelete"
+		@deleted="postDeleted"
+		@close="closePostDelete" />
 
 	</div>
 
@@ -128,7 +144,7 @@
 		<Info v-if="state.menuOpen.info"/>
 		
 
-		<Sidebar @create-post="openPostCreate" />
+		<Sidebar @create-post="openPostCreate" @edit-post="openPostEdit" @delete-post="openPostDelete" />
 		
 		<LayerLegends />
 
@@ -159,6 +175,7 @@ import ColorschemeGradient from '@/menu/colorscheme_gradient.vue';
 import SoilMenu from '@/menu/menu_soil.vue';
 import GeraeteMenu from '@/menu/menu_devices.vue';
 import AccountMenu from '@/menu/menu_account.vue';
+import PostsMenu from '@/menu/menu_posts.vue';
 import Modal from '@/views/modal.vue';
 import AccountSettings from '@/management/account_settings.vue';
 import Accounts from '@/management/accounts.vue';
@@ -167,9 +184,11 @@ import AccountPermissions from '@/management/account_permissions.vue';
 import DeleteAccount from '@/management/delete_account.vue';
 import ActivateAccount from '@/management/activate_account.vue';
 import PostCreate from '@/posts/post_create.vue';
+import PostDelete from '@/posts/post_delete.vue';
 import StatusBar from '@/map/statusbar.vue';
 import { accountSettingsKeys, getAccountSettings, state } from '@/state.js';
 import { managementAuth } from '@/management/auth.js';
+import { removePost, upsertPost } from '@/posts/store.js';
 import { dataModel } from '@/datamodel.js';
 import { config } from '@/config.js';
 import Map from '@/map/map.vue';
@@ -201,6 +220,7 @@ export default {
 		ColorschemeMenu,
 		ColorschemeGradient,
 		AccountMenu,
+		PostsMenu,
 		Modal,
 		AccountSettings,
 		Accounts,
@@ -209,6 +229,7 @@ export default {
 		DeleteAccount,
 		ActivateAccount,
 		PostCreate,
+		PostDelete,
 		SoilMenu,
 		TimelineWrapper,
 		StatusBar,
@@ -258,6 +279,31 @@ export default {
 		closePostCreate() {
 			state.postCreateOpen = false;
 			state.postCreateDevice = null;
+		},
+		openPostEdit(post) {
+			state.postEdit = post;
+			state.postEditOpen = true;
+		},
+		closePostEdit() {
+			state.postEditOpen = false;
+			state.postEdit = null;
+		},
+		openPostDelete(post) {
+			state.postDelete = post;
+			state.postDeleteOpen = true;
+		},
+		closePostDelete() {
+			state.postDeleteOpen = false;
+			state.postDelete = null;
+		},
+		postCreated(post) {
+			upsertPost(post);
+		},
+		postUpdated(post) {
+			upsertPost(post);
+		},
+		postDeleted(postId) {
+			removePost(postId);
 		},
 		scheduleAccountSettingsSave() {
 			if (!state.account.authenticated) return;

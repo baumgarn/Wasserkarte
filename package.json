@@ -6,6 +6,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "dist": "npm run build && sh -c 'if [ -x ./kartedist ]; then ./kartedist; else printf \"Build complete. Local deploy skipped (%s not found or not executable).\\n\" \"./kartedist\"; fi'",
+    "pulldata": "./pulldata",
     "commit": "git add . && git commit -m \"update\" && git push origin main && git push opencode main"
   },
   "devDependencies": {

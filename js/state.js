@@ -36,6 +36,14 @@ export const state = reactive({
 	deleteAccountOpen: false,
 	postCreateOpen: false,
 	postCreateDevice: null,
+	postEditOpen: false,
+	postEdit: null,
+	postDeleteOpen: false,
+	postDelete: null,
+	posts: [],
+	postsLoading: false,
+	postsLoaded: false,
+	postsError: '',
 	chartTimeRange: -1,
 	dataAggregation: '1d',
 	iframeWidth: '800',
@@ -200,6 +208,10 @@ export function closeAllModals() {
 	state.deleteAccountOpen = false;
 	state.postCreateOpen = false;
 	state.postCreateDevice = null;
+	state.postEditOpen = false;
+	state.postEdit = null;
+	state.postDeleteOpen = false;
+	state.postDelete = null;
 }
 
 export function toggleModal(modalStateKey) {

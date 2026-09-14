@@ -296,7 +296,6 @@ export default {
 
 			// no valid telemetry
 			if (!this.timelineDate && this.device.lastExpandedTelemetry.nfk_avg == null) {
-				console.log('hours', dataStore.hoursSinceLastTelemetry(this.device.id))
 				return true;
 			}
 

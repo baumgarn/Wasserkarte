@@ -133,6 +133,7 @@ export default {
 				this.$el.style.bottom = '';
 				this.$el.style.left = '';
 				this.$el.style.right = '';
+				this.$el.style.position = position?.fixed ? 'fixed' : '';
 
 				if (position) {
 					if (position.top != null) { this.$el.style.top = position.top + 'px';}
