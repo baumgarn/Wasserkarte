@@ -7,7 +7,7 @@
 			<p v-if="loading" class="management-note management-notice">Einträge werden geladen …</p>
 			<p v-else-if="error" class="management-note management-error">{{ error }}</p>
 			<div v-else-if="posts.length" class="posts-list">
-				<PostItem v-for="post in posts" :key="post.id" :post context="allposts" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
+				<PostItem v-for="post in posts" :key="post.id" :post context="allposts" @open-location="openLocation" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
 			</div>
 			<p v-else class="management-note management-notice">Noch keine Einträge vorhanden.</p>
 		</div>
@@ -35,6 +35,16 @@ export default {
 		},
 		error() {
 			return state.postsError;
+		},
+	},
+	methods: {
+		openLocation(post) {
+			const device = state.devices.find((item) => item?.id === post?.deviceId);
+			if (!device) return;
+
+			state.selectedDevice = device.name;
+			window.dispatchEvent(new CustomEvent('sidebar:open', { detail: device }));
+			window.dispatchEvent(new CustomEvent('device-selected', { detail: device }));
 		},
 	},
 	mounted() {

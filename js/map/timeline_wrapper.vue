@@ -144,8 +144,8 @@ export default {
 				menu.push(
 					{type:'select', label:'Jahresvergleich', value:'years', group:'timerange', stateProp:'timelineRange'},
 					{type:'select', label:'Gesamte Zeit', value:'all', group:'timerange', stateProp:'timelineRange'},
-					{type:'select', label:'Letzte 365 Tage', value:'365d', group:'timerange', stateProp:'timelineRange'},
-					{type:'select', label:'Letzte 180 Tage', value:'180d', group:'timerange', stateProp:'timelineRange'},
+					{type:'select', label:'365 Tage', value:'365d', group:'timerange', stateProp:'timelineRange'},
+					{type:'select', label:'180 Tage', value:'180d', group:'timerange', stateProp:'timelineRange'},
 				)
 			}
 			menu.push(

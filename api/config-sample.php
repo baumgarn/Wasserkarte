@@ -16,6 +16,8 @@
 	// In Produktion auf true setzen. Für http://localhost muss der Wert false bleiben.
 	define('SESSION_COOKIE_SECURE', false);
 	define('REMEMBER_ME_SESSION_LIFETIME', 60 * 60 * 24 * 30); // 30 Tage
+	// Optional. Muss ein persistentes, nur für PHP beschreibbares Verzeichnis sein.
+	define('MANAGEMENT_SESSION_DIR', CACHE_DIR . '/sessions');
 	define('REFRESH_SECRET', 'change-this-secret');
 	define('REFRESH_BLOCK_SECONDS', 300);
 	// Login: fehlgeschlagene Versuche werden je IP und je Kombination aus IP/E-Mail begrenzt.

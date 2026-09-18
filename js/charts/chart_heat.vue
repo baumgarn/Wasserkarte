@@ -17,9 +17,8 @@
 				
 			</div>
 
-			<div  v-else-if="lastTimestamp" class="latestdate">
-				{{ displayutil.formatDateShort(lastTimestamp) }}
-				<span class="time">{{ displayutil.formatDateTime(lastTimestamp) }}</span>
+			<div v-else-if="visibleDateRange" class="latestdate">
+				{{ visibleDateRange }}
 			</div>
 
 			<div v-else class="latestdate">
@@ -212,6 +211,9 @@ export default {
 		numberOfDays: { type: Number, required: true },
 		startTimestamp: { type: Number, required: true },
 		latestTimestamp: { type: Number, required: false, default: 0 },
+		visibleRangeStartTimestamp: { type: Number, required: false, default: 0 },
+		visibleRangeEndTimestamp: { type: Number, required: false, default: 0 },
+		visibleRangeEndsAtLatest: { type: Boolean, required: false, default: false },
 		baseline: { type: Number, required: false },
 		ceiling: { type: Number, required: false },
 		offsetTop: { type: Number, required: false, default: 5 },
@@ -227,6 +229,14 @@ export default {
 		},
 		lastTimestamp() {
 			return this.hasSensorRows ? (this.sensorData.data[this.sensorData.data.length - 1]?.[0] ?? null) : null;
+		},
+		visibleDateRange() {
+			if (!this.visibleRangeStartTimestamp || !this.visibleRangeEndTimestamp) return '';
+			return displayutil.formatDateRange(
+				this.visibleRangeStartTimestamp,
+				this.visibleRangeEndTimestamp,
+				this.visibleRangeEndsAtLatest
+			);
 		},
 		globalExtentY() {
 			if (!this.sensorData?.schema?.length || !this.sensorData?.data?.length) return [0, 100];

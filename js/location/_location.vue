@@ -24,6 +24,8 @@
 	import { dataModel } from '@/dataModel.js'
 	import { displayutil } from '@/displayutil.js'
 	import { config } from '@/config.js';
+	const DAY_MS = 24 * 60 * 60 * 1000;
+	const RANGE_EPSILON = 0.000001;
 	export default {
 
 		name: 'LocationView',
@@ -152,6 +154,25 @@
 			},
 			numberOfDays() {
 				return Math.max(this.chartTimeRange,(this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24));
+			},
+			minGraphScale() {
+				// A range smaller than the available data is limited to 24 hours.
+				return Math.min(1, 1 / Math.max(1, this.numberOfDays));
+			},
+			visibleRangeDays() {
+				return this.numberOfDays * this.graphScale;
+			},
+			visibleRangeStartTimestamp() {
+				return this.startTimestamp + this.graphPosition * this.numberOfDays * DAY_MS;
+			},
+			visibleRangeEndTimestamp() {
+				return Math.min(
+					this.latestTimestamp,
+					this.visibleRangeStartTimestamp + this.graphScale * this.numberOfDays * DAY_MS
+				);
+			},
+			visibleRangeEndsAtLatest() {
+				return Math.abs(this.visibleRangeEndTimestamp - this.latestTimestamp) < 1;
 			},
 			startTimestamp() {
 				return this.latestTimestamp - this.numberOfDays * 24 * 60 * 60 * 1000;
@@ -303,10 +324,10 @@
 					this.earliestTimestamp = rows[0]?.[0] ?? 0;
 					this.latestTimestamp = rows[rows.length - 1]?.[0] ?? 0;
 
-					if (this.chartTimeRange == 0 ) {
-						this.chartTimeRange = -1
-						this.graphScale = 1
-						this.graphPosition = 0
+					if (this.chartTimeRange === 0) {
+						// A custom range is relative to the previous location's data span.
+						// Start the new location at the standard 365-day range instead.
+						this.chartTimeRange = 365;
 					}
 					if (this.chartTimeRange > 0) {
 						this.selectTimeRange(this.chartTimeRange)
@@ -336,10 +357,16 @@
 			handleRangeUpdate(rangeData) {
 				this.graphScale = rangeData.scale;
 				this.graphPosition = rangeData.position;
-				this.chartTimeRange = 0;
+				this.chartTimeRange = rangeData.position <= RANGE_EPSILON
+					&& rangeData.position + rangeData.scale >= 1 - RANGE_EPSILON
+					? -1
+					: 0;
 			},
 			selectTimeRange(rangeValue) {
-				if (this.chartTimeRange === -1) {
+				if (rangeValue === 0) {
+					return;
+				}
+				if (rangeValue === -1) {
 					this.graphScale = 1;
 					this.graphPosition = 0;
 				} else {
@@ -481,7 +508,7 @@
 
 		</div>
 	
-		<ChartSettings v-if="hasBodenfeuchteSensors" :graphScale :frameWidth :graphPosition :dataPresent @range-update="handleRangeUpdate" :earliestTimestamp="aggregatedEarliestTimestamp" :latestTimestamp="aggregatedLatestTimestamp" />
+		<ChartSettings v-if="hasBodenfeuchteSensors" :frameWidth :earliestTimestamp="aggregatedEarliestTimestamp" :latestTimestamp="aggregatedLatestTimestamp" :visibleDays="visibleRangeDays" />
 
 		<div class="scrollcontainer" @wheel="scrollWheel">
 			
@@ -503,6 +530,9 @@
 						:scrollLeft 
 						:startTimestamp
 						:latestTimestamp
+						:visibleRangeStartTimestamp
+						:visibleRangeEndTimestamp
+						:visibleRangeEndsAtLatest
 						:numberOfDays
 						:dataPresent
 						:isLoading="sensorDataLoading"
@@ -528,6 +558,9 @@
 						:scrollLeft 
 						:startTimestamp
 						:latestTimestamp
+						:visibleRangeStartTimestamp
+						:visibleRangeEndTimestamp
+						:visibleRangeEndsAtLatest
 						:numberOfDays
 						:dataPresent
 						:isLoading="sensorDataLoading"
@@ -553,6 +586,10 @@
 							:frameWidth 
 							:scrollLeft 
 							:startTimestamp
+							:latestTimestamp
+							:visibleRangeStartTimestamp
+							:visibleRangeEndTimestamp
+							:visibleRangeEndsAtLatest
 							:numberOfDays
 							:dataPresent
 							:isLoading="sensorDataLoading"
@@ -566,13 +603,14 @@
 		</div>
 		</div>
 
-		<LocationPosts :device @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)" />
+		<ChartRange
+			v-if="hasBodenfeuchteSensors && dataPresent"
+			:graph-scale="graphScale"
+			:graph-position="graphPosition"
+			:min-scale="minGraphScale"
+			@range-update="handleRangeUpdate" />
 
-		<!-- <ChartRange
-		:dataPresent
-		:graphScale
-		:graphPosition
-	/> -->
+		<LocationPosts :device @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)" />
 
 	<div v-if="context=='single'" class="linktomap" @click="linktomap">
 		<Icon type="tropfen" size="32"/>

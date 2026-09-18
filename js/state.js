@@ -44,7 +44,7 @@ export const state = reactive({
 	postsLoading: false,
 	postsLoaded: false,
 	postsError: '',
-	chartTimeRange: -1,
+	chartTimeRange: 365,
 	dataAggregation: '1d',
 	iframeWidth: '800',
 	iframeHeight: '950',

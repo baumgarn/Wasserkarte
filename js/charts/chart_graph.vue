@@ -2,7 +2,9 @@
 	<div class="chartouterframe">
 		<div class="chartheader">
 			<h3>{{ title }}</h3>
-
+			<div v-if="!hoverData?.ts && visibleDateRange" class="latestdate">
+				{{ visibleDateRange }}
+			</div>
 		</div>
 
 		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
@@ -141,6 +143,9 @@ export default {
 		numberOfDays: { type: Number, required: true },
 		startTimestamp: { type: Number, required: true },
 		latestTimestamp: { type: Number, required: false, default: 0 },
+		visibleRangeStartTimestamp: { type: Number, required: false, default: 0 },
+		visibleRangeEndTimestamp: { type: Number, required: false, default: 0 },
+		visibleRangeEndsAtLatest: { type: Boolean, required: false, default: false },
 		baseline: { type: Number, required: false },
 		ceiling: { type: Number, required: false },
 		offsetTop: { type: Number, required: false, default: 10 },
@@ -156,6 +161,14 @@ export default {
 		},
 		lastTimestamp() {
 			return this.hasSensorRows ? (this.sensorData.data[this.sensorData.data.length - 1]?.[0] ?? null) : null;
+		},
+		visibleDateRange() {
+			if (!this.visibleRangeStartTimestamp || !this.visibleRangeEndTimestamp) return '';
+			return displayutil.formatDateRange(
+				this.visibleRangeStartTimestamp,
+				this.visibleRangeEndTimestamp,
+				this.visibleRangeEndsAtLatest
+			);
 		},
 		globalExtentY() {
 			const tele = this.sensorData;

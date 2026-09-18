@@ -329,6 +329,20 @@ export const displayutil = {
 		const date = new Date(timestamp);
 		return date.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' });
 	},
+	formatDateRange: function (startTimestamp, endTimestamp, includeEndTime = false) {
+		const startDate = new Date(startTimestamp);
+		const endDate = new Date(endTimestamp);
+		if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return '';
+
+		const sameYear = startDate.getFullYear() === endDate.getFullYear();
+		const formatPart = (date, includeYear) => {
+			const month = date.toLocaleString('de-DE', { month: 'short' }).replace('.', '');
+			return `${date.getDate()}. ${month}${includeYear ? ` ${date.getFullYear()}` : ''}`;
+		};
+		const endTime = includeEndTime ? ` ${this.formatDateTime(endTimestamp)}` : '';
+
+		return `${formatPart(startDate, !sameYear)} – ${formatPart(endDate, true)}${endTime}`;
+	},
 	formatDate: function (timestamp) {
 		const date = new Date(timestamp);
 		return new Intl.DateTimeFormat('de-DE', {

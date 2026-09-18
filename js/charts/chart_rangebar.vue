@@ -4,17 +4,17 @@
 		<div class="range-bar">
 			<div 
 				class="range-indicator" 
-				:style="{ left: startHandlePosition + '%', width: rangeWidth + '%' }"
+				:style="{ left: indicatorLeft + 'px', width: rangeWidth + 'px' }"
 				@mousedown="startRangeDrag"
 			></div>
 			<div 
 				class="handle start-handle" 
-				:style="{ left: startHandlePosition + '%' }"
+				:style="{ left: startHandleOffset + 'px' }"
 				@mousedown="(e) => startDrag(e, 'start')"
 			></div>
 			<div 
 				class="handle end-handle" 
-				:style="{ left: endHandlePosition + '%' }"
+				:style="{ left: endHandleOffset + 'px' }"
 				@mousedown="(e) => startDrag(e, 'end')"
 			></div>
 		</div>
@@ -24,7 +24,7 @@
 
 <script>
 
-import { state } from '../state.js';
+const HANDLE_SIZE = 12;
 
 export default {
 	props: {
@@ -40,6 +40,10 @@ export default {
 		graphPosition: {
 			type: Number,
 			default: 0	// Changed from 0.5 to 0
+		},
+		minScale: {
+			type: Number,
+			default: 0
 		}
 	},
 	data() {
@@ -57,25 +61,26 @@ export default {
 		};
 	},
 	computed: {
-		// Calculate the visual positions of the handles
-		startHandlePosition() {
-			return Math.max(0, this.startHandlePos * 100);
+		trackWidth() {
+			return Math.max(0, this.containerWidth - HANDLE_SIZE * 2);
 		},
-		endHandlePosition() {
-			return Math.min(100, this.endHandlePos * 100);
+		startHandleOffset() {
+			return this.startHandlePos * this.trackWidth;
 		},
-		// Width of the visible range indicator
+		endHandleOffset() {
+			return HANDLE_SIZE * 2 + this.endHandlePos * this.trackWidth;
+		},
+		indicatorLeft() {
+			return HANDLE_SIZE / 2 + this.startHandleOffset;
+		},
 		rangeWidth() {
-			return (this.endHandlePos - this.startHandlePos) * 100;
+			return HANDLE_SIZE + (this.endHandlePos - this.startHandlePos) * this.trackWidth;
 		},
-		sidebarFullWidth() {
-			return state.sidebarFullWidth;
-		}
+		effectiveMinScale() {
+			return Math.min(1, Math.max(0, this.minScale));
+		},
 	},
 	watch: {
-		sidebarFullWidth() {
-			this.updateContainerWidth();
-		},
 		graphPosition(newPosition) {
 			if (!this.internalUpdate) {
 				this.position = newPosition;
@@ -114,24 +119,31 @@ export default {
 		
 		handleDrag(event) {
 			if (!this.isDraggingHandle) return;
+			if (!this.trackWidth) return;
 			
 			const deltaX = event.clientX - this.startDragX;
-			const deltaPercent = deltaX / this.containerWidth;
+			const deltaPercent = deltaX / this.trackWidth;
 			this.startDragX = event.clientX;
 			
 			if (this.activeHandle === 'start') {
-				const newStartPos = Math.max(0, this.startHandlePos + deltaPercent);
 				const newEndPos = this.endHandlePos;
+				const newStartPos = Math.min(
+					newEndPos - this.effectiveMinScale,
+					Math.max(0, this.startHandlePos + deltaPercent)
+				);
 				
-				if (newEndPos - newStartPos >= 0.05) { // Minimum 5% width
+				if (newStartPos !== this.startHandlePos) {
 					this.startHandlePos = newStartPos;
 					this.updateValues(newStartPos, newEndPos - newStartPos);
 				}
 			} else if (this.activeHandle === 'end') {
 				const newStartPos = this.startHandlePos;
-				const newEndPos = Math.min(1, this.endHandlePos + deltaPercent);
+				const newEndPos = Math.max(
+					newStartPos + this.effectiveMinScale,
+					Math.min(1, this.endHandlePos + deltaPercent)
+				);
 				
-				if (newEndPos - newStartPos >= 0.05) { // Minimum 5% width
+				if (newEndPos !== this.endHandlePos) {
 					this.endHandlePos = newEndPos;
 					this.updateValues(newStartPos, newEndPos - newStartPos);
 				}
@@ -140,9 +152,10 @@ export default {
 		
 		handleRangeDrag(event) {
 			if (!this.isDraggingRange) return;
+			if (!this.trackWidth) return;
 			
 			const deltaX = event.clientX - this.startDragX;
-			const deltaPercent = deltaX / this.containerWidth;
+			const deltaPercent = deltaX / this.trackWidth;
 			this.startDragX = event.clientX;
 			
 			let newStartPos = this.startHandlePos + deltaPercent;
@@ -207,13 +220,12 @@ export default {
 	mounted() {
 		this.updateContainerWidth();
 		window.addEventListener('resize', this.updateContainerWidth);
-		// window.addEventListener('sidebar:switchfullwindow', this.updateContainerWidth);
-		this.$refs.container.addEventListener('scroll', this.handleScroll);
+		this.resizeObserver = new ResizeObserver(this.updateContainerWidth);
+		this.resizeObserver.observe(this.$refs.container);
 	},
 	beforeUnmount() {
 		window.removeEventListener('resize', this.updateContainerWidth);
-		// window.removeEventListener('sidebar:switchfullwindow', this.updateContainerWidth);
-		this.$refs.container.removeEventListener('scroll', this.handleScroll);
+		this.resizeObserver?.disconnect();
 	}
 };
 </script>
@@ -236,27 +248,26 @@ export default {
 	height: var(--barheight)
 	background-color: #fff
 	border-radius: calc(var(--barheight) / 2)
-	background-color: #00000022
+	background-color: #eee
 
 .range-indicator
 	position: absolute
+	z-index 1
 	height: 100%
-	background-color: #bbb
 	border-radius: calc(var(--barheight) / 2)
-	background-color: var(--activecolordarker)
+	background var(--activecolorgreyopaque)
 	cursor: grab
 	&:active
 		cursor: grabbing
 
 .handle
 	position: absolute
+	z-index 2
 	width: var(--barheight)
 	height: var(--barheight)
-	background-color: #666
 	border-radius: 50%
-	background-color: #aaa
-	background-color: #00000066
-	background-color: #666
+	background-color: #888
+	// background-color: #666
 	top: 50%
 	cursor: ew-resize
 	&.start-handle

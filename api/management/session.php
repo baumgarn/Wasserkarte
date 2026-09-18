@@ -18,15 +18,44 @@ function managementRememberLifetime(): int
 		: $defaultLifetime;
 }
 
+function managementSessionDirectory(): ?string
+{
+	if (session_module_name() !== 'files') {
+		return null;
+	}
+
+	$directory = defined('MANAGEMENT_SESSION_DIR')
+		? rtrim((string) MANAGEMENT_SESSION_DIR, DIRECTORY_SEPARATOR)
+		: rtrim(CACHE_DIR, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'sessions';
+	if ($directory === '') {
+		return null;
+	}
+
+	if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
+		error_log('Wasserkarte management sessions could not create ' . $directory);
+		return null;
+	}
+
+	@chmod($directory, 0700);
+	return is_writable($directory) ? $directory : null;
+}
+
 function startManagementSession(?bool $remember = null): void
 {
 	if (session_status() === PHP_SESSION_ACTIVE) {
 		return;
 	}
 
+	// Der Hoster-Standard kann Sessions anderer Sites gemeinsam nach wenigen Minuten
+	// aufräumen. Ein eigenes Verzeichnis in CACHE_DIR wird beim Deploy nicht ersetzt.
+	$sessionDirectory = managementSessionDirectory();
+	if ($sessionDirectory !== null) {
+		session_save_path($sessionDirectory);
+	}
+
 	// Persistente Sitzungen werden zusätzlich über expires_at geprüft.
-	// Der PHP-Session-Speicher darf sie vorher nicht standardmäßig nach 24 Minuten löschen.
 	ini_set('session.gc_maxlifetime', (string) managementRememberLifetime());
+	ini_set('session.use_strict_mode', '1');
 	session_name('wasserkarte_session');
 	session_set_cookie_params([
 		'lifetime' => $remember === true ? managementRememberLifetime() : 0,

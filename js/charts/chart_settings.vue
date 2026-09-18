@@ -10,9 +10,9 @@
 
 				<template v-if="!isPopoverOpen">
 					{{ selectedTimeRange }}
-					<template v-if="selectedTimeRange == 'Gesamte Zeit' && showTelemetryDuration">
+					<template v-if="showDuration">
 						<span class="separator"></span>
-						{{daysSinceFirstTelemetry}} Tage
+						{{displayedDurationDays}} Tage
 					</template>
 				</template>
 			</div>
@@ -26,7 +26,6 @@
 
 <script>
 import Tabs from '@/ui/tabs.vue';
-import ChartRange from '@/charts/chart_rangebar.vue';
 import PopoverMenu from '@/ui/popovermenu.vue';
 import {state} from '@/state.js';
 
@@ -35,23 +34,10 @@ export default {
 	components: {
 		Tabs,
 		PopoverMenu,
-		ChartRange
 	},
 	props: {
 		frameWidth: {
 			type: Number,
-			required: true
-		},
-		graphScale: {
-			type: Number,
-			required: true
-		},
-		graphPosition: {
-			type: Number,
-			required: true
-		},
-		dataPresent: {
-			type: Boolean,
 			required: true
 		},
 		earliestTimestamp: {
@@ -60,6 +46,11 @@ export default {
 			default: 0
 		},
 		latestTimestamp: {
+			type: Number,
+			required: false,
+			default: 0
+		},
+		visibleDays: {
 			type: Number,
 			required: false,
 			default: 0
@@ -91,12 +82,12 @@ export default {
 		chartTimeRanges() {
 			return [
 				{ label: 'Gesamte Zeit', value: -1 },
-				{ label: 'Letzte 365 Tage', value: 365 },
-				{ label: 'Letzte 180 Tage', value: 180 },
-				{ label: 'Letzte 90 Tage', value: 90 },
-				{ label: 'Letzte 30 Tage', value: 30 },
-				{ label: 'Letzte 7 Tage', value: 7 },
-				{ label: 'Letzte 24 Stunden', value: 1 },
+				{ label: '365 Tage', value: 365 },
+				{ label: '180 Tage', value: 180 },
+				{ label: '90 Tage', value: 90 },
+				{ label: '30 Tage', value: 30 },
+				{ label: '7 Tage', value: 7 },
+				{ label: '24 Stunden', value: 1 },
 			];
 		},
 		popoverItems() {
@@ -112,7 +103,13 @@ export default {
 		showTelemetryDuration() {
 			return this.earliestTimestamp > 0 && this.latestTimestamp >= this.earliestTimestamp;
 		},
+		showDuration() {
+			return this.showTelemetryDuration && ["Gesamte Zeit", "Eigener Zeitraum"].includes(this.selectedTimeRange);
+		},
 		selectedTimeRange() {
+			if (state.chartTimeRange === 0) {
+				return 'Eigener Zeitraum';
+			}
 			for (let item of this.chartTimeRanges) {
 				
 				if (item.value == state.chartTimeRange) {
@@ -120,8 +117,13 @@ export default {
 				}
 			}
 		},
-			daysSinceFirstTelemetry() {
+		daysSinceFirstTelemetry() {
 				return Math.floor((this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24))
+			},
+			displayedDurationDays() {
+				return this.selectedTimeRange === 'Eigener Zeitraum'
+					? Math.floor(this.visibleDays)
+					: this.daysSinceFirstTelemetry;
 			},
 			isPopoverOpen() {
 				return Boolean(this.$refs.popoverRef?.isOpen);

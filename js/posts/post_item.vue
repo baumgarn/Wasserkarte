@@ -1,5 +1,13 @@
 <template>
-	<article class="post-item">
+	<article
+		class="post-item"
+		:class="{ 'post-item-open-location': canOpenLocation }"
+		:role="canOpenLocation ? 'button' : undefined"
+		:tabindex="canOpenLocation ? 0 : undefined"
+		:aria-label="canOpenLocation ? `Standort ${locationName} öffnen` : undefined"
+		@click="openLocation"
+		@keydown.enter="openLocation"
+		@keydown.space.prevent="openLocation">
 		<header class="post-item-header">
 			<div v-if="context === 'allposts'" class="post-item-location">{{ locationName }}</div>
 			<div class="post-item-author">{{ post.authorName || 'Unbekannt' }}</div>
@@ -25,7 +33,7 @@ import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'PostItem',
-	emits: ['edit', 'delete'],
+	emits: ['edit', 'delete', 'open-location'],
 	components: { PopoverMenu, Icon },
 	props: {
 		post: {
@@ -48,6 +56,9 @@ export default {
 		},
 		canManagePost() {
 			return this.isPostAuthor || this.isAdmin || state.account.user?.wasserkarteRole === 'super_wassermeister';
+		},
+		canOpenLocation() {
+			return this.context === 'allposts' && state.devices.some((device) => device?.id === this.post.deviceId);
 		},
 		moreItems() {
 			return [
@@ -74,6 +85,9 @@ export default {
 		},
 	},
 	methods: {
+		openLocation() {
+			if (this.canOpenLocation) this.$emit('open-location', this.post);
+		},
 		openMore() {
 			const button = this.$refs.moreButton;
 			if (!button) return;
@@ -96,6 +110,16 @@ export default {
 	max-width 100%
 .post-item + .post-item
 	border-top var(--thinline)
+
+.post-item-open-location
+	cursor pointer
+
+// .post-item-open-location:hover
+// 	background-color #00000008
+
+.post-item-open-location:focus-visible
+	outline 2px solid var(--menusectionheadercolor)
+	outline-offset 2px
 
 
 .post-item-header

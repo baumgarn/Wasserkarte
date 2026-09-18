@@ -28,6 +28,11 @@
 						{{ day.month }}
 					</div>
 				</template>
+				<template v-else>
+					<div v-for="quarter in quarters" class="day" :key="quarter.timestamp" :style="{ left: quarter.position + '%' }">
+						{{ quarter.label }}
+					</div>
+				</template>
 			</div>
 			<div 
 				class="hoverline" 
@@ -120,6 +125,29 @@ export default {
 		},
 		months() {
 			return this.days.filter(day => day.dayOfMonth === 1);
+		},
+		quarters() {
+			const start = this.startTimestamp;
+			const end = start + this.numberOfDays * 24 * 60 * 60 * 1000;
+			const duration = Math.max(1, end - start);
+			const firstDate = new Date(start);
+			const quarterStartMonth = Math.floor(firstDate.getMonth() / 3) * 3;
+			const nextQuarter = new Date(firstDate.getFullYear(), quarterStartMonth, 1);
+			const quarters = [];
+
+			while (nextQuarter.getTime() <= end) {
+				const timestamp = nextQuarter.getTime();
+				if (timestamp >= start) {
+					quarters.push({
+						timestamp,
+						label: new Intl.DateTimeFormat('de-DE', { month: 'short' }).format(nextQuarter),
+						position: ((timestamp - start) / duration) * 100,
+					});
+				}
+				nextQuarter.setMonth(nextQuarter.getMonth() + 3);
+			}
+
+			return quarters;
 		},
 		dayWidth() {
 			return this.chartWidth / this.numberOfDays;
