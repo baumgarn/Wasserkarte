@@ -24,12 +24,16 @@
 			<div
 			v-else-if="item.type === 'action'"
 			class="item action"
+			role="button"
+			tabindex="0"
 			v-tooltip
 			:tooltipcontent="item.tooltip"
 			:tooltipdisabled="!item.tooltip"
 			tooltipside="left"
 			tooltipoffset="10"
 			@click="runAction(item)"
+			@keydown.enter.prevent="runAction(item)"
+			@keydown.space.prevent="runAction(item)"
 			>
 				<Icon v-if="item.obj" class="item-obj-icon" :obj="item.obj" :size="20" shadow="true" />
 				<div v-else-if="item.icon" class="popovericon" :class="item.icon"></div>

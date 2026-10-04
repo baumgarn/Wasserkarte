@@ -26,6 +26,8 @@
 	import { config } from '@/config.js';
 	const DAY_MS = 24 * 60 * 60 * 1000;
 	const RANGE_EPSILON = 0.000001;
+	const PRESET_TIME_RANGES = [365, 180, 90, 30, 7, 1];
+	const PRESET_RANGE_TOLERANCE_DAYS = 0.01;
 	export default {
 
 		name: 'LocationView',
@@ -357,10 +359,17 @@
 			handleRangeUpdate(rangeData) {
 				this.graphScale = rangeData.scale;
 				this.graphPosition = rangeData.position;
-				this.chartTimeRange = rangeData.position <= RANGE_EPSILON
-					&& rangeData.position + rangeData.scale >= 1 - RANGE_EPSILON
-					? -1
-					: 0;
+				this.chartTimeRange = this.matchTimeRange(rangeData);
+			},
+			matchTimeRange({ position, scale }) {
+				if (position <= RANGE_EPSILON && position + scale >= 1 - RANGE_EPSILON) {
+					return -1;
+				}
+
+				const visibleDays = scale * this.numberOfDays;
+				return PRESET_TIME_RANGES.find(
+					(days) => Math.abs(visibleDays - days) <= PRESET_RANGE_TOLERANCE_DAYS
+				) ?? 0;
 			},
 			selectTimeRange(rangeValue) {
 				if (rangeValue === 0) {

@@ -33,6 +33,7 @@
 				<div class="account-type">{{ thingsboardAccountType }}</div>
 				<div class="account-actions">
 					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
+					<button :class="{ active: state.mediaManagerOpen }" type="button" @click="toggleAccountModal('mediaManagerOpen')">Medien</button>
 					<button class="" type="button" @click="logout">Abmelden</button>
 					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
 				</div>

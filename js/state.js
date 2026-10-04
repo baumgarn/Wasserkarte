@@ -30,6 +30,7 @@ export const state = reactive({
 	menuOpen: {},
 	accountDetailsOpen: false,
 	accountsOpen: false,
+	mediaManagerOpen: false,
 	createAccountOpen: false,
 	accountPermissionsOpen: false,
 	accountPermissionsUser: null,
@@ -44,6 +45,11 @@ export const state = reactive({
 	postsLoading: false,
 	postsLoaded: false,
 	postsError: '',
+	postsLocalMode: false,
+	media: {},
+	mediaLoaded: false,
+	mediaLoading: false,
+	mediaError: '',
 	chartTimeRange: 365,
 	dataAggregation: '1d',
 	iframeWidth: '800',
@@ -202,6 +208,7 @@ export function closeAllMenuWindowsAndSidebar() {
 export function closeAllModals() {
 	state.accountDetailsOpen = false;
 	state.accountsOpen = false;
+	state.mediaManagerOpen = false;
 	state.createAccountOpen = false;
 	state.accountPermissionsOpen = false;
 	state.accountPermissionsUser = null;

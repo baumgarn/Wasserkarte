@@ -55,7 +55,7 @@ uicardgrau = #eee
 	--menuactivebg #eaeaea88
 	--menuinactivebg #eaeaea
 	--menugrau #eee
-	--menubariconsize 42px
+	--menubariconsize 40px
 	--separatorline 2px solid #00000011
 	--thinline 1px solid #00000022
 	--logogruen #008c46
@@ -447,7 +447,11 @@ button
 	cursor pointer
 	background var(--activecolorgrey)
 
-button:active
+button:disabled
+	opacity .45
+	cursor default
+
+button:active:not(:disabled)
 	background var(--activecolorgreydarker)
 
 button.danger
@@ -460,6 +464,25 @@ button.success
 	// background var(--activecolorgreydarker)
 
 // MANAGEMENT
+
+
+.media-more
+.post-item-more
+	flex 0 0 18px
+	width 18px
+	height 18px
+	margin -2px 0px -2px 6px
+	padding 0
+	border 0
+	border-radius 4px
+	cursor pointer
+	display flex
+	align-items center
+	justify-content center
+	background #0000000c
+	transition background linear .1s 
+	&:hover
+		background #00000018
 
 .split
 	display flex
@@ -536,77 +559,6 @@ button.success
 .spacebetween
 	width 100%
 	justify-content space-between
-
-.management-location-select
-	display grid
-	gap 8px
-
-.location-select-toggle
-	min-width 0
-
-.location-select-dropdown
-	border 1px solid #00000022
-	border-radius 4px
-	background #fff
-	overflow hidden
-
-.location-select-modal
-	display grid
-	gap 10px
-	height calc(70vh - 36px)
-	max-height calc(70vh - 36px)
-	grid-template-rows auto minmax(0, 1fr)
-
-.location-select-modal .location-select-dropdown
-	display flex
-	min-height 0
-	flex-direction column
-
-.location-select-modal .location-select-options
-	min-height 0
-	max-height none
-	overflow-y auto
-
-.location-select-search
-	box-sizing border-box
-	width 100%
-	padding 7px
-	border 0
-	border-bottom 1px solid #00000022
-	font inherit
-
-.location-select-options
-	max-height 210px
-	overflow-y auto
-
-.location-select-option
-	display flex
-	width 100%
-	min-width 0
-	justify-content space-between
-	gap 12px
-	padding 7px 10px
-	border-radius 0
-	background #fff
-	text-align left
-
-.location-select-option.selected
-	background var(--activecolorgreymid)
-
-.location-select-label
-	display flex
-	align-items center
-	min-width 0
-
-.location-select-selected
-	display grid
-	gap 2px
-
-.location-select-selected-item
-	padding 5px 8px
-	border-radius 3px
-	background #00000008
-	font-size 9pt
 
 button.management-danger
 	background #b52323

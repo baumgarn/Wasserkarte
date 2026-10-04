@@ -1,18 +1,21 @@
 import { state } from '@/state.js';
 import { postsApi } from '@/posts/api.js';
+import { loadMedia } from '@/media/store.js';
 
 let loadRequest = null;
 
 export async function loadPosts(force = false) {
 	if (state.postsLoaded && !force) return state.posts;
-	if (loadRequest) return loadRequest;
+	if (loadRequest) return force ? loadRequest.catch(() => {}).then(() => loadPosts(true)) : loadRequest;
 
 	state.postsLoading = true;
 	state.postsError = '';
-	loadRequest = postsApi.list()
+	loadRequest = postsApi.list(force)
 		.then((response) => {
 			state.posts = Array.isArray(response.posts) ? response.posts : [];
 			state.postsLoaded = true;
+			state.postsLocalMode = response.localMode === true;
+			loadMedia(force).catch(() => {});
 			return state.posts;
 		})
 		.catch((error) => {

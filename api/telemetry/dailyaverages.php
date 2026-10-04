@@ -1,8 +1,7 @@
 <?php
 
 // Updates all daily aggregated telemetry for all devices.
-// Should run through a cronjob right after midnight. Add to crontab -e:
-// 5 0 * * * /usr/bin/php /var/home/badbelzig/www/wasserkarte.badbelzig-klimadaten.de/api/telemetry/dailyaverages.php >> $HOME/wasserkarte.log
+// Der nächtliche Cronjob ruft api/daily.php auf, das danach den Posts-Cache aktualisiert.
 
 set_time_limit(600); // 10 minutes in seconds
 
@@ -29,7 +28,7 @@ if (is_file(CACHE_FILE_ALLTELEMETRY) && !isset($_GET['refresh'])) {
         if ($mtime >= $midnight) {
             // Already updated once today
 			echo date('Y-m-d H:i:s', (int) (microtime(true))) . " – Skipped: cache already updated after midnight\n";
-            exit(0);
+            return;
         }
     }
 }

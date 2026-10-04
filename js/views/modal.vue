@@ -2,19 +2,26 @@
 	<Teleport to="body">
 		<div
 			class="modal-backdrop"
-			:class="{ 'close-click-outside': closeClickOutside }"
+			:class="{ 'close-click-outside': closeClickOutside, 'modal-stacked': stacked }"
 			@click.self="closeOnOutsideClick">
 			<section
 				ref="window"
 				class="modal-window"
 				role="dialog"
-				aria-modal="true"
+				:aria-modal="modal ? 'true' : undefined"
 				:aria-label="title || 'Dialog'">
 				<header class="modal-titlebar">
-					<h2 v-if="title">{{ title }}</h2>
+					<div class="modal-title">
+						<h2 v-if="title">{{ title }}</h2>
+					</div>
+					<div class="modal-titlebar-content">
+						<slot name="titlebar"></slot>
+					</div>
 					<div
 						ref="closeButton"
 						class="iconbutton close"
+						type="button"
+						aria-label="Dialog schließen"
 						@click="close">
 				</div>
 				</header>
@@ -40,6 +47,8 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+		modal: { type: Boolean, default: true },
+		stacked: { type: Boolean, default: false },
 	},
 	methods: {
 		close() {
@@ -78,6 +87,9 @@ export default {
 .modal-backdrop.close-click-outside
 	pointer-events auto
 
+.modal-backdrop.modal-stacked
+	z-index 500
+
 .modal-window
 	display flex
 	flex-direction column
@@ -93,24 +105,41 @@ export default {
 	max-height 100vh
 
 .modal-titlebar
-	height 36px
-	flex 0 0 36px
+	position relative
 	display flex
 	align-items center
-	justify-content space-between
+	justify-content flex-start
+	width 100%
+	height 36px
+	flex 0 0 36px
 	box-sizing border-box
 	border-bottom 1px solid #00000022
 
-.modal-titlebar h2
+.modal-title h2
 	margin 0
-	padding 0 13px
-	font-size 12pt
-	font-weight bold
-	line-height 24px
-	color #000000bb
-	
+	font-size 16px
+	padding-left 16px
+	padding-right 8px
+	line-height 36px
+
+.modal-title
+	min-width 0
+	height 100%
+
+.modal-titlebar-content
+	min-width 0
+	height 100%
+	line-height 36px
+
 .close
-	margin-right 4px
+	position absolute
+	right 4px
+	top 4px
+
+
+@media (max-width: 431px)
+	.modal-window
+		min-width calc(100vw - 32px)
 
 .modal-content
 	flex 1 1 auto

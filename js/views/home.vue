@@ -123,6 +123,10 @@
 		@create="postCreated"
 		@close="closePostCreate" />
 
+	<MediaManager
+		v-if="state.mediaManagerOpen && state.account.authenticated"
+		@close="state.mediaManagerOpen = false" />
+
 	<PostCreate
 		v-if="state.postEditOpen && state.postEdit"
 		:key="state.postEdit.id"
@@ -185,6 +189,7 @@ import DeleteAccount from '@/management/delete_account.vue';
 import ActivateAccount from '@/management/activate_account.vue';
 import PostCreate from '@/posts/post_create.vue';
 import PostDelete from '@/posts/post_delete.vue';
+import MediaManager from '@/media/media_manager.vue';
 import StatusBar from '@/map/statusbar.vue';
 import { accountSettingsKeys, getAccountSettings, state } from '@/state.js';
 import { managementAuth } from '@/management/auth.js';
@@ -230,6 +235,7 @@ export default {
 		ActivateAccount,
 		PostCreate,
 		PostDelete,
+		MediaManager,
 		SoilMenu,
 		TimelineWrapper,
 		StatusBar,

@@ -374,4 +374,16 @@ export default {
 	background-image url(/img/morev.png)
 	background-size 75%
 	opacity .7
+
+.icon.type-close
+	background-image url(/img/close.png)
+	background-size 75%
+
+.icon.type-arrow-left
+	background-image url(/img/dreieck_links.png)
+	background-size 75%
+
+.icon.type-arrow-right
+	background-image url(/img/dreieck_rechts.png)
+	background-size 75%
 </style>

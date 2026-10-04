@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Medienupload – isolierte UI-Vorschau</title></head>
+<body>
+<div id="preview"></div>
+<script type="module">
+import { createApp, h } from 'vue';
+import '/css/style.styl';
+import PostCreate from '/js/posts/post_create.vue';
+import PostItem from '/js/posts/post_item.vue';
+import AccountMenu from '/js/menu/menu_account.vue';
+import MediaManager from '/js/media/media_manager.vue';
+import { state } from '/js/state.js';
+import { mediaApi } from '/js/media/api.js';
+import { postsApi } from '/js/posts/api.js';
+
+const device = { id: '66666666-6666-4666-8666-666666666666', name: 'Teststandort am Garten' };
+state.devices = [device];
+state.account.authenticated = true;
+state.account.loading = false;
+state.account.user = { id: '55555555-5555-4555-8555-555555555555', firstName: 'Test', lastName: 'User', thingsboardAuthority: 'TENANT_ADMIN' };
+const ids = ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'];
+const fixtureMedia = [];
+for (const [index, id] of ids.entries()) {
+	const url = ['/docs/wasserkarte.jpg', '/docs/zukunftsschusterei.jpg'][index];
+	state.media[id] = { id, type: 'image', variants: { thumbnail: { url, width: 300, height: 200 }, display: { url, width: 1200, height: 800 } } };
+	fixtureMedia.push({ ...state.media[id], deviceId: device.id, uploadedAt: Date.now() - index * 86400000, authorUserId: index ? 'another-user' : state.account.user.id, authorName: index ? 'Alex Beispiel' : 'Test User', attached: true, canDelete: true });
+}
+fixtureMedia.push({ ...fixtureMedia[0], id: '33333333-3333-4333-8333-333333333333', attached: false });
+fixtureMedia.push({ ...fixtureMedia[1], id: '77777777-7777-4777-8777-777777777777', canDelete: false });
+fixtureMedia[0].deletionContext = { attached: true, remainingImages: 2, hasText: true, postRevision: 'fixture-revision' };
+fixtureMedia[1].deletionContext = { attached: true, remainingImages: 0, hasText: false, postRevision: 'fixture-revision' };
+mediaApi.list = async () => ({ media: Object.values(state.media), localMode: true });
+mediaApi.manageList = async () => {
+	const allUsers = state.account.user.thingsboardAuthority === 'TENANT_ADMIN';
+	return { media: fixtureMedia.filter(item => allUsers || item.authorUserId === state.account.user.id), allUsers, localMode: true };
+};
+const deletionContextDelay = new URLSearchParams(location.search).has('slow-delete') ? 3000 : 0;
+mediaApi.deletionContext = async id => {
+	if (deletionContextDelay) await new Promise(resolve => setTimeout(resolve, deletionContextDelay));
+	return fixtureMedia.find(item => item.id === id)?.deletionContext || { attached: false, remainingImages: 0, hasText: false, postRevision: 'fixture-revision' };
+};
+mediaApi.delete = async id => {
+	const index = fixtureMedia.findIndex(item => item.id === id);
+	if (index !== -1) fixtureMedia.splice(index, 1);
+	delete state.media[id];
+	return { success: true, id, posts: [] };
+};
+postsApi.list = async () => ({ posts: state.posts, localMode: true });
+mediaApi.upload = async (file, deviceId, postId, progress, signal) => {
+	for (let value = 0; value <= 100; value += 20) {
+		await new Promise(resolve => setTimeout(resolve, 100));
+		if (signal.aborted) throw new DOMException('Upload abgebrochen.', 'AbortError');
+		progress(value);
+	}
+	const id = crypto.randomUUID();
+	const url = URL.createObjectURL(file);
+	return { id, type: 'image', postId, deviceId, variants: { thumbnail: { url, width: 300, height: 200 }, display: { url, width: 1200, height: 800 } } };
+};
+postsApi.create = async (deviceId, content, timestamp, mediaIds, id) => ({ post: { id, deviceId, content, timestamp, mediaIds, authorName: 'Test User', authorUserId: state.account.user.id, environment: 'local' } });
+postsApi.update = async (id, content, timestamp, mediaIds) => ({ post: { id, deviceId: device.id, content, timestamp, mediaIds, authorName: 'Test User', authorUserId: state.account.user.id, environment: 'local' } });
+
+createApp({
+	components: { PostCreate, PostItem, AccountMenu, MediaManager },
+	data: () => ({ device, dialog: false, editing: false, emptyPost: false, post: { id: '44444444-4444-4444-8444-444444444444', deviceId: device.id, authorUserId: state.account.user.id, authorName: 'Test User', timestamp: Date.now(), content: 'Heute haben wir den Standort besucht und die Sensoren kontrolliert.', environment: 'local', mediaIds: ids } }),
+	methods: { saved(post) { this.post = post; }, open() { this.editing = false; this.dialog = true; } },
+	render() {
+		return h('main', { class: 'preview-main' }, [
+			h('p', { class: 'preview-note' }, 'Isolierte UI-Vorschau · Alle Uploads und Posts sind simuliert.'),
+			h('h1', 'Posts mit Bildern'),
+			h('button', { type: 'button', onClick: () => {
+				state.mediaManagerOpen = false;
+				state.account.user.thingsboardAuthority = state.account.user.thingsboardAuthority === 'TENANT_ADMIN' ? 'CUSTOMER_USER' : 'TENANT_ADMIN';
+			} }, state.account.user.thingsboardAuthority === 'TENANT_ADMIN' ? 'Als Nutzer ansehen' : 'Als Admin ansehen'),
+			h(AccountMenu),
+			state.mediaManagerOpen ? h(MediaManager, { onClose: () => { state.mediaManagerOpen = false; } }) : null,
+			h('button', { type: 'button', onClick: this.open }, 'Neuen Post erstellen'),
+			h('button', { type: 'button', onClick: () => { this.emptyPost = !this.emptyPost; } }, this.emptyPost ? 'Post mit Inhalt ansehen' : 'Post ohne Inhalt ansehen'),
+			h(PostItem, { post: this.emptyPost ? { ...this.post, content: '', mediaIds: [] } : this.post, onEdit: () => { this.editing = true; this.dialog = true; } }),
+			this.dialog ? h(PostCreate, { device: this.device, post: this.editing ? this.post : null, onClose: () => { this.dialog = false; }, onCreate: this.saved, onSaved: this.saved }) : null,
+		]);
+	},
+}).mount('#preview');
+</script>
+<style>
+body { margin: 0; background: #f1f4f2; font-family: Arial, sans-serif; }
+.preview-main { max-width: 700px; margin: 36px auto; padding: 24px; background: white; box-sizing: border-box; }
+.preview-main h1 { font-size: 22px; }
+.preview-note { color: #666; font-size: 12px; }
+.preview-main .menuwindow.account { position: static; display: block; width: 100%; margin: 16px 0; }
+@media (max-width: 480px) { .preview-main { margin: 0; padding: 16px; } }
+</style>
+</body>
+</html>

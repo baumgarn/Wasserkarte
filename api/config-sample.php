@@ -2,6 +2,8 @@
 
 	date_default_timezone_set('Europe/Berlin');
 	define('CACHE_DIR', __DIR__ . '/cache');
+	// Dauerhafter Medienspeicher, unabhängig vom löschbaren Cache.
+	define('MEDIA_STORAGE_DIR', __DIR__ . '/storage');
 	define('CACHE_FILE_DEVICES', CACHE_DIR . '/devices.json');
 	define('CACHE_FILE_ALLTELEMETRY', CACHE_DIR . '/alltelemetry.json');
 	define('CACHE_DEVICES_DURATION', 60*60*6); // 12 Hours
@@ -31,3 +33,6 @@
 	define('MAIL_ENABLED', false);
 	define('MAIL_FROM', 'noreply@wasserkarte.org');
 	define('WASSERKARTE_URL', 'https://wasserkarte.org');
+	// Lokal true: neue Posts/Medien erhalten environment="local"; Produktionsposts sind lokal nur lesbar.
+	// Lokale Medien: api/storage/local/. Produktionskopien von pulldata: api/storage/.
+	define('POSTS_LOCAL_MODE', false);

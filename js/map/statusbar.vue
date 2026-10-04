@@ -409,7 +409,7 @@ export default {
 // INFO ROW
 
 .inforow
-	margin 6px 0 6px
+	margin 5px 0 5px
 	display flex
 	height 19px
 	// width 275px
@@ -420,7 +420,8 @@ export default {
 	user-select none
 
 .intableview .inforow 
-	margin 6px 6px
+	margin 5px 6px
+	padding-top 2px
 
 // .stats.filteractive .inforow
 

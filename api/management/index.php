@@ -1,10 +1,10 @@
 <?php
 
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/management/session.php';
-require_once __DIR__ . '/management/thingsboard-client.php';
-require_once __DIR__ . '/management/rate-limit.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/session.php';
+require_once __DIR__ . '/thingsboard-client.php';
+require_once __DIR__ . '/rate-limit.php';
 
 function managementRespond(array $payload, int $status = 200): void
 {

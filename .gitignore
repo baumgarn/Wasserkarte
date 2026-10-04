@@ -22,6 +22,7 @@ dist/
 # API-specific ignores
 api/config.php
 api/cache/
+api/storage/
 
 # Local deployment helper
 kartedist

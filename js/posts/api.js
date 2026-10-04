@@ -1,8 +1,8 @@
 import { state } from '@/state.js';
 
-const endpoint = '/api/posts.php';
+const endpoint = '/api/posts/index.php';
 
-async function request(method = 'GET', payload = null) {
+async function request(method = 'GET', payload = null, force = false) {
 	const headers = new Headers();
 	if (payload !== null) headers.set('Content-Type', 'application/json');
 	if (method !== 'GET' && state.account.csrfToken) headers.set('X-CSRF-Token', state.account.csrfToken);
@@ -10,6 +10,7 @@ async function request(method = 'GET', payload = null) {
 	const response = await fetch(endpoint, {
 		method,
 		credentials: 'same-origin',
+		cache: method === 'GET' && force ? 'no-store' : 'default',
 		headers,
 		body: payload === null ? null : JSON.stringify(payload),
 	});
@@ -19,14 +20,14 @@ async function request(method = 'GET', payload = null) {
 }
 
 export const postsApi = {
-	list() {
-		return request();
+	list(force = false) {
+		return request('GET', null, force);
 	},
-	create(deviceId, content, timestamp) {
-		return request('POST', { deviceId, content, timestamp });
+	create(deviceId, content, timestamp, mediaIds = [], id = undefined) {
+		return request('POST', { deviceId, content, timestamp, mediaIds, id });
 	},
-	update(id, content, timestamp) {
-		return request('PATCH', { id, content, timestamp });
+	update(id, content, timestamp, mediaIds = undefined) {
+		return request('PATCH', { id, content, timestamp, mediaIds });
 	},
 	delete(id) {
 		return request('DELETE', { id });

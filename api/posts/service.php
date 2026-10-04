@@ -1,11 +1,12 @@
 <?php
 
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/telemetry/cache.php';
-require_once __DIR__ . '/management/session.php';
-require_once __DIR__ . '/management/thingsboard-client.php';
-require_once __DIR__ . '/posts/cache.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../telemetry/cache.php';
+require_once __DIR__ . '/../management/session.php';
+require_once __DIR__ . '/../management/thingsboard-client.php';
+require_once __DIR__ . '/cache.php';
+require_once __DIR__ . '/../media/storage.php';
 
 const POSTS_TELEMETRY_KEY = 'wasserkarte_post';
 const POSTS_MAX_CONTENT_LENGTH = 5000;
@@ -108,6 +109,9 @@ function postsCanWriteDevice(array $identity, string $deviceId, string $token): 
 
 function postsCanEdit(array $identity, array $post, string $token): bool
 {
+	if (!postsWritableInEnvironment($post)) {
+		return false;
+	}
 	$authority = $identity['thingsboardAuthority'] ?? '';
 	if ($authority === 'TENANT_ADMIN' || $authority === 'SYS_ADMIN') {
 		return true;
@@ -160,7 +164,7 @@ function postsNormalise($value, string $deviceId, int $storageTs): ?array
 		return null;
 	}
 
-	return [
+	$post = [
 		'id' => $value['id'],
 		'deviceId' => $deviceId,
 		'timestamp' => $timestamp,
@@ -169,10 +173,20 @@ function postsNormalise($value, string $deviceId, int $storageTs): ?array
 		'authorUserId' => $authorUserId,
 		'authorName' => is_string($value['authorName'] ?? null) ? $value['authorName'] : '',
 		'content' => $value['content'],
+		'mediaIds' => mediaIds($value['mediaIds'] ?? []) ?? [],
 	];
+	if (isset($value['environment'])) {
+		$post['environment'] = $value['environment'];
+	}
+	return $post;
 }
 
 function postsRebuildCache(string $token): array
+{
+	return postsWithLock(static fn () => postsRebuildCacheUnlocked($token));
+}
+
+function postsRebuildCacheUnlocked(string $token): array
 {
 	$posts = [];
 	$endTs = (int) floor(microtime(true) * 1000) + 1;
@@ -220,6 +234,26 @@ function postsFind(string $postId, string $token): ?array
 	return null;
 }
 
+function postsFindOnDevice(string $postId, string $deviceId, string $token): ?array
+{
+	// Vor dem Anlegen auch ThingsBoard prüfen: Die vorherige HTTP-Antwort könnte
+	// verloren gegangen sein, obwohl der Telemetrieeintrag schon gespeichert wurde.
+	$response = thingsBoardManagementRequest('GET',
+		'/plugins/telemetry/DEVICE/' . rawurlencode($deviceId) . '/values/timeseries?' . http_build_query([
+			'keys' => POSTS_TELEMETRY_KEY, 'startTs' => 0,
+			'endTs' => (int) floor(microtime(true) * 1000) + 1,
+			'limit' => 100000, 'orderBy' => 'ASC', 'agg' => 'NONE',
+		]), null, $token);
+	if ($response['status'] !== 200 || !is_array($response['body'])) {
+		throw new RuntimeException('Post-ID konnte nicht in ThingsBoard geprüft werden.');
+	}
+	foreach ($response['body'][POSTS_TELEMETRY_KEY] ?? [] as $entry) {
+		$post = postsNormalise($entry['value'] ?? null, $deviceId, (int) ($entry['ts'] ?? 0));
+		if ($post !== null && $post['id'] === $postId) return $post;
+	}
+	return null;
+}
+
 function postsUpsertCache(array $post, string $token): void
 {
 	$cache = postsReadCache();
@@ -262,9 +296,62 @@ function postsSaveTelemetry(array $post, string $token): bool
 	return $response['status'] === 200;
 }
 
+function postsDeleteTelemetry(array $post, string $token): bool
+{
+	$storageTs = (int) $post['createdAt'];
+	$path = '/plugins/telemetry/DEVICE/' . rawurlencode($post['deviceId']);
+	$response = thingsBoardManagementRequest(
+		'DELETE',
+		$path . '/timeseries/delete?' . http_build_query([
+			'keys' => POSTS_TELEMETRY_KEY,
+			// ThingsBoard benötigt für einen einzelnen Punkt [ts, ts + 1).
+			'startTs' => $storageTs,
+			'endTs' => $storageTs + 1,
+			'deleteAllDataForKeys' => 'false',
+			'deleteLatest' => 'true',
+			'rewriteLatestIfDeleted' => 'true',
+		]),
+		null,
+		$token
+	);
+	if (!in_array($response['status'], [200, 204], true)) {
+		return false;
+	}
+
+	// HTTP 200 allein reicht nicht: Ein leerer Löschbereich kann auch 200 liefern.
+	$check = thingsBoardManagementRequest(
+		'GET',
+		$path . '/values/timeseries?' . http_build_query([
+			'keys' => POSTS_TELEMETRY_KEY,
+			'startTs' => $storageTs - 1,
+			'endTs' => $storageTs + 1,
+			'agg' => 'NONE',
+			'limit' => 3,
+		]),
+		null,
+		$token
+	);
+	if ($check['status'] !== 200 || !is_array($check['body'])) {
+		return false;
+	}
+	$entries = $check['body'][POSTS_TELEMETRY_KEY] ?? [];
+	if (!is_array($entries)) {
+		return false;
+	}
+	foreach ($entries as $entry) {
+		if (!is_array($entry) || !isset($entry['ts']) || (int) $entry['ts'] === $storageTs) {
+			return false;
+		}
+	}
+	return true;
+}
+
 function postsUuid(): string
 {
-	$hex = bin2hex(random_bytes(16));
+	$bytes = random_bytes(16);
+	$bytes[6] = chr((ord($bytes[6]) & 15) | 64);
+	$bytes[8] = chr((ord($bytes[8]) & 63) | 128);
+	$hex = bin2hex($bytes);
 	return substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-' . substr($hex, 12, 4) . '-' . substr($hex, 16, 4) . '-' . substr($hex, 20);
 }
 
@@ -294,119 +381,34 @@ function postsContent($value): ?string
 		return null;
 	}
 	$content = trim($value);
-	return $content !== '' && mb_strlen($content) <= POSTS_MAX_CONTENT_LENGTH ? $content : null;
+	return mb_strlen($content) <= POSTS_MAX_CONTENT_LENGTH ? $content : null;
 }
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if ($method === 'GET') {
-	$cache = postsReadCache();
-	if ($cache === null) {
-		try {
-			$cache = postsRebuildCache(postsServiceToken());
-		} catch (Throwable $error) {
-			postsRespond(['error' => 'Posts konnten nicht geladen werden.'], 502);
+function postsSaveWithMedia(array $post, array $identity, string $token, ?array $previous = null): array
+{
+	return mediaWithLock(postsLocalMode(), static function () use ($post, $identity, $token, $previous): array {
+		$index = mediaReadIndex(postsLocalMode());
+		mediaValidateAttachments($post, $identity, $index, $previous);
+		if (!postsSaveTelemetry($post, $token)) {
+			throw new RuntimeException('Eintrag konnte nicht in ThingsBoard gespeichert werden.');
 		}
-	}
-	postsRespond($cache);
+		// Nach erfolgreicher Telemetrie-Speicherung ist der Post angelegt. Ein Cachefehler
+		// darf keinen zweiten Post beim Wiederholen erzeugen; GET kann den Cache reparieren.
+		try {
+			postsUpsertCache($post, $token);
+		} catch (Throwable $error) {
+			error_log('Saved post; cache update failed: ' . $error->getMessage());
+			@unlink(postsCacheFile());
+			return ['post' => $post, 'warning' => 'Post gespeichert. Die Anzeige wird beim nächsten Laden aktualisiert.'];
+		}
+		$removed = array_values(array_diff($previous['mediaIds'] ?? [], $post['mediaIds']));
+		if ($removed !== []) {
+			try {
+				mediaRemoveEntries(postsLocalMode(), $index, $removed);
+			} catch (Throwable $error) {
+				error_log('Removed post media will be retried by daily cleanup: ' . $error->getMessage());
+			}
+		}
+		return ['post' => $post];
+	});
 }
-
-$identity = postsRequireIdentity();
-postsRequireCsrf();
-$input = postsReadJsonBody();
-if ($input === null) {
-	postsRespond(['error' => 'Ungültige Anfrage.'], 400, true);
-}
-$token = postsServiceToken();
-
-if ($method === 'POST') {
-	$deviceId = $input['deviceId'] ?? null;
-	$content = postsContent($input['content'] ?? null);
-	$timestamp = postsTimestamp($input['timestamp'] ?? (int) floor(microtime(true) * 1000));
-	postsRequireLocation(is_string($deviceId) ? $deviceId : '');
-	if ($content === null || $timestamp === null) {
-		postsRespond(['error' => 'Inhalt oder Zeitpunkt sind ungültig.'], 400, true);
-	}
-	if (!postsCanWriteDevice($identity, $deviceId, $token)) {
-		postsRespond(['error' => 'Du darfst für diesen Standort keine Einträge erstellen.'], 403, true);
-	}
-	$now = postsNextCreatedAt($deviceId);
-	$post = [
-		'id' => postsUuid(),
-		'deviceId' => $deviceId,
-		'timestamp' => $timestamp,
-		'createdAt' => $now,
-		'updatedAt' => $now,
-		'authorUserId' => $identity['id'],
-		'authorName' => trim(($identity['firstName'] ?? '') . ' ' . ($identity['lastName'] ?? '')) ?: ($identity['email'] ?? ''),
-		'content' => $content,
-	];
-	if (!postsSaveTelemetry($post, $token)) {
-		postsRespond(['error' => 'Eintrag konnte nicht gespeichert werden.'], 502, true);
-	}
-	try {
-		postsUpsertCache($post, $token);
-	} catch (Throwable $error) {
-		postsRespond(['error' => 'Eintrag wurde gespeichert, aber der Posts-Cache konnte nicht aktualisiert werden.'], 502, true);
-	}
-	postsRespond(['post' => $post], 201, true);
-}
-
-$postId = is_string($input['id'] ?? null) ? $input['id'] : '';
-if (!preg_match('/^[a-f0-9-]{36}$/i', $postId)) {
-	postsRespond(['error' => 'Ungültige Post-ID.'], 400, true);
-}
-try {
-	$post = postsFind($postId, $token);
-} catch (Throwable $error) {
-	postsRespond(['error' => 'Post konnte nicht geladen werden.'], 502, true);
-}
-if ($post === null) {
-	postsRespond(['error' => 'Post wurde nicht gefunden.'], 404, true);
-}
-if (!postsCanEdit($identity, $post, $token)) {
-	postsRespond(['error' => 'Du darfst diesen Eintrag nicht bearbeiten.'], 403, true);
-}
-
-if ($method === 'PATCH') {
-	$content = postsContent($input['content'] ?? null);
-	$timestamp = postsTimestamp($input['timestamp'] ?? null);
-	if ($content === null || $timestamp === null) {
-		postsRespond(['error' => 'Inhalt oder Zeitpunkt sind ungültig.'], 400, true);
-	}
-	$post['content'] = $content;
-	$post['timestamp'] = $timestamp;
-	$post['updatedAt'] = (int) floor(microtime(true) * 1000);
-	if (!postsSaveTelemetry($post, $token)) {
-		postsRespond(['error' => 'Eintrag konnte nicht aktualisiert werden.'], 502, true);
-	}
-	try {
-		postsUpsertCache($post, $token);
-	} catch (Throwable $error) {
-		postsRespond(['error' => 'Eintrag wurde aktualisiert, aber der Posts-Cache konnte nicht aktualisiert werden.'], 502, true);
-	}
-	postsRespond(['post' => $post], 200, true);
-}
-
-if ($method === 'DELETE') {
-	$response = thingsBoardManagementRequest(
-		'DELETE',
-		'/plugins/telemetry/DEVICE/' . rawurlencode($post['deviceId']) . '/timeseries/delete?' . http_build_query([
-			'keys' => POSTS_TELEMETRY_KEY,
-			'startTs' => $post['createdAt'],
-			'endTs' => $post['createdAt'],
-		]),
-		null,
-		$token
-	);
-	if (!in_array($response['status'], [200, 204], true)) {
-		postsRespond(['error' => 'Eintrag konnte nicht gelöscht werden.'], 502, true);
-	}
-	try {
-		postsRemoveFromCache($postId, $token);
-	} catch (Throwable $error) {
-		postsRespond(['error' => 'Eintrag wurde gelöscht, aber der Posts-Cache konnte nicht aktualisiert werden.'], 502, true);
-	}
-	postsRespond(['success' => true], 200, true);
-}
-
-postsRespond(['error' => 'Methode nicht unterstützt.'], 405, true);

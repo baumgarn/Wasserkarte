@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Berechtigungen – isolierte UI-Vorschau</title></head>
+<body>
+<div id="preview"></div>
+<script type="module">
+import { createApp, h, reactive } from 'vue';
+import '/css/style.css';
+import Modal from '/js/views/modal.vue';
+import AccountPermissions from '/js/management/account_permissions.vue';
+import DeleteAccount from '/js/management/delete_account.vue';
+import { managementAuth } from '/js/management/auth.js';
+import { tooltipDirective } from '/js/tooltip.js';
+import { state } from '/js/state.js';
+
+state.devices = Array.from({ length: 60 }, (_, index) => ({ id: `fixture-${index + 1}`, name: `Standort ${String(index + 1).padStart(2, '0')}`, lastExpandedTelemetry: { ts: Date.now() } }));
+const fixture = reactive({ calls: [], failNext: false });
+
+// No requests to the real management API are made in this fixture.
+managementAuth.updateUserPermissions = async (id, role, locations) => {
+	fixture.calls.push({ role, locations: [...locations] });
+	await new Promise(resolve => setTimeout(resolve, 500));
+	if (fixture.failNext) { fixture.failNext = false; throw new Error('Speichern fehlgeschlagen (simuliert).'); }
+};
+managementAuth.deleteUser = async () => {};
+
+createApp({
+	data: () => ({ open: true, deleteOpen: false, status: '', user: {
+		id: '55555555-5555-4555-8555-555555555555', firstName: 'Alex', lastName: 'Beispiel',
+		email: 'alex@example.invalid', role: 'wassermeister',
+		locations: new URLSearchParams(location.search).has('assigned') ? ['fixture-1', 'fixture-2'] : [],
+	} }),
+	render() {
+		return h('main', { class: 'preview-main' }, [
+			h('p', 'Isolierte UI-Vorschau · Speichern und Löschen sind simuliert.'),
+			h('button', { onClick: () => { this.open = true; } }, 'Berechtigungen öffnen'),
+			h('button', { onClick: () => { fixture.failNext = true; } }, 'Nächsten Speicherfehler simulieren'),
+			h('pre', { 'aria-label': 'Simulierte Speicheraufrufe' }, JSON.stringify(fixture.calls)),
+			h('p', { role: 'status' }, this.status),
+			this.open ? h(Modal, { title: 'Berechtigungen', onClose: () => { this.open = false; } }, {
+				default: () => h(AccountPermissions, { user: this.user,
+					onDeleteAccount: () => { this.deleteOpen = true; },
+					onSaved: () => { this.status = 'Berechtigungen gespeichert (simuliert).'; this.open = false; },
+				}),
+			}) : null,
+			this.deleteOpen ? h(Modal, { title: 'Account löschen', onClose: () => { this.deleteOpen = false; } }, {
+				default: () => h(DeleteAccount, { user: this.user,
+					onClose: () => { this.deleteOpen = false; },
+					onDeleted: () => { this.deleteOpen = false; this.open = false; this.status = 'Account gelöscht (simuliert).'; },
+				}),
+			}) : null,
+		]);
+	},
+}).directive('tooltip', tooltipDirective).mount('#preview');
+</script>
+<style>
+body { margin: 0; background: #f1f4f2; font-family: Arial, sans-serif; }
+.preview-main { padding: 24px; font-size: 12px; }
+.preview-main pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+</body>
+</html>

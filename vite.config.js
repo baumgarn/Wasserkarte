@@ -31,6 +31,8 @@ function copyApiToDist() {
 					if (relativePath === 'config.php') return false;
 					if (relativePath === 'cache') return false;
 					if (relativePath.startsWith(`cache${path.sep}`)) return false;
+					if (relativePath === 'storage') return false;
+					if (relativePath.startsWith(`storage${path.sep}`)) return false;
 					return true;
 				},
 			});

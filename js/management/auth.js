@@ -1,6 +1,6 @@
 import { applyAccountSettings, state } from '../state.js';
 
-const endpoint = '/api/management.php';
+const endpoint = '/api/management/index.php';
 
 async function request(action, options = {}) {
 	const headers = new Headers(options.headers || {});

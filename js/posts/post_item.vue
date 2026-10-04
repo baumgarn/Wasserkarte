@@ -6,8 +6,8 @@
 		:tabindex="canOpenLocation ? 0 : undefined"
 		:aria-label="canOpenLocation ? `Standort ${locationName} öffnen` : undefined"
 		@click="openLocation"
-		@keydown.enter="openLocation"
-		@keydown.space.prevent="openLocation">
+		@keydown.enter.self="openLocation"
+		@keydown.space.self.prevent="openLocation">
 		<header class="post-item-header">
 			<div v-if="context === 'allposts'" class="post-item-location">{{ locationName }}</div>
 			<div class="post-item-author">{{ post.authorName || 'Unbekannt' }}</div>
@@ -22,7 +22,8 @@
 			</div>
 			<PopoverMenu v-if="canManagePost" ref="moreMenu" :items="moreItems" />
 		</header>
-		<p class="post-item-content">{{ post.content }}</p>
+		<p v-if="post.content" class="post-item-content">{{ post.content }}</p>
+		<PostMedia :ids="post.mediaIds || []" />
 	</article>
 </template>
 
@@ -30,11 +31,12 @@
 import { state } from '@/state.js';
 import PopoverMenu from '@/ui/popovermenu.vue';
 import Icon from '@/ui/Icon.vue';
+import PostMedia from '@/media/post_media.vue';
 
 export default {
 	name: 'PostItem',
 	emits: ['edit', 'delete', 'open-location'],
-	components: { PopoverMenu, Icon },
+	components: { PopoverMenu, Icon, PostMedia },
 	props: {
 		post: {
 			type: Object,
@@ -55,6 +57,7 @@ export default {
 			return state.account.authenticated && state.account.user?.id === this.post.authorUserId;
 		},
 		canManagePost() {
+			if (state.postsLocalMode && this.post.environment !== 'local') return false;
 			return this.isPostAuthor || this.isAdmin || state.account.user?.wasserkarteRole === 'super_wassermeister';
 		},
 		canOpenLocation() {
@@ -79,8 +82,7 @@ export default {
 		formattedTimestamp() {
 			if (Number.isNaN(this.date.getTime())) return '';
 			return new Intl.DateTimeFormat('de-DE', {
-				dateStyle: 'medium',
-				timeStyle: 'short',
+				dateStyle: 'medium'
 			}).format(this.date);
 		},
 	},
@@ -149,23 +151,6 @@ export default {
 	min-width 0
 	margin-left auto
 	text-align right
-
-.post-item-more
-	flex 0 0 20px
-	width 20px
-	height 20px
-	margin -3px -3px -3px 2px
-	padding 0
-	border 0
-	border-radius 6px
-	background transparent
-	cursor pointer
-	display flex
-	align-items center
-	justify-content center
-
-.post-item-more:hover
-	background-color #0000000d
 
 .post-item-header time
 	opacity .6
