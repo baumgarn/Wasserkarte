@@ -25,7 +25,7 @@
 							</template>
 						</div>
 					</div>
-					<span v-if="!attachments.length" class="upload-hint">{{ canUploadVideo ? 'Fotos oder ein Video hierher ziehen oder auswählen' : 'Fotos hierher ziehen oder auswählen' }}</span>
+					<span v-if="!attachments.length" class="upload-hint">{{ canUploadVideo ? 'Bis zu 10 Fotos oder ein Video hierherziehen' : 'Bis zu 10 Fotos hierherziehen' }}<br>Klick zum Auswählen</span>
 				</div>
 				<input ref="fileInput" class="upload-input" type="file" :accept="canUploadVideo && !attachments.length ? 'image/jpeg,image/png,image/webp,video/mp4' : 'image/jpeg,image/png,image/webp'" :multiple="!hasVideo" :disabled="!canAddAttachments" @change="selectFiles">
 				<p v-if="uploadError" class="upload-error management-error">{{ uploadError }}</p>
@@ -537,8 +537,7 @@ export default {
 
 .upload-hint
 	flex 1
-	display grid
-	place-items center
+	align-self center
 	padding 8px
 	color #666
 	font-size 9pt
