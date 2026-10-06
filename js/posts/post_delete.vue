@@ -2,7 +2,7 @@
 	<Modal title="Post löschen" @close="$emit('close')">
 		<div class="management-panel management-window-size-mid post-delete">
 			<p>Post von {{ post.authorName || 'Unbekannt' }} wirklich löschen?</p>
-			<p v-if="post.mediaIds?.length">Die angehängten Bilder werden ebenfalls gelöscht.</p>
+			<p v-if="post.mediaIds?.length">Die angehängten Medien werden ebenfalls gelöscht.</p>
 			<p v-if="error" class="management-note management-error">{{ error }}</p>
 			<div class="management-actions">
 				<button class="danger" type="button" :disabled="deleting" @click="deletePost">{{ deleting ? 'Löscht …' : 'Post löschen' }}</button>

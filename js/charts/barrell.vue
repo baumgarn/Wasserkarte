@@ -320,11 +320,10 @@
 	};
 	</script>
 	
-	<style scoped>
+<style lang="stylus" scoped>
 
-		canvas {
-			display: block;
-			margin: auto;
-		}
+canvas
+	display block
+	margin auto
 
-	</style>
+</style>

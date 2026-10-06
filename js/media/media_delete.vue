@@ -1,13 +1,13 @@
 <template>
-	<Modal title="Bild löschen" stacked :modal="false" @close="close">
+	<Modal :title="item.type === 'video' ? 'Video löschen' : 'Bild löschen'" stacked :modal="false" @close="close">
 		<div ref="panel" class="media-delete" :aria-busy="deleting || contextLoading">
 			<div class="delete-preview">
 				<img v-if="!previewFailed" :src="item.variants.thumbnail.url" alt="Vorschau des zu löschenden Bildes" @error="previewFailed = true">
 				<p v-else>Bildvorschau nicht verfügbar.</p>
 			</div>
 			<div class="delete-copy">
-				<p>Dieses Bild endgültig löschen?</p>
-				<p v-if="contextLoading" class="delete-note" role="status">Post wird geprüft …</p>
+				<p>{{ item.type === 'video' ? 'Dieses Video' : 'Dieses Bild' }} endgültig löschen?</p>
+				<p v-if="contextLoading" class="delete-note" role="status"></p>
 				<p v-else-if="retainedPostNote" class="delete-note">{{ retainedPostNote }}</p>
 				<p v-if="contextError" class="error" role="alert">{{ contextError }} <button type="button" @click="loadContext">Erneut prüfen</button></p>
 				<p v-if="error" class="error" role="alert">{{ error }}</p>
@@ -76,14 +76,48 @@ export default {
 };
 </script>
 
-<style scoped>
-.media-delete { display: flex; flex-direction: column; gap: 14px; width: 400px; max-width: calc(100vw - 32px); height: 480px; max-height: calc(100dvh - 68px); padding: 16px; box-sizing: border-box; }
-.delete-preview { display: grid; place-items: center; flex: 0 1 260px; min-height: 0; overflow: hidden; background: #f2f2f2; border-radius: 4px; }
-.delete-preview img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
-.delete-copy { display: flex; flex-direction: column; gap: 14px; flex: 1 0 100px; min-height: 0; overflow: auto; }
-.media-delete p { margin: 0; }
-.delete-note { color: #666; font-size: 10pt; line-height: 1.45; }
-.delete-actions { display: flex; justify-content: space-between; gap: 8px; flex: 0 0 auto; }
-.delete-actions button { min-width: 0; }
-.danger, .error { color: #a82121; }
+<style lang="stylus" scoped>
+.media-delete
+	display flex
+	flex-direction column
+	gap 14px
+	width 400px
+	max-width calc(100vw - 32px)
+	max-height calc(100vh - 68px)
+	padding 16px
+	box-sizing border-box
+.delete-preview
+	display grid
+	place-items center
+	flex 0 1 260px
+	min-height 0
+	overflow hidden
+.delete-preview img
+	display block
+	width 100%
+	height 100%
+	min-height 0
+	object-fit contain
+.delete-copy
+	display flex
+	flex-direction column
+	gap 14px
+	flex 1 0 auto
+	font-size 9.5pt
+	min-height 0
+	overflow auto
+.media-delete p
+	margin 0
+.delete-note
+	font-size 9.5pt
+	line-height 1.45
+.delete-actions
+	display flex
+	justify-content space-between
+	gap 8px
+	flex 0 0 auto
+.delete-actions button
+	min-width 0
+.danger, .error
+	color #a82121
 </style>

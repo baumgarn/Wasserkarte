@@ -33,7 +33,7 @@
 				<div class="account-type">{{ thingsboardAccountType }}</div>
 				<div class="account-actions">
 					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
-					<button :class="{ active: state.mediaManagerOpen }" type="button" @click="toggleAccountModal('mediaManagerOpen')">Medien</button>
+					<button v-if="showMedia" :class="{ active: state.mediaManagerOpen }" type="button" @click="toggleAccountModal('mediaManagerOpen')">Medien</button>
 					<button class="" type="button" @click="logout">Abmelden</button>
 					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
 				</div>
@@ -60,6 +60,7 @@
 
 import { state, closeAllModals, toggleModal } from '../state.js'
 import { managementAuth } from '@/management/auth.js'
+import { loadManagedMedia } from '@/media/store.js'
 import ColorDot from '@/menu/colordot.vue'
 
 export default {
@@ -98,6 +99,12 @@ export default {
 		isAdmin() {
 			const authority = state.account.user?.thingsboardAuthority;
 			return authority === 'TENANT_ADMIN' || authority === 'SYS_ADMIN';
+		},
+		showMedia() {
+			return this.isAdmin || state.mediaManagerItems.some(item => item.authorUserId === state.account.user?.id);
+		},
+		mediaAccountId() {
+			return state.account.authenticated ? state.account.user?.id : null;
 		},
 		isWassermeister() {
 			return ['wassermeister', 'super_wassermeister'].includes(state.account.user?.wasserkarteRole);
@@ -145,7 +152,12 @@ export default {
 		},
 	},
 	watch: {
-	
+		mediaAccountId: {
+			immediate: true,
+			handler(userId) {
+				if (userId) loadManagedMedia(true).catch(() => {});
+			},
+		},
 	},
 	mounted() {
 	}

@@ -98,7 +98,7 @@ auf dem Produktionsserver ausgeführt werden.
 
 ### Bilder an Posts
 
-Im Post-Dialog können bis zu acht Bilder angehängt werden (JPEG, PNG oder WebP,
+Im Post-Dialog können bis zu zehn Bilder angehängt werden (JPEG, PNG oder WebP,
 jeweils maximal 10 MB und 24 Megapixel; bei wenig PHP-Arbeitsspeicher kann die
 zulässige Pixelzahl niedriger sein). Text ist bei einem Post mit Bildern optional.
 Uploads zeigen Vorschau, Fortschritt und Wiederholungsmöglichkeit. Entfernen
@@ -115,8 +115,19 @@ Uploadrechte entsprechen den Standort-/Postrechten. Pro Nutzer gelten zusätzlic
 Die API erzeugt WebP-Anzeigebilder mit längster Seite maximal 2000 px und
 Thumbnails mit längster Seite maximal 300 px. Seitenverhältnis bleibt erhalten,
 kleine Bilder werden nicht vergrößert. Originale und EXIF-/GPS-Metadaten werden
-nicht aufbewahrt. Videos sind noch nicht hochladbar; die Medienstruktur verwendet
-bereits `type: "image"` und kann später erweitert werden.
+nicht aufbewahrt. Super-Wassermeister*innen und Admins können alternativ genau ein MP4-Video bis
+100 MB hochladen. Fotos und Videos dürfen nicht kombiniert werden; Frontend und
+API prüfen diese Regel. Unterstützt werden H.264-Videos mit AAC-Ton oder ohne Ton.
+Ohne FFmpeg findet keine Konvertierung statt: Das Originalvideo einschließlich
+seiner Metadaten wird gespeichert. HEVC/MOV/WebM werden nicht unterstützt.
+Der Browser erzeugt ein Vorschaubild, das die API als WebP neu kodiert.
+Videos verwenden `type: "video"`, eine MP4-Anzeigevariante und ein WebP-Thumbnail.
+Die Auslieferung unterstützt HTTP-Range-Anfragen; veröffentlichte Videos sind
+wie Fotos sichtbar. Videos erscheinen direkt im Post als HTML-Player über die gesamte Breite, mit
+nativen Controls ohne Autoplay.
+Für Videos `upload_max_filesize` auf mindestens `100M` und `post_max_size`
+beispielsweise auf `112M` erhöhen; auch ein vorgeschalteter Webserver muss
+Uploads dieser Größe erlauben. Die Speicherquote bleibt 200 MB pro Nutzer.
 
 ```text
 api/storage/
@@ -178,42 +189,12 @@ Der PHP-Speicherpfad ist mit `MEDIA_STORAGE_DIR` konfigurierbar; ohne diese Opti
 gilt ebenfalls `api/storage/`, bestehende `config.php`-Dateien müssen also nicht
 geändert werden. `pulldata` verwendet den Standardpfad lokal und auf dem Server.
 
-Bestehende Installationen einmalig umstellen: Zugriffe auf Posts/Medien und
-`api/daily.php` kurz pausieren, den bisherigen Medienspeicher sichern und im
-Projektverzeichnis ausführen:
-
-```bash
-php api/media/migrate-storage.php
-```
-
-Der CLI-Befehl verschiebt `api/cache/media/` vollständig nach `api/storage/`
-(einschließlich Index, lokalen Uploads und `.htaccess`), ohne Dateien zu löschen
-oder ein bereits vorhandenes Ziel zu überschreiben. Bei unterschiedlichen
-Dateisystemen bricht er ab; dann nach Backup manuell übertragen. Erneutes Ausführen
-ist nach erfolgreicher Migration ohne Änderung möglich. Solange das alte
-Verzeichnis existiert, verweigern Medien-API und `pulldata` die Nutzung, damit
-nicht versehentlich ein zweiter, leerer Medienspeicher entsteht. Die Umstellung
-muss lokal und auf Produktion jeweils erfolgen; ein Deployment migriert keine Daten.
-
-Direkter HTTP-Zugriff auf das gesamte Medienverzeichnis muss gesperrt sein.
-Unter Apache schreibt die API beim ersten Zugriff eine `.htaccess` mit
-`Require all denied`; der Hoster muss diese Direktive zulassen (`AllowOverride`).
-Unter nginx stattdessen in der Serverkonfiguration ergänzen:
-
-```nginx
-location ^~ /api/storage/ {
-    deny all;
-}
-```
-
-Bei Installation unter einem Unterpfad die nginx-Location entsprechend anpassen.
-Die Bilddateien werden ausschließlich über PHP ausgeliefert.
-
 Die Medienprüfungen laufen isoliert ohne echte ThingsBoard-Konfiguration:
 
 ```bash
 php tests/media-test.php
 php tests/media-http-test.php
+php tests/video-test.php
 node tests/pulldata-test.cjs
 ```
 

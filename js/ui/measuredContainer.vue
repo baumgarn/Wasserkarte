@@ -48,9 +48,8 @@ export default {
 };
 </script>
 
-<style scoped>
-.measured-container {
-	width: 100%;
-	height: 100%;
-}
+<style lang="stylus" scoped>
+.measured-container
+	width 100%
+	height 100%
 </style>

@@ -82,7 +82,9 @@ export default {
 		formattedTimestamp() {
 			if (Number.isNaN(this.date.getTime())) return '';
 			return new Intl.DateTimeFormat('de-DE', {
-				dateStyle: 'medium'
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric',
 			}).format(this.date);
 		},
 	},

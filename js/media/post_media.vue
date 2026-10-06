@@ -1,6 +1,10 @@
 <template>
 	<div v-if="ids.length && (loading || error || visibleIds.length)" class="post-media" @click.stop @keydown.stop>
 		<p v-if="loading" class="media-note" role="status">Bilder werden geladen …</p>
+		<div v-else-if="video" class="post-video">
+			<video v-if="!failed[video.id]" :key="video.id" :src="video.variants.display.url" :poster="video.variants.thumbnail.url" controls playsinline preload="metadata" @error="failed[video.id] = true"></video>
+			<p v-else class="media-unavailable">Dieses Video ist nicht verfügbar.</p>
+		</div>
 		<div v-else class="media-grid" :class="{ 'media-grid-single': visibleIds.length === 1 }">
 			<template v-for="(id, index) in visibleIds" :key="id">
 				<div v-if="media[id] && !failed[id]" class="media-tile" role="button" tabindex="0" :aria-label="`Bild ${index + 1} von ${visibleIds.length} öffnen`" @click="open(index)" @keydown.enter.prevent="open(index)" @keydown.space.prevent="open(index)">
@@ -14,8 +18,10 @@
 			<div v-if="active !== null" ref="viewer" class="media-viewer" role="dialog" aria-modal="true" :aria-label="`Bild ${active + 1} von ${visibleIds.length}`" tabindex="-1" @click.self="close">
 				<div class="viewer-close" role="button" tabindex="0" aria-label="Bildansicht schließen" @click="close" @keydown.enter.prevent="close" @keydown.space.prevent="close"><Icon type="close" :size="36" /></div>
 				<figure>
-					<img v-if="activeMedia && !displayFailed" :key="activeMedia.id" :class="{ 'viewer-image-navigable': visibleIds.length > 1 }" :src="activeMedia.variants.display.url" alt="Bild zum Post" :role="visibleIds.length > 1 ? 'button' : null" :tabindex="visibleIds.length > 1 ? 0 : null" :aria-label="visibleIds.length > 1 ? 'Nächstes Bild anzeigen' : null" @click="visibleIds.length > 1 && navigate(1)" @keydown.enter.prevent="visibleIds.length > 1 && navigate(1)" @keydown.space.prevent="visibleIds.length > 1 && navigate(1)" @error="displayFailed = true">
-					<p v-else>Dieses Bild ist nicht verfügbar.</p>
+					<div class="viewer-image">
+						<img v-if="activeMedia && !displayFailed" :key="activeMedia.id" class="viewer-image-action" :src="activeMedia.variants.display.url" alt="Bild zum Post" role="button" tabindex="0" :aria-label="active === visibleIds.length - 1 ? 'Bildansicht schließen' : 'Nächstes Bild anzeigen'" @click="advanceFromImage" @keydown.enter.prevent="advanceFromImage" @keydown.space.prevent="advanceFromImage" @error="displayFailed = true">
+						<p v-else>Dieses Medium ist nicht verfügbar.</p>
+					</div>
 					<div v-if="visibleIds.length > 1" class="viewer-navigation">
 						<div class="viewer-control viewer-previous" role="button" tabindex="0" aria-label="Vorheriges Bild" @click="navigate(-1)" @keydown.enter.prevent="navigate(-1)" @keydown.space.prevent="navigate(-1)"><Icon type="arrow-left" :size="16" /></div>
 						<figcaption>{{ active + 1 }} / {{ visibleIds.length }}</figcaption>
@@ -42,6 +48,7 @@ export default {
 		loading: () => state.mediaLoading,
 		error: () => state.mediaError,
 		visibleIds() { return state.mediaLoaded && !this.loading && !this.error ? this.ids.filter(id => this.media[id]) : this.ids; },
+		video() { const item = this.media[this.visibleIds[0]]; return item?.type === 'video' ? item : null; },
 		activeMedia() { return this.media[this.visibleIds[this.active]]; },
 	},
 	watch: { visibleIds() { if (this.active !== null) this.close(); } },
@@ -68,6 +75,10 @@ export default {
 		navigate(delta) {
 			this.active = (this.active + delta + this.visibleIds.length) % this.visibleIds.length;
 			this.displayFailed = false;
+		},
+		advanceFromImage() {
+			if (this.active === this.visibleIds.length - 1) this.close();
+			else this.navigate(1);
 		},
 		handleKeydown(event) {
 			if (this.active === null) return;
@@ -101,7 +112,14 @@ export default {
 .media-grid-single { 
 	grid-template-columns: minmax(0, 300px); 
 }
-.media-tile { 
+.post-video video
+	display block
+	width 100%
+	height auto
+	border-radius 4px
+
+.media-tile {
+	position: relative;
 	display: block; 
 	padding: 0; 
 	min-width: 0; 
@@ -166,27 +184,37 @@ export default {
 	justify-content: center; 
 	background: #fff; 
 	color: #111; 
-	padding: 36px 16px 36px; 
+	padding 36px 16px 4px
 	box-sizing: border-box; 
 }
-.media-viewer figure { 
-	margin: 0; 
-	text-align: center; 
-	min-width: 0; 
-}
-.media-viewer figure img { 
-	display: block; 
-	max-width: 100%; 
-	max-height: calc(100dvh - 72px); 
-	width: auto; 
-	height: auto; 
-	object-fit: contain; 
-	margin: auto; 
-}
-.media-viewer figure img.viewer-image-navigable {
+.media-viewer figure
+	display grid
+	grid-template-rows minmax(0, 1fr) 36px
+	gap 10px
+	width 100%
+	height 100%
+	margin 0
+	text-align center
+	min-width 0
+	min-height 0
+
+.viewer-image
+	display grid
+	place-items center
+	min-width 0
+	min-height 0
+
+.media-viewer figure img
+	display block
+	width 100%
+	height 100%
+	min-width 0
+	min-height 0
+	object-fit contain
+.media-viewer figure img.viewer-image-action {
 	cursor: pointer;
 }
-.media-viewer figure img.viewer-image-navigable:focus-visible {
+.media-viewer figure img.viewer-image-action:focus-visible {
 	outline: 2px solid #186d84;
 	outline-offset: 3px;
 }
@@ -220,7 +248,6 @@ export default {
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
-	margin-top: 10px;
 }
 .viewer-navigation figcaption {
 	min-width: 48px;

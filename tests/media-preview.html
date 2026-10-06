@@ -26,6 +26,12 @@ for (const [index, id] of ids.entries()) {
 	state.media[id] = { id, type: 'image', variants: { thumbnail: { url, width: 300, height: 200 }, display: { url, width: 1200, height: 800 } } };
 	fixtureMedia.push({ ...state.media[id], deviceId: device.id, uploadedAt: Date.now() - index * 86400000, authorUserId: index ? 'another-user' : state.account.user.id, authorName: index ? 'Alex Beispiel' : 'Test User', attached: true, canDelete: true });
 }
+if (new URLSearchParams(location.search).has('video')) {
+	const id = ids[0];
+	state.media[id] = { ...state.media[id], type: 'video', duration: 1, variants: { thumbnail: state.media[id].variants.thumbnail, display: { url: '/tests/fixtures/video.mp4', width: 160, height: 90 } } };
+	fixtureMedia[0] = { ...fixtureMedia[0], ...state.media[id] };
+	ids.splice(1);
+}
 fixtureMedia.push({ ...fixtureMedia[0], id: '33333333-3333-4333-8333-333333333333', attached: false });
 fixtureMedia.push({ ...fixtureMedia[1], id: '77777777-7777-4777-8777-777777777777', canDelete: false });
 fixtureMedia[0].deletionContext = { attached: true, remainingImages: 2, hasText: true, postRevision: 'fixture-revision' };
@@ -46,8 +52,15 @@ mediaApi.delete = async id => {
 	delete state.media[id];
 	return { success: true, id, posts: [] };
 };
+const discardedDrafts = new Set();
+mediaApi.discardDraft = async draftId => {
+	discardedDrafts.add(draftId);
+	const idsToRemove = fixtureMedia.filter(item => item.postId === draftId).map(item => item.id);
+	for (const id of idsToRemove) await mediaApi.delete(id);
+	return { success: true, ids: idsToRemove };
+};
 postsApi.list = async () => ({ posts: state.posts, localMode: true });
-mediaApi.upload = async (file, deviceId, postId, progress, signal) => {
+mediaApi.upload = async (file, deviceId, postId, progress, signal, poster) => {
 	for (let value = 0; value <= 100; value += 20) {
 		await new Promise(resolve => setTimeout(resolve, 100));
 		if (signal.aborted) throw new DOMException('Upload abgebrochen.', 'AbortError');
@@ -55,7 +68,10 @@ mediaApi.upload = async (file, deviceId, postId, progress, signal) => {
 	}
 	const id = crypto.randomUUID();
 	const url = URL.createObjectURL(file);
-	return { id, type: 'image', postId, deviceId, variants: { thumbnail: { url, width: 300, height: 200 }, display: { url, width: 1200, height: 800 } } };
+	if (discardedDrafts.has(postId)) throw new DOMException('Entwurf verworfen.', 'AbortError');
+	const media = { id, type: file.type === 'video/mp4' ? 'video' : 'image', postId, deviceId, uploadedAt: Date.now(), variants: { thumbnail: { url: poster ? URL.createObjectURL(poster) : url, width: 300, height: 200 }, display: { url, width: 1200, height: 800 } } };
+	fixtureMedia.push({ ...media, authorUserId: state.account.user.id, attached: false, canDelete: true });
+	return media;
 };
 postsApi.create = async (deviceId, content, timestamp, mediaIds, id) => ({ post: { id, deviceId, content, timestamp, mediaIds, authorName: 'Test User', authorUserId: state.account.user.id, environment: 'local' } });
 postsApi.update = async (id, content, timestamp, mediaIds) => ({ post: { id, deviceId: device.id, content, timestamp, mediaIds, authorName: 'Test User', authorUserId: state.account.user.id, environment: 'local' } });

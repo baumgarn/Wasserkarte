@@ -10,7 +10,6 @@ define('POSTS_LOCAL_MODE', true);
 require_once __DIR__ . '/../api/telemetry/cache.php';
 require_once __DIR__ . '/../api/posts/cache.php';
 require_once __DIR__ . '/../api/media/images.php';
-require_once __DIR__ . '/../api/media/migrate-storage.php';
 
 function check(bool $condition, string $message): void
 {
@@ -28,22 +27,7 @@ function removeTestDirectory(string $directory): void
 }
 
 try {
-	$legacy = CACHE_DIR . '/media';
-	mkdir($legacy . '/local', 0700, true);
-	file_put_contents($legacy . '/local/media.json', '{"version":1,"media":[]}');
-	file_put_contents($legacy . '/.htaccess', "Options -Indexes\nRequire all denied\n");
-	try { mediaDirectory(); throw new RuntimeException('Alter Speicher wurde ignoriert'); }
-	catch (RuntimeException $expected) { check(str_contains($expected->getMessage(), 'migrate-storage.php'), 'Alter Medienspeicher erfordert Migration statt leerem neuen Index'); }
-	check(migrateMediaStorage($legacy, MEDIA_STORAGE_DIR), 'Alter Medienspeicher wird vollständig verschoben');
-	check(!is_dir($legacy) && file_get_contents(MEDIA_STORAGE_DIR . '/local/media.json') === '{"version":1,"media":[]}', 'Migration erhält den lokalen Index');
-	check(is_file(MEDIA_STORAGE_DIR . '/.htaccess'), 'Migration erhält den HTTP-Zugriffsschutz');
-	check(!migrateMediaStorage($legacy, MEDIA_STORAGE_DIR), 'Erneute Migration verändert nichts');
-	mkdir($legacy, 0700);
-	file_put_contents($legacy . '/sentinel', 'old data');
-	try { migrateMediaStorage($legacy, MEDIA_STORAGE_DIR); throw new RuntimeException('Vorhandenes Ziel wurde überschrieben'); }
-	catch (RuntimeException $expected) { check(str_contains($expected->getMessage(), 'existiert bereits'), 'Vorhandenes Ziel wird nicht überschrieben'); }
-	check(file_get_contents($legacy . '/sentinel') === 'old data', 'Abgebrochene Migration erhält die Quelle');
-	removeTestDirectory($legacy);
+	mkdir(CACHE_DIR, 0700);
 	mediaPrepareDirectory(false);
 	mediaPrepareDirectory(true);
 	check(mediaDirectory() === $testRoot . '/storage' && mediaDirectory(true) === $testRoot . '/storage/local', 'Medien liegen unabhängig vom Cache direkt in storage');

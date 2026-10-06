@@ -35,19 +35,29 @@ export const mediaApi = {
 		});
 		const body = await response.json().catch(() => ({}));
 		if (!response.ok) {
-			const error = new Error(body.error || 'Bild konnte nicht gelöscht werden.');
+			const error = new Error(body.error || 'Medium konnte nicht gelöscht werden.');
 			error.status = response.status;
 			throw error;
 		}
 		return body;
 	},
+	async discardDraft(draftId, deviceId) {
+		const response = await fetch('/api/media/manage.php', {
+			method: 'DELETE', credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': state.account.csrfToken || '' },
+			body: JSON.stringify({ draftId, deviceId }),
+		});
+		const body = await response.json().catch(() => ({}));
+		if (!response.ok) throw new Error(body.error || 'Entwurfsbilder konnten nicht gelöscht werden.');
+		return body;
+	},
 	async list() {
 		const response = await fetch(endpoint, { credentials: 'same-origin', cache: 'no-store' });
 		const body = await response.json().catch(() => ({}));
-		if (!response.ok) throw new Error(body.error || 'Bilder konnten nicht geladen werden.');
+		if (!response.ok) throw new Error(body.error || 'Medien konnten nicht geladen werden.');
 		return body;
 	},
-	upload(file, deviceId, postId, onProgress, signal) {
+	upload(file, deviceId, postId, onProgress, signal, poster) {
 		return new Promise((resolve, reject) => {
 			const xhr = new XMLHttpRequest();
 			const abort = () => xhr.abort();
@@ -66,7 +76,7 @@ export const mediaApi = {
 				let body;
 				try { body = JSON.parse(xhr.responseText); } catch { body = {}; }
 				if (xhr.status >= 200 && xhr.status < 300 && body.media?.id) finish(resolve, body.media);
-				else finish(reject, new Error(body.error || (xhr.status === 413 ? 'Das Bild überschreitet das Uploadlimit des Servers.' : 'Bild konnte nicht hochgeladen werden.')));
+				else finish(reject, new Error(body.error || (xhr.status === 413 ? 'Das Medium überschreitet das Uploadlimit des Servers.' : 'Medium konnte nicht hochgeladen werden.')));
 			};
 			xhr.onerror = () => finish(reject, new Error('Upload fehlgeschlagen. Bitte die Verbindung prüfen.'));
 			xhr.ontimeout = () => finish(reject, new Error('Der Upload dauert zu lange. Bitte erneut versuchen.'));
@@ -78,6 +88,7 @@ export const mediaApi = {
 			signal?.addEventListener('abort', abort, { once: true });
 			const data = new FormData();
 			data.append('file', file);
+			if (poster) data.append('poster', poster, 'poster.webp');
 			data.append('deviceId', deviceId);
 			data.append('postId', postId);
 			xhr.send(data);

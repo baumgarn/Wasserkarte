@@ -38,7 +38,7 @@ try {
 			$timestamp = postsTimestamp($input['timestamp'] ?? (int) floor(microtime(true) * 1000));
 			postsRequireLocation(is_string($deviceId) ? $deviceId : '');
 			if ($content === null || $timestamp === null || $mediaIds === null || ($content === '' && $mediaIds === [])) {
-				postsRespond(['error' => 'Bitte Text oder Bilder sowie einen gültigen Zeitpunkt angeben (maximal 8 Bilder).'], 400, true);
+				postsRespond(['error' => 'Bitte Text oder Medien sowie einen gültigen Zeitpunkt angeben (bis zu 10 Fotos oder ein Video).'], 400, true);
 			}
 			if (!postsCanWriteDevice($identity, $deviceId, $token)) {
 				postsRespond(['error' => 'Du darfst für diesen Standort keine Einträge erstellen.'], 403, true);
@@ -97,7 +97,7 @@ try {
 			$mediaIds = mediaIds($input['mediaIds'] ?? ($post['mediaIds'] ?? []));
 			$timestamp = postsTimestamp($input['timestamp'] ?? null);
 			if ($content === null || $timestamp === null || $mediaIds === null || ($content === '' && $mediaIds === [])) {
-				postsRespond(['error' => 'Bitte Text oder Bilder sowie einen gültigen Zeitpunkt angeben (maximal 8 Bilder).'], 400, true);
+				postsRespond(['error' => 'Bitte Text oder Medien sowie einen gültigen Zeitpunkt angeben (bis zu 10 Fotos oder ein Video).'], 400, true);
 			}
 			$previous = $post;
 			$post['content'] = $content;

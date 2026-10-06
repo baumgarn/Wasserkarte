@@ -9,6 +9,9 @@ dist/
 
 .claude/
 
+# Local project instructions
+/AGENTS.md
+
 # Environment variables
 .env
 

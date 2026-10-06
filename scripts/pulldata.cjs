@@ -97,9 +97,6 @@ async function pullData() {
 
 	try {
 		const config = getFtpConfig();
-		if (fs.existsSync(path.join(cacheDir, 'media'))) {
-			throw new Error('Legacy media storage found. Run php api/media/migrate-storage.php first.');
-		}
 		fs.mkdirSync(cacheDir, { recursive: true });
 
 		await client.access({

@@ -1,6 +1,6 @@
 import { state } from '@/state.js';
 import { postsApi } from '@/posts/api.js';
-import { loadMedia } from '@/media/store.js';
+import { loadMedia, removeMedia } from '@/media/store.js';
 
 let loadRequest = null;
 
@@ -38,5 +38,8 @@ export function upsertPost(post) {
 }
 
 export function removePost(postId) {
+	for (const item of state.mediaManagerItems) {
+		if (item.postId === postId) removeMedia(item.id);
+	}
 	state.posts = state.posts.filter((post) => post?.id !== postId);
 }

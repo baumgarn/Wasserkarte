@@ -70,21 +70,23 @@ file_put_contents($root . '/api/cache/posts.json', json_encode(['version' => 2, 
 $descriptors = [0 => ['pipe', 'r'], 1 => ['file', $root . '/server.log', 'a'], 2 => ['file', $root . '/server.log', 'a']];
 $servers = [];
 
-function request(string $route, string $method = 'GET', $body = null, bool $authenticated = true, bool $validCsrf = true): array
+function request(string $route, string $method = 'GET', $body = null, bool $authenticated = true, bool $validCsrf = true, array $extraHeaders = []): array
 {
 	global $apiPort, $session, $csrf;
 	$curl = curl_init('http://127.0.0.1:' . $apiPort . '/api/' . $route);
-	$headers = [];
+	$headers = $extraHeaders;
+	$responseHeaders = [];
 	if ($validCsrf) $headers[] = 'X-CSRF-Token: ' . $csrf;
 	if ($authenticated) $headers[] = 'Cookie: wasserkarte_session=' . $session;
 	if ($body !== null && !is_array($body)) $headers[] = 'Content-Type: application/json';
-	curl_setopt_array($curl, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 10]);
+	curl_setopt_array($curl, [CURLOPT_HEADERFUNCTION => static function ($curl, $line) use (&$responseHeaders) { $responseHeaders[] = trim($line); return strlen($line); }, CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 10]);
+	if ($method === 'HEAD') curl_setopt($curl, CURLOPT_NOBODY, true);
 	if ($body !== null) curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
 	$raw = curl_exec($curl);
 	$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 	if ($raw === false) throw new RuntimeException(curl_error($curl));
 	curl_close($curl);
-	return [$status, json_decode($raw, true) ?? $raw];
+	return [$status, json_decode($raw, true) ?? $raw, $responseHeaders];
 }
 
 function expect(bool $condition, string $message): void
@@ -109,27 +111,78 @@ try {
 		if ($socket) { fclose($socket); break; }
 		usleep(20000);
 	}
-	expect(request('media/migrate-storage.php', 'GET', null, false)[0] === 404, 'Speichermigration ist über HTTP nicht ausführbar');
 	$image = imagecreatetruecolor(600, 900);
 	imagepng($image, $root . '/source.png');
 	imagedestroy($image);
+	$videoPost = 'abababab-abab-4bab-8bab-abababababab';
+	$videoSource = __DIR__ . '/fixtures/video.mp4';
+	$videoUpload = ['deviceId' => $device, 'postId' => $videoPost, 'file' => new CURLFile($videoSource, 'video/mp4', 'video.mp4'), 'poster' => new CURLFile($root . '/source.png', 'image/png', 'poster.png')];
+	asUser('regular');
+	expect(request('media/index.php', 'POST', $videoUpload)[0] === 403, 'Normale Wassermeister dürfen keine Videos hochladen');
+	asUser('owner');
+	[$status, $videoBody] = request('media/index.php', 'POST', $videoUpload);
+	expect($status === 201 && $videoBody['media']['type'] === 'video', 'Super-Wassermeister können ein MP4 hochladen');
+	$videoId = $videoBody['media']['id'];
+	expect($videoBody['media']['duration'] === 1 && $videoBody['media']['variants']['display']['width'] === 160, 'MP4-Dauer und Abmessungen werden aus der Datei gelesen');
+	expect(file_get_contents($root . '/api/storage/local/display/' . $videoId . '.mp4') === file_get_contents($videoSource), 'Video wird ohne Konvertierung gespeichert');
+	expect(request('media/index.php', 'POST', $videoUpload)[0] === 400, 'Zweites Video für denselben Post wird abgelehnt');
+	$photoUpload = ['deviceId' => $device, 'postId' => $videoPost, 'file' => new CURLFile($root . '/source.png', 'image/png', 'source.png')];
+	expect(request('media/index.php', 'POST', $photoUpload)[0] === 400, 'Foto kann nicht zu einem Video hinzugefügt werden');
+	expect(request('media/file.php?id=' . $videoId, 'GET', null, false)[0] === 404, 'Videoentwurf ist nicht öffentlich');
+	[$status, $videoPostBody] = request('posts/index.php', 'POST', json_encode(['id' => $videoPost, 'deviceId' => $device, 'content' => '', 'mediaIds' => [$videoId], 'timestamp' => (int) floor(microtime(true) * 1000)]));
+	expect($status === 201, 'Einzelvideo-Post kann ohne Text veröffentlicht werden');
+	[$status, $partial, $rangeHeaders] = request('media/file.php?id=' . $videoId, 'GET', null, false, true, ['Range: bytes=10-29']);
+	expect($status === 206 && $partial === substr(file_get_contents($videoSource), 10, 20), 'Öffentliches Video liefert angeforderten Byte-Bereich');
+	expect(in_array('Content-Type: video/mp4', $rangeHeaders, true), 'Video wird mit MP4-MIME-Typ ausgeliefert');
+	[$status, $suffix] = request('media/file.php?id=' . $videoId, 'GET', null, false, true, ['Range: bytes=-20']);
+	expect($status === 206 && $suffix === substr(file_get_contents($videoSource), -20), 'Suffix-Range wird unterstützt');
+	expect(request('media/file.php?id=' . $videoId, 'GET', null, false, true, ['Range: bytes=999999-'])[0] === 416, 'Ungültiger Byte-Bereich liefert 416');
+	expect(request('media/file.php?id=' . $videoId, 'HEAD', null, false)[0] === 200, 'HEAD für Videos wird unterstützt');
+	[$status, $removedVideo] = request('media/manage.php', 'DELETE', json_encode(['id' => $videoId]));
+	expect($status === 200 && in_array($videoPost, $removedVideo['removedPostIds'], true), 'Löschen des einzigen Videos entfernt den leeren Post');
+	expect(!file_exists($root . '/api/storage/local/display/' . $videoId . '.mp4') && !file_exists($root . '/api/storage/local/thumbnails/' . $videoId . '.webp'), 'Video und Poster werden gelöscht');
+	asUser('admin');
 	$upload = ['deviceId' => $device, 'postId' => $postId, 'file' => new CURLFile($root . '/source.png', 'image/png', 'source.png')];
 	expect(request('media/index.php', 'POST', $upload, false)[0] === 401, 'Upload erfordert Anmeldung');
 	expect(request('media/index.php', 'POST', $upload, true, false)[0] === 403, 'Upload erfordert CSRF');
 	[$status, $body] = request('media/index.php', 'POST', $upload);
 	expect($status === 201, 'Multipart-Upload erzeugt Medium: ' . json_encode($body));
 	$id = $body['media']['id'];
+	$videoUpload['postId'] = $postId;
+	expect(request('media/index.php', 'POST', $videoUpload)[0] === 400, 'Video kann nicht zu einer Fotogalerie hinzugefügt werden');
 	expect(file_exists($root . '/api/storage/local/display/' . $id . '.webp') && !is_dir($root . '/api/cache/media'), 'Ohne neue Konfigurationsoption werden Uploads direkt in storage gespeichert');
 	expect($body['media']['variants']['thumbnail']['height'] === 300, 'Hochformat-Thumbnail hat maximal 300 px');
 	expect(request('media/index.php')[1]['media'] === [], 'Entwurf fehlt im öffentlichen Medienindex');
 	expect(request('media/file.php?id=' . $id, 'GET', null, false)[0] === 404, 'Entwurfsdatei ist nicht öffentlich');
 	expect(request('media/file.php?id=' . $id)[0] === 200, 'Admin kann unveröffentlichtes Bild privat ansehen');
+	$discardPostId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+	$upload['postId'] = $discardPostId;
+	[$status, $discardedImage] = request('media/index.php', 'POST', $upload);
+	expect($status === 201, 'Bild für verworfenen Entwurf wird vorbereitet');
+	$discardedIds = [$discardedImage['media']['id']];
+	for ($imageIndex = 0; $imageIndex < 2; $imageIndex++) {
+		[$status, $additionalImage] = request('media/index.php', 'POST', $upload);
+		expect($status === 201, 'Weiteres Bild für verworfenen Entwurf wird hochgeladen');
+		$discardedIds[] = $additionalImage['media']['id'];
+	}
+	[$status, $discardedDraft] = request('media/manage.php', 'DELETE', json_encode(['draftId' => $discardPostId, 'deviceId' => $device]));
+	expect($status === 200 && $discardedDraft['ids'] === $discardedIds, 'Verwerfen eines Entwurfs entfernt alle bereits hochgeladenen Bilder');
+	foreach ($discardedIds as $discardedId) {
+		expect(!file_exists($root . '/api/storage/local/display/' . $discardedId . '.webp')
+			&& !file_exists($root . '/api/storage/local/thumbnails/' . $discardedId . '.webp'), 'Beide Varianten jedes verworfenen Bildes werden sofort von der Platte entfernt');
+	}
+	expect(file_exists($root . '/api/storage/local/display/' . $id . '.webp'), 'Bilder eines anderen Entwurfs bleiben erhalten');
+	expect(request('media/manage.php', 'DELETE', json_encode(['draftId' => $discardPostId, 'deviceId' => $device]))[1]['ids'] === [], 'Erneutes Verwerfen ist erfolgreich und liefert keine bereits entfernten IDs');
+	expect(request('media/index.php', 'POST', $upload)[0] === 503, 'Nachlaufender Upload kann einen verworfenen Entwurf nicht wiederherstellen');
+	$upload['postId'] = $postId;
 	expect(request('media/manage.php', 'GET', null, false)[0] === 401, 'Medienverwaltung erfordert Anmeldung');
 	expect(request('media/manage.php?id=' . $id, 'GET', null, false)[0] === 401, 'Private Löschvorschau erfordert Anmeldung');
 	expect(request('media/manage.php?id=invalid')[0] === 400, 'Löschvorschau prüft Medien-ID');
 	$draftContext = request('media/manage.php?id=' . $id)[1];
 	expect(!$draftContext['attached'] && $draftContext['remainingImages'] === 0 && !$draftContext['hasText'], 'Entwurf hat keinen Hinweis auf verbleibenden Post-Inhalt');
+	@unlink($root . '/api/cache/posts.json');
 	$adminMedia = request('media/manage.php')[1]['media'][0];
+	expect(!file_exists($root . '/api/cache/posts.json'), 'Medienübersicht baut einen kalten Post-Cache nicht synchron auf');
 	expect($adminMedia['attached'] === false, 'Admin sieht auch unveröffentlichte Uploads');
 	expect($adminMedia['authorName'] === 'Aktueller Admin', 'Medienübersicht löst den Namen über die Nutzer-ID auf');
 	asUser('regular');
@@ -137,7 +190,7 @@ try {
 	expect(!$regularList['allUsers'] && $regularList['media'] === [], 'Wassermeister sieht keine fremden Uploads und erhält keine Alle-Ansicht');
 	asUser('owner');
 	$superList = request('media/manage.php')[1];
-	expect($superList['allUsers'] && count($superList['media']) === 1 && $superList['media'][0]['canDelete'], 'Super-Wassermeister sieht fremde Uploads mit Löschrecht');
+	expect(!$superList['allUsers'] && $superList['media'] === [], 'Auch Super-Wassermeister erhält nur eigene Medien ohne Alle-Ansicht');
 	expect(request('media/file.php?id=' . $id)[0] === 200, 'Super-Wassermeister kann fremden unveröffentlichten Upload ansehen');
 	expect(request('media/manage.php?id=' . $id)[0] === 200, 'Super-Wassermeister kann fremde private Löschvorschau abrufen');
 	asUser('admin');
@@ -164,15 +217,15 @@ try {
 	expect($status === 201, 'Berechtigter Nutzer lädt eigenes Bild an bestehenden Post hoch');
 	$ownerId = $ownerUpload['media']['id'];
 	$ownList = request('media/manage.php')[1];
-	expect($ownList['allUsers'] && count($ownList['media']) === 2 && in_array($ownerId, array_column($ownList['media'], 'id'), true)
-		&& count(array_filter($ownList['media'], static fn ($item) => $item['canDelete'] ?? false)) === 2, 'Super-Wassermeister erhält alle Bilder mit vollen Kartenrechten');
+	expect(!$ownList['allUsers'] && count($ownList['media']) === 1 && $ownList['media'][0]['id'] === $ownerId
+		&& $ownList['media'][0]['canDelete'], 'Super-Wassermeister sieht ausschließlich eigene Bilder mit Löschrecht');
 	expect(request('media/file.php?id=' . $ownerId)[0] === 200, 'Eigener Entwurf kann privat angesehen werden');
 	$post['mediaIds'] = [$id, $ownerId];
 	expect(request('posts/index.php', 'PATCH', json_encode($post))[0] === 200, 'Bestehender fremder Anhang bleibt beim berechtigten Bearbeiten erhalten');
 	$oldContext = request('media/manage.php?id=' . $ownerId)[1];
 	expect($oldContext['attached'] && $oldContext['remainingImages'] === 1 && !$oldContext['hasText'], 'Löschvorschau zählt nur andere Bilder des zugehörigen Posts');
 	asUser('other');
-	expect(count(array_filter(request('media/manage.php')[1]['media'], static fn ($item) => ($item['id'] ?? null) === $ownerId && ($item['canDelete'] ?? false))) === 1, 'Super-Wassermeister erhält auch für fremde Bilder die Löschaktion');
+	expect(request('media/manage.php')[1]['media'] === [], 'Fremde Bilder fehlen in der Medienübersicht anderer Super-Wassermeister');
 	asUser('admin');
 	expect(count(request('media/manage.php')[1]['media']) === 2, 'Adminübersicht enthält Bilder unterschiedlicher Nutzer');
 	// ThingsBoard kann neuer als der Cache sein: aktuelle Inhalte dürfen nicht überschrieben werden.
@@ -191,19 +244,19 @@ try {
 		&& $freshContext['postRevision'] !== $oldContext['postRevision'] && !isset($freshContext['content']), 'Löschvorschau liest aktuellen ThingsBoard-Text statt veralteten Cache');
 	expect(request('media/manage.php', 'DELETE', json_encode(['id' => $ownerId, 'postRevision' => $oldContext['postRevision']]))[0] === 409, 'Geänderter Post verlangt erneute Löschbestätigung');
 	expect(file_exists($root . '/api/storage/local/display/' . $ownerId . '.webp')
-		&& count(request('media/manage.php')[1]['media']) === 2, 'Veraltete Bestätigung verändert weder Index noch Datei');
+		&& count(json_decode(file_get_contents($root . '/api/storage/local/media.json'), true)['media']) === 2, 'Veraltete Bestätigung verändert weder Index noch Datei');
 	expect(request('media/manage.php', 'DELETE', json_encode(['id' => $ownerId, 'postRevision' => 'invalid']))[0] === 400, 'Ungültiger Lösch-Fingerabdruck wird abgelehnt');
 	expect(request('media/manage.php', 'DELETE', json_encode(['id' => $ownerId]), true, false)[0] === 403, 'Bildlöschung erfordert CSRF');
 	file_put_contents($root . '/mock/reject-save', 'once');
 	expect(request('media/manage.php', 'DELETE', json_encode(['id' => $ownerId]))[0] === 502, 'Fehlgeschlagenes ThingsBoard-Update wird gemeldet');
-	expect(file_exists($root . '/api/storage/local/display/' . $ownerId . '.webp') && count(request('media/manage.php')[1]['media']) === 2, 'Bei Telemetriefehler bleiben Index und Bild erhalten');
+	expect(file_exists($root . '/api/storage/local/display/' . $ownerId . '.webp') && count(json_decode(file_get_contents($root . '/api/storage/local/media.json'), true)['media']) === 2, 'Bei Telemetriefehler bleiben Index und Bild erhalten');
 	unlink($root . '/mock/reject-save');
 	[$status, $deleted] = request('media/manage.php', 'DELETE', json_encode(['id' => $ownerId, 'postRevision' => $freshContext['postRevision']]));
 	expect($status === 200 && $deleted['posts'][0]['mediaIds'] === [$id], 'Nutzer entfernt nur eigenes Bild aus ThingsBoard-Post');
 	expect($deleted['posts'][0]['content'] === 'Neuer Text direkt in ThingsBoard', 'Bildlöschung erhält aktuelle Telemetrie statt veralteten Cachetext');
 	expect(!file_exists($root . '/api/storage/local/display/' . $ownerId . '.webp')
 		&& !file_exists($root . '/api/storage/local/thumbnails/' . $ownerId . '.webp')
-		&& count(request('media/manage.php')[1]['media']) === 1, 'Bildverwaltung entfernt beide Varianten und Indexeintrag');
+		&& count(json_decode(file_get_contents($root . '/api/storage/local/media.json'), true)['media']) === 1, 'Bildverwaltung entfernt beide Varianten und Indexeintrag');
 	expect(request('media/manage.php', 'DELETE', json_encode(['id' => $ownerId]))[0] === 200, 'Wiederholte Bildlöschung ist idempotent');
 	asUser('admin');
 	$textContext = request('media/manage.php?id=' . $id)[1];

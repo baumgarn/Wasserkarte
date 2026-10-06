@@ -35,34 +35,60 @@ try {
 			foreach (postsLocalMode() ? [false, true] : [false] as $local) {
 				foreach (mediaReadIndex($local)['media'] as $item) {
 					if (($item['id'] ?? null) !== $id || !mediaInEnvironment($item, $local)) continue;
-					if (!mediaCanManage($identity, $item)) postsRespond(['error' => 'Du darfst dieses Bild nicht verwalten.'], 403, true);
+					if (!mediaCanManage($identity, $item)) postsRespond(['error' => 'Du darfst dieses Medium nicht verwalten.'], 403, true);
 					$post = postsFindOnDevice($item['postId'], $item['deviceId'], postsServiceToken());
 					postsRespond(mediaDeletionContext($item, $post), 200, true);
 				}
 			}
-			postsRespond(['error' => 'Bild wurde nicht gefunden.'], 404, true);
+			postsRespond(['error' => 'Medium wurde nicht gefunden.'], 404, true);
 		}
+		// Die Übersicht darf nicht auf einen vollständigen ThingsBoard-Abruf warten.
+		// Ein leerer oder abgelaufener Post-Cache wird von der Posts-Ansicht aufgebaut;
+		// für die optionale Kennzeichnung genügt hier ein bereits vorhandener Cache.
+		$cache = postsReadCache();
 		$token = postsServiceToken();
-		$cache = postsReadCache() ?? postsRebuildCache($token);
 		$items = [];
 		foreach (postsLocalMode() ? [false, true] : [false] as $local) {
 			foreach (mediaReadIndex($local)['media'] as $item) {
 				if (!is_array($item) || !mediaValidId($item['id'] ?? null)
-					|| !mediaInEnvironment($item, $local) || !mediaCanView($identity, $item)) continue;
+					|| !mediaInEnvironment($item, $local)
+					|| (!mediaIsAdmin($identity) && ($item['authorUserId'] ?? null) !== $identity['id'])) continue;
 				$authorUserId = is_string($item['authorUserId'] ?? null) ? $item['authorUserId'] : '';
 				$publicItem = mediaPublicItem($item);
 				$publicItem['authorUserId'] = $authorUserId;
 				$publicItem['authorName'] = mediaAuthorName($authorUserId, $token);
 				$publicItem['canDelete'] = $local === postsLocalMode() && mediaCanManage($identity, $item);
-				$publicItem['attached'] = mediaReferenced($item, $cache['posts']);
+				$publicItem['attached'] = $cache !== null && mediaReferenced($item, $cache['posts']);
 				$items[] = $publicItem;
 			}
 		}
 		usort($items, static fn ($a, $b) => ($b['uploadedAt'] ?? 0) <=> ($a['uploadedAt'] ?? 0));
-		postsRespond(['media' => $items, 'localMode' => postsLocalMode(), 'allUsers' => mediaCanViewAll($identity)], 200, true);
+		postsRespond(['media' => $items, 'localMode' => postsLocalMode(), 'allUsers' => mediaIsAdmin($identity)], 200, true);
 	}
 
 	$input = postsReadJsonBody();
+	$draftId = $input['draftId'] ?? null;
+	if ($draftId !== null) {
+		$deviceId = $input['deviceId'] ?? null;
+		if (!mediaValidId($draftId) || !mediaValidId($deviceId)) {
+			postsRespond(['error' => 'Ungültiger Entwurf oder Standort.'], 400, true);
+		}
+		postsRequireLocation($deviceId);
+		$token = postsServiceToken();
+		if (postsFindOnDevice($draftId, $deviceId, $token) !== null) {
+			postsRespond(['error' => 'Veröffentlichte Posts können nicht als Entwurf verworfen werden.'], 409, true);
+		}
+		$result = mediaWithLock(postsLocalMode(), static function () use ($draftId, $deviceId, $identity): array {
+			$index = mediaReadIndex(postsLocalMode());
+			mediaDiscardDraft($index, $draftId, $deviceId, $identity['id']);
+			$ids = array_column(array_filter($index['media'], static fn ($item) => ($item['postId'] ?? null) === $draftId
+				&& ($item['deviceId'] ?? null) === $deviceId && ($item['authorUserId'] ?? null) === $identity['id']), 'id');
+			if ($ids === []) mediaWriteIndex(postsLocalMode(), $index);
+			else mediaRemoveEntries(postsLocalMode(), $index, $ids);
+			return ['success' => true, 'ids' => $ids];
+		});
+		postsRespond($result, 200, true);
+	}
 	$id = $input['id'] ?? null;
 	if (!mediaValidId($id)) postsRespond(['error' => 'Ungültige Medien-ID.'], 400, true);
 	$revision = $input['postRevision'] ?? null;
@@ -87,7 +113,7 @@ try {
 				return ['success' => true, 'id' => $id, 'posts' => []];
 			}
 			if (!mediaInEnvironment($item, postsLocalMode()) || !mediaCanManage($identity, $item)) {
-				postsRespond(['error' => 'Du darfst dieses Bild nicht löschen.'], 403, true);
+				postsRespond(['error' => 'Du darfst dieses Medium nicht löschen.'], 403, true);
 			}
 
 			// Die Telemetrie ist maßgeblich: Beim Entfernen nicht versehentlich einen
@@ -138,5 +164,5 @@ try {
 	postsRespond($result, 200, true);
 } catch (Throwable $error) {
 	error_log('Media management: ' . $error->getMessage());
-	postsRespond(['error' => 'Das Bild konnte nicht gelöscht oder die Übersicht nicht geladen werden. Bitte erneut versuchen.'], 502, true);
+	postsRespond(['error' => 'Das Medium konnte nicht gelöscht oder die Übersicht nicht geladen werden. Bitte erneut versuchen.'], 502, true);
 }

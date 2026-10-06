@@ -132,6 +132,7 @@
 		:key="state.postEdit.id"
 		:post="state.postEdit"
 		@saved="postUpdated"
+		@deleted="postDeleted"
 		@close="closePostEdit" />
 
 	<PostDelete
