@@ -1,7 +1,7 @@
 <template>
-	<div class="menuwindow settings">
+	<div :class="modal ? 'settings-modal' : 'menuwindow settings'">
 
-		<div class="menuwindow-header">
+		<div v-if="!modal" class="menuwindow-header">
 			<h3>Einstellungen</h3>
 		</div>
 
@@ -19,17 +19,11 @@
 			</div>
 
 			<div class="settings-group">
-			
 				<div class="settings-item">
 					<input type="checkbox" id="faultyvalues" v-model="state.focusMode">
 					<label for="faultyvalues">Monochrome Karte</label>
 				</div>
 
-				<div class="settings-item">
-					<input type="checkbox" id="showdatagaps" v-model="state.showDataGaps">
-					<label for="showdatagaps">Datenlücken anzeigen</label>
-				</div>
-				
 				<div class="settings-item">
 					<input type="checkbox" id="locationwarnings" v-model="state.showErrors">
 					<label for="locationwarnings">Fehlermeldungen anzeigen</label>
@@ -41,9 +35,15 @@
 				</div>
 
 				<div class="settings-item">
-					<input type="checkbox" id="showinfoonstart" v-model="state.showInfoOnStart">
-					<label for="showinfoonstart">Infofenster bei Start anzeigen</label>
+					<input type="checkbox" id="showdatagaps" v-model="state.showDataGaps">
+					<label for="showdatagaps">Datenlücken anzeigen</label>
 				</div>
+				
+				<div class="settings-item">
+					<input type="checkbox" id="fixedchartscale" v-model="state.fixedChartScale">
+					<label for="fixedchartscale">Feste Diagrammskala (0–50 Vol.-%)</label>
+				</div>
+
 				
 
 			</div>
@@ -77,6 +77,7 @@ export default {
 		},
 	},
 	props: {
+		modal: { type: Boolean, default: false },
 	},
 	methods: {
 	},
@@ -89,6 +90,10 @@ export default {
 
 .menuwindow.settings
 	width 400px
+
+.settings-modal
+	width 400px
+	max-width 100vw
 
 // .settings
 // 	user-select none

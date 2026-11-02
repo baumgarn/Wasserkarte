@@ -17,7 +17,7 @@ const SWITCH_GRACE_MS = 90;
 const HIDE_TRANSITION_MS = 120;
 
 const VALID_SIDES = new Set(['top', 'right', 'bottom', 'left']);
-const VALID_THEMES = new Set(['default', 'bright']);
+const VALID_THEMES = new Set(['default', 'bright', 'white']);
 
 export const tooltipState = reactive({
 	visible: false,
@@ -307,7 +307,7 @@ function readDirectiveOptions(el, bindingValue, vnodeProps) {
 			el.getAttribute('tooltipmaxwidth'),
 			el.getAttribute('tooltipwidth')
 		),
-		DEFAULT_MAX_WIDTH
+		bindingOptions.maxWidth === 'trigger' ? el.getBoundingClientRect().width : DEFAULT_MAX_WIDTH
 	);
 	const theme = normalizeTheme(
 		firstDefined(

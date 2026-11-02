@@ -61,10 +61,11 @@ enthält dauerhafte Nutzerdaten und darf beim Leeren des Caches nicht entfernt w
 Für lokale Post-Tests in `api/config.php` `POSTS_LOCAL_MODE` auf `true` setzen.
 Neue Posts erhalten dann `environment: "local"`; lokal werden auch Produktionsposts
 angezeigt, sind aber lokal nur lesbar. In Produktion bleibt die Option `false` (Standard bei fehlender Option):
-lokale Posts werden weder ausgeliefert noch zur Bearbeitung oder Löschung angeboten.
+lokale Posts werden im Frontend ausgeblendet und können nicht bearbeitet oder gelöscht werden.
 Produktionsposts haben keine Umgebungskennung. Bearbeiten erhält die bestehende
-Kennzeichnung. Alte Post-Caches und Caches einer anderen Umgebung werden beim
-nächsten Zugriff einmalig aus ThingsBoard neu aufgebaut.
+Kennzeichnung. Der Post-Cache enthält beide Umgebungen und kann mit `pulldata`
+direkt lokal verwendet werden. Nur alte Caches ohne erhaltene Umgebungskennung
+werden beim nächsten Zugriff einmalig aus ThingsBoard neu aufgebaut.
 
 Der API-Cache nutzt `curl` für Requests an ThingsBoard und `zlib` zum komprimieren der Cache-Dateien.
 
@@ -86,7 +87,8 @@ php api/telemetry/dailyaverages.php
 
 Wenn die Produktionsdaten bereits per FTP erreichbar sind, können die aktuellen
 Aggregationen stattdessen mit `npm run pulldata` nach `api/cache/` geladen werden.
-Das Skript verwendet dieselben `FTP_*`-Variablen aus `.env` wie `kartedist`, lädt
+Das Skript verwendet dieselben `FTP_*`-Variablen aus `~/.config/wasserkarte/.env`
+wie `kartedist`; ergänzend wird `.env` im Projektverzeichnis geladen. Es lädt
 `alltelemetry.json`, `alltelemetry.json.gz`, `devices.json`, `devices.json.gz` und
 `posts.json` direkt nach `api/cache/`. Zusätzlich werden der Produktions-Medienindex
 und die zwei Bildvarianten veröffentlichter Posts nach `api/storage/` geladen.

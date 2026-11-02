@@ -3,7 +3,7 @@
 
 		<form class="management-form" @submit.prevent="saveProfile">
 			<label class="management-field">
-				<span>E-Mail-Adresse</span>
+				<span>Email-Adresse</span>
 				<input :value="user.email" type="email" disabled>
 			</label>
 			<label class="management-field">
@@ -15,7 +15,7 @@
 				<input v-model.trim="lastName" autocomplete="family-name" maxlength="255">
 			</label>
 			<p v-if="profileMessage" :class="['management-note', profileError ? 'management-error' : 'management-success']">{{ profileMessage }}</p>
-			<button type="submit" :disabled="savingProfile">{{ savingProfile ? 'Speichert …' : 'Speichern' }}</button>
+			<button type="submit" :disabled="savingProfile"><Icon type="save" :size="20" />{{ savingProfile ? 'Speichert …' : 'Speichern' }}</button>
 		</form>
 
 		<form class="management-form" @submit.prevent="changePassword">
@@ -33,7 +33,7 @@
 				<input v-model="newPasswordConfirmation" type="password" autocomplete="new-password" required>
 			</label>
 			<p v-if="passwordMessage" :class="['management-note', passwordError ? 'management-error' : 'management-success']">{{ passwordMessage }}</p>
-			<button type="submit" :disabled="savingPassword">{{ savingPassword ? 'Ändert …' : 'Passwort ändern' }}</button>
+			<button type="submit" :disabled="savingPassword"><Icon type="password" :size="20" />{{ savingPassword ? 'Ändert …' : 'Passwort ändern' }}</button>
 		</form>
 
 	</div>
@@ -42,9 +42,11 @@
 <script>
 import { state } from '@/state.js';
 import { managementAuth } from '@/management/auth.js';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'AccountSettings',
+	components: { Icon },
 	data() {
 		return {
 			firstName: state.account.user?.firstName || '',

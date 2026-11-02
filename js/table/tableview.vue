@@ -484,11 +484,9 @@ export default {
 			let menu = [];
 			menu.push(
 				{ type: 'header', label: 'Tabelle' },
-				{ type: 'boolean', label: 'Bookmarks', stateProp: 'tableview_col_bookmarks' },
 				{ type: 'boolean', label: 'Standort Eigenschaften', stateProp: 'tableview_col_attributes' },
 				{ type: 'boolean', label: 'Ø nFK alle Tage', stateProp: 'tableview_col_nfkavg' },
 				{ type: 'boolean', label: 'Startdatum', stateProp: 'tableview_col_von' },
-				{ type: 'boolean', label: 'Kompakte Darstellung', stateProp: 'tableview_compact' },
 				{ type: 'divider' },
 				{ type: 'header', label: 'Zeitachse' },
 				{ type: 'select', label: 'Gesamte Zeit', value: 'all', group: 'timelinerange', stateProp: 'tableview_timelinerange' },
@@ -513,7 +511,7 @@ export default {
 			return state.tableview_col_attributes
 		},
 		tableview_col_bookmarks() {
-			return state.tableview_col_bookmarks
+			return true
 		},
 		tableview_col_nfkavg() {
 			return state.tableview_col_nfkavg
@@ -522,7 +520,7 @@ export default {
 			return state.tableview_col_von
 		},
 		tableview_compact() {
-			return state.tableview_compact
+			return true
 		},
 		timelineRange() {
 			const totalDays = (this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24);
@@ -1012,13 +1010,7 @@ export default {
 		hideTooltip();
 	},
 	watch: {
-		tableview_compact() {
-			this.$nextTick(() => this.queueSettledTimelineMetricsUpdate());
-		},
 		tableview_col_attributes() {
-			this.$nextTick(() => this.queueSettledTimelineMetricsUpdate());
-		},
-		tableview_col_bookmarks() {
 			this.$nextTick(() => this.queueSettledTimelineMetricsUpdate());
 		},
 		tableview_col_nfkavg() {

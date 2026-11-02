@@ -6,7 +6,7 @@
 			:items="chartStyles" 
 			:stateProperty="'chartStyle'" 
 			/>
-			<div ref="openTimeRangeRef" class="daterange" @click="openTimeRanges" >
+			<div v-if="state.chartStyle !== 'years'" ref="openTimeRangeRef" class="daterange" @click="openTimeRanges" >
 
 				<template v-if="!isPopoverOpen">
 					{{ selectedTimeRange }}
@@ -35,6 +35,9 @@ export default {
 		Tabs,
 		PopoverMenu,
 	},
+	setup() {
+		return { state };
+	},
 	props: {
 		frameWidth: {
 			type: Number,
@@ -62,6 +65,7 @@ export default {
 				{ label: 'Horizonte', value: 'schichten' },
 				{ label: 'Profil', value: 'heatmap' },
 				{ label: 'Graphen', value: 'ueberlagert' },
+				{ label: 'Jahre', value: 'years' },
 				// { label: 'Vol', value: 'vol_avg' },
 				// { label: 'nFK', value: 'nfk_avg' },
 			],	

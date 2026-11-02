@@ -2,11 +2,11 @@
 	<div class="management-panel management-window-size-mid account-permissions">
 		<header class="account-permissions-header">
 			<p class="management-section-title account-name">{{ userName }}</p>
-			<div ref="moreButton" role="button" :tabindex="loading || saving ? -1 : 0" class="account-more" aria-label="Optionen für diesen Account" aria-haspopup="true" :aria-expanded="moreMenuOpen" :aria-disabled="loading || saving" @click.stop="openMore" @keydown.enter.prevent="openMore" @keydown.space.prevent="openMore">
-				<Icon type="morev" :size="18" />
-			</div>
-			<PopoverMenu ref="moreMenu" :items="moreItems" />
 		</header>
+		<div class="management-actions account-header-actions">
+			<button type="button" :disabled="loading || saving || sendingMail" @click="sendAccountMail">{{ sendingMail ? 'Sendet …' : mailSent ? 'Email gesendet' : 'Passwort-Email erneut senden' }}</button>
+			<button type="button" class="warning" :disabled="loading || saving || sendingMail" @click="$emit('delete-account', user)">Account löschen</button>
+		</div>
 		<form class="management-form" @submit.prevent="save">
 			<label class="management-field">
 				<span>Berechtigungsstufe</span>
@@ -30,13 +30,11 @@
 <script>
 import { managementAuth } from '@/management/auth.js';
 import LocationSelect from '@/management/location_select.vue';
-import Icon from '@/ui/Icon.vue';
-import PopoverMenu from '@/ui/popovermenu.vue';
 
 export default {
 	name: 'AccountPermissions',
 	emits: ['delete-account', 'saved'],
-	components: { LocationSelect, Icon, PopoverMenu },
+	components: { LocationSelect },
 	props: {
 		user: {
 			type: Object,
@@ -53,7 +51,8 @@ export default {
 			saved: false,
 			loading: false,
 			saving: false,
-			moreMenuOpen: false,
+			sendingMail: false,
+			mailSent: false,
 			error: '',
 		};
 	},
@@ -66,27 +65,21 @@ export default {
 		userName() {
 			return [this.user.firstName, this.user.lastName].filter(Boolean).join(' ') || this.user.email;
 		},
-		moreItems() {
-			return [{ type: 'action', label: 'Account löschen', action: () => {
-				if (!this.loading && !this.saving) this.$emit('delete-account', this.user);
-			} }];
-		},
 	},
 	methods: {
-		async openMore(event) {
-			if (this.loading || this.saving) return;
-			const rect = event.currentTarget.getBoundingClientRect();
-			const menu = this.$refs.moreMenu;
-			menu?.open({ top: rect.top, right: window.innerWidth - rect.right, fixed: true });
-			await this.$nextTick();
-			if (menu?.isOpen) menu.$el.querySelector('[role="button"]')?.focus();
-		},
-		handleKeydown(event) {
-			if (event.key !== 'Escape' || !this.$refs.moreMenu?.isOpen) return;
-			this.$refs.moreMenu.close();
-			this.$refs.moreButton?.focus();
-			event.preventDefault();
-			event.stopImmediatePropagation();
+		async sendAccountMail() {
+			if (this.loading || this.saving || this.sendingMail) return;
+			this.sendingMail = true;
+			this.mailSent = false;
+			this.error = '';
+			try {
+				await managementAuth.sendAccountMail(this.user.id);
+				this.mailSent = true;
+			} catch (error) {
+				this.error = error.message || 'Email konnte nicht gesendet werden.';
+			} finally {
+				this.sendingMail = false;
+			}
 		},
 		async save() {
 			if (this.loading || this.saving || !this.hasChanges) return;
@@ -133,12 +126,7 @@ export default {
 			this.saved = false;
 		},
 	},
-	mounted() {
-		this.$watch(() => this.$refs.moreMenu?.isOpen, open => { this.moreMenuOpen = !!open; });
-		window.addEventListener('keydown', this.handleKeydown, true);
-	},
 	beforeUnmount() {
-		window.removeEventListener('keydown', this.handleKeydown, true);
 		this.user.role = this.savedRole;
 	},
 };
@@ -160,30 +148,10 @@ export default {
 	white-space nowrap
 	font-weight 500
 
-.account-more
-	flex 0 0 20px
-	width 20px
-	min-width 0
-	height 20px
-	padding 0
-	border 0
-	border-radius 6px
-	background transparent
-	display flex
-	align-items center
-	justify-content center
-	cursor pointer
-
-.account-more[aria-disabled="true"]
-	cursor default
-	pointer-events none
-
-.account-more:hover
-	background #0000000d
-
-.account-more:focus-visible
-	outline 2px solid #186d84
-	outline-offset 2px
+.account-header-actions
+	justify-content flex-start
+	flex-wrap wrap
+	margin-bottom 14px
 
 .account-permissions-actions
 	justify-content flex-start

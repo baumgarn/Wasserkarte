@@ -48,7 +48,7 @@
 					<label for="post-manual-time">Datum auswählen</label>
 				</div>
 				<div class="management-actions">
-					<button type="submit" :disabled="saving || discarding || uploading || hasUploadErrors">{{ isEditing ? 'Speichern' : 'Post erstellen' }}</button>
+					<button type="submit" :disabled="saving || discarding || uploading || hasUploadErrors"><Icon v-if="!isEditing" type="send" :size="20" />{{ isEditing ? 'Speichern' : 'Abschicken' }}</button>
 				</div>
 			</div>
 		</form>

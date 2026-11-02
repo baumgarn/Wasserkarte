@@ -91,6 +91,10 @@ export default {
 		--app-tooltip-fg #111
 		--app-tooltip-border rgba(0,0,0,.10)
 		--app-tooltip-shadow 0 6px 18px rgba(0,0,0,.14)
+	&.theme-white
+		--app-tooltip-bg #fff
+		--app-tooltip-fg #111
+		--app-tooltip-border rgba(0,0,0,.1)
 
 .app-tooltip-body
 	max-width inherit

@@ -104,6 +104,14 @@ export const managementAuth = {
 		});
 	},
 
+	async sendAccountMail(userId) {
+		return request('send-account-mail', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: userId }),
+		});
+	},
+
 	async deleteUser(userId) {
 		return request('delete-user', {
 			method: 'POST',

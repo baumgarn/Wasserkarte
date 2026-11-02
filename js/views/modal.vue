@@ -12,6 +12,7 @@
 				:aria-label="title || 'Dialog'">
 				<header class="modal-titlebar">
 					<div class="modal-title">
+						<Icon v-if="icon" :type="icon" :size="22" />
 						<h2 v-if="title">{{ title }}</h2>
 					</div>
 					<div class="modal-titlebar-content">
@@ -35,10 +36,14 @@
 </template>
 
 <script>
+import Icon from '@/ui/Icon.vue';
+
 export default {
 	name: 'Modal',
+	components: { Icon },
 	emits: ['close'],
 	props: {
+		icon: { type: String, default: '' },
 		title: {
 			type: String,
 			default: '',
@@ -115,14 +120,21 @@ export default {
 	box-sizing border-box
 	border-bottom 1px solid #00000022
 
+
 .modal-title h2
 	margin 0
 	font-size 16px
-	padding-left 16px
 	padding-right 8px
 	line-height 36px
 
+.modal-title .icon
+	margin-left -.2em
+	
 .modal-title
+	display flex
+	align-items center
+	gap 6px
+	padding-left 16px
 	min-width 0
 	height 100%
 

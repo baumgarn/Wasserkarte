@@ -14,7 +14,8 @@
 	define('USERNAME', '');
 	define('PASSWORD', '');
 	// Optional: wird gegenüber USERNAME/PASSWORD bevorzugt und als `ApiKey` verwendet.
-	define('API_KEY', '');
+	require_once __DIR__ . '/environment.php';
+	define('API_KEY', thingsBoardApiKey());
 	// In Produktion auf true setzen. Für http://localhost muss der Wert false bleiben.
 	define('SESSION_COOKIE_SECURE', false);
 	define('REMEMBER_ME_SESSION_LIFETIME', 60 * 60 * 24 * 30); // 30 Tage

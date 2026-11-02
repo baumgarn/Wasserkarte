@@ -26,6 +26,8 @@
 			
 		</div>
 
+		<slot name="posts" />
+
 		<div class="scrollview chart-heat" :class="heatmap ? 'heatmap' : 'schichten'">
 			<div class="hovertriangle" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
 			<div class="hovertrianglebottom" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
@@ -256,6 +258,9 @@ export default {
 			if (min === +Infinity) [min, max] = [0, 100];
 			if (this.baseline !== undefined) min = this.baseline;
 			if (this.ceiling !== undefined) max = this.ceiling;
+			if (state.fixedChartScale && this.title === 'Bodenfeuchte') {
+				return [0, Math.max(50, Math.ceil(max / 10) * 10)];
+			}
 			return [min, max];
 		},
 		globalExtentX() {
@@ -532,12 +537,8 @@ export default {
 			return this.lastTimestamp;
 		},
 		getData(key) {
-			if (this.hoverData) {
-				const hv = this.hoverData?.[key];
-				return hv ? hv : '-';
-			}
-			const last = this.getLastSensorData(key);
-			return (last && last.value) ? last.value : '-';
+			const value = this.hoverOrLastData[key];
+			return Number.isFinite(value) ? value : '-';
 		},
 		validData(key) {
 			const v = this.getData(key);
@@ -561,9 +562,11 @@ export default {
 		},
 		getNFKValue(key) {
 			let nfk = this.hoverOrLastData['nfk_'+this.getDepth(key)+'cm']
+			if (!Number.isFinite(nfk)) return '–';
 			return Math.max(nfk,0).toFixed(0);
 		},
 		getNFKName(key) {
+			if (this.getNFKValue(key) === '–') return '';
 			return dataModel.get_nfk_label(this.getNFKValue(key));
 		},
 		getSoilType(key) {
@@ -602,11 +605,15 @@ export default {
 			});
 		},
 		formatNumber(floatString) {
+			if (!Number.isFinite(Number.parseFloat(floatString))) return '–';
 			return parseFloat(floatString).toFixed(1).replace('.', ',');
 		},
 
 	},
 	watch: {
+		globalExtentY() {
+			this.drawChartsNextTick();
+		},
 		sensorData: {
 			handler() {
 				this.filterSensors();

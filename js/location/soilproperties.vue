@@ -83,6 +83,8 @@
 		font-weight bold
 		gap 6px 2px
 		margin 15px -50px 8px -11px
+	.standortanalyse + .filteritems
+		margin-top 2px
 
 </style>
 

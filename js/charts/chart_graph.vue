@@ -7,6 +7,8 @@
 			</div>
 		</div>
 
+		<slot name="posts" />
+
 		<div class="scrollview chart-graph" @mouseenter="mouseOverChart = true" @mouseleave="mouseOverChart = false">
 			<div class="hovertriangle" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
 			<div class="hovertrianglebottom" v-show="hoverData?.xpos" :style="{ left: (hoverData?.xpos ) + 'px' }"></div>
@@ -187,6 +189,9 @@ export default {
 			if (min === +Infinity) [min, max] = [0, 100];
 			if (this.baseline !== undefined) min = this.baseline;
 			if (this.ceiling  !== undefined) max = this.ceiling;
+			if (state.fixedChartScale && this.title === 'Bodenfeuchte') {
+				return [0, Math.max(50, Math.ceil(max / 10) * 10)];
+			}
 			return [min, max];
 		},
 		dataTimeRange() {
@@ -402,6 +407,9 @@ export default {
 		},
 	},
 	watch: {
+		globalExtentY() {
+			this.drawChartsNextTick();
+		},
 		sensorData: {
 			handler() {
 				nextTick(() => {

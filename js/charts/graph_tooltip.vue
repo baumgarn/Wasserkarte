@@ -7,7 +7,9 @@
 			top: `${y}px` 
 		}">
 		
-		<ToolTipContent :sensors :device :hoverData />
+		<slot>
+			<ToolTipContent :sensors :device :hoverData />
+		</slot>
 	</div>
 </template>
 
@@ -45,7 +47,7 @@ export default {
 	mounted() {
 		document.addEventListener('mousemove', this.updatePosition)
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		document.removeEventListener('mousemove', this.updatePosition)
 	},
 	methods: {

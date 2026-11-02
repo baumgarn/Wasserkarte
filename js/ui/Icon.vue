@@ -5,6 +5,14 @@
 		 :class="[filterNameClass, typeClass, { excluded: exclude, shadow: shadow }]"
 		 :style="iconStyle">
 		<span v-if="inlineIcon" class="icon-initial" :style="initialStyle"></span>
+		<svg v-else-if="typeClass === 'type-standorttabelle'" width="100%" height="100%" viewBox="3 3 36 36">
+			<rect v-for="(color, index) in timelineColors" :key="index" x="7" :y="8 + index * 6.5" :width="28.3 - index * 4" height="6.5" :fill="color" />
+		</svg>
+		<svg v-else-if="['type-post-text', 'type-post-imag', 'type-post-video'].includes(typeClass)" width="100%" height="100%" viewBox="0 0 24 24">
+			<path v-if="typeClass === 'type-post-text'" d="M5 5h14M5 10h14M5 15h10M5 20h7" fill="none" stroke="currentColor" stroke-width="2"/>
+			<path v-else-if="typeClass === 'type-post-imag'" d="M8 3h8l2 4h4v14H2V7h4z M17 13a5 5 0 1 0-10 0 5 5 0 0 0 10 0" fill="currentColor" fill-rule="evenodd"/>
+			<path v-else d="m7 4 13 8-13 8z" fill="currentColor"/>
+		</svg>
 	</div>
 
 </template>
@@ -12,6 +20,7 @@
 <script>
 import { IconFactory } from '@/ui/iconfactory.js';
 import { state } from '@/state.js';
+import { dataModel } from '@/datamodel.js';
 
 function slugify(value) {
 	if (!value) return null;
@@ -155,6 +164,9 @@ export default {
 		},
 	},
 	computed: {
+		timelineColors() {
+			return [115, 75, 25, 8].map(value => dataModel.get_nfk_color(value));
+		},
 		typeClass() {
 			const normalizedType = this.normalizedType();
 			return normalizedType ? 'type-' + normalizedType : null;
@@ -306,21 +318,15 @@ export default {
 .icon.type-gesamt
 	background-image url(/img/barrellflat.png)
 
-.icon.type-standorttabelle
-	background-image url(/img/table.png)
-	background-size 66% 66%
-	background-position 58% center
-	opacity .6
-
 .icon.type-orte
 	background-image url(/img/sensor.png)
 	background-size 77% 77%
 	opacity .7
 
 .icon.type-posts
-	background-image url(/img/comm2.png)
-	background-size 82%
-	opacity .8
+	background-image url(/img/postpink.png)
+	background-size 90%
+	opacity 1
 
 .icon.type-bodenarten
 	background-image url(/img/soil.png)
@@ -359,6 +365,10 @@ export default {
 	background-size 85% 85%
 	opacity .8
 
+.icon.type-einstellungen-black
+	background-image url(/img/settings-black.svg)
+	background-size 85% 85%
+
 .icon.type-info
 	background-image url(/img/info.png)
 	opacity .8
@@ -386,4 +396,37 @@ export default {
 .icon.type-arrow-right
 	background-image url(/img/dreieck_rechts.png)
 	background-size 75%
+
+.icon.type-login
+	background-image url(/img/login_b.png)
+	background-size 80%
+
+.icon.type-logout
+	background-image url(/img/logout_b.png)
+	background-size 80%
+.icon.type-accounts
+	background-image url(/img/accounts.png)
+	background-size 90%
+.icon.type-person
+	background-image url(/img/person.png)
+	background-size 80%
+.icon.type-medien
+	background-image url(/img/camera.png)
+	background-size 75%
+.icon.type-newaccount
+	background-image url(/img/newaccount.png)
+	background-size 75%
+.icon.type-save
+	background-image url(/img/save.png)
+	background-size 75%
+.icon.type-password
+	background-image url(/img/password.png)
+	background-size 75%
+.icon.type-send
+	background-image url(/img/send.png)
+	background-size 85%
+	margin-right -.15em
+.icon.type-postbw
+	background-image url(/img/postbw.png)
+	background-size 85%
 </style>

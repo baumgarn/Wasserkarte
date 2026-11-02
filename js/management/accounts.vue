@@ -7,7 +7,7 @@
 				<thead>
 					<tr>
 						<th>Name</th>
-						<th>E-Mail-Adresse</th>
+						<th>Email-Adresse</th>
 						<th>Standorte</th>
 						<th>Berechtigung</th>
 					</tr>
@@ -24,7 +24,7 @@
 			<p v-else class="management-note management-notice">Keine Accounts gefunden.</p>
 		</div>
 		<div class="management-actions accounts-actions">
-			<button type="button" @click="$emit('create')">Neuer Account</button>
+			<button type="button" @click="$emit('create')"><Icon type="newaccount" :size="20" />Neuer Account</button>
 		</div>
 	</div>
 </template>
@@ -32,9 +32,11 @@
 <script>
 import { managementAuth } from '@/management/auth.js';
 import { state } from '@/state.js';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'Accounts',
+	components: { Icon },
 	emits: ['create', 'permissions'],
 	computed: {
 		users() {

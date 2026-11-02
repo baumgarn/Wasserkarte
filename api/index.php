@@ -76,7 +76,8 @@ function entry() {
 	}
 
 	// Devices
-	respondJson(getThingsBoardDevices());
+	$data = getThingsBoardDevices();
+	respondJson($data ?? ['error' => 'Unable to authenticate or fetch devices'], $data === null ? 502 : 200);
 
 }
 

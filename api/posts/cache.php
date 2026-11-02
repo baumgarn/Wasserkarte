@@ -5,11 +5,6 @@ function postsLocalMode(): bool
 	return defined('POSTS_LOCAL_MODE') && POSTS_LOCAL_MODE === true;
 }
 
-function postsVisibleInEnvironment(array $post): bool
-{
-	return postsLocalMode() || !isset($post['environment']);
-}
-
 function postsWritableInEnvironment(array $post): bool
 {
 	return postsLocalMode() ? ($post['environment'] ?? '') === 'local' : !isset($post['environment']);
@@ -35,11 +30,6 @@ function postsWithLock(callable $callback)
 	}
 }
 
-function postsFilterForEnvironment(array $posts): array
-{
-	return array_values(array_filter($posts, static fn ($post) => is_array($post) && postsVisibleInEnvironment($post)));
-}
-
 function postsCacheFile(): string
 {
 	return CACHE_DIR . '/posts.json';
@@ -54,26 +44,22 @@ function postsReadCache(): ?array
 
 	$data = json_decode((string) file_get_contents($file), true);
 	// Ältere Caches haben die Umgebungskennung beim Normalisieren verworfen.
-	// Auch kopierte Caches einer anderen Umgebung müssen neu aufgebaut werden.
 	if (!is_array($data) || ($data['version'] ?? null) !== 2
-		|| ($data['localMode'] ?? null) !== postsLocalMode()
 		|| !is_array($data['posts'] ?? null)) {
 		return null;
 	}
-	$data['posts'] = postsFilterForEnvironment($data['posts']);
+	$data['localMode'] = postsLocalMode();
 	return $data;
 }
 
 function postsWriteCache(array $posts): array
 {
-	$posts = postsFilterForEnvironment($posts);
 	usort($posts, static function (array $a, array $b): int {
 		return ((int) ($b['timestamp'] ?? 0)) <=> ((int) ($a['timestamp'] ?? 0));
 	});
 
 	$cache = [
 		'version' => 2,
-		'localMode' => postsLocalMode(),
 		'cacheTimestamp' => (int) floor(microtime(true) * 1000),
 		'posts' => array_values($posts),
 	];
@@ -83,5 +69,5 @@ function postsWriteCache(array $posts): array
 	}
 
 	atomicWrite(postsCacheFile(), $json);
-	return $cache;
+	return $cache + ['localMode' => postsLocalMode()];
 }

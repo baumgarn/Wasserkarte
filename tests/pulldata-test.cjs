@@ -12,6 +12,10 @@ const source = { version: 1, media: [item, { ...item, id: localId, environment: 
 assert.equal(mediaDownloads(source, posts).index.media.length, 1);
 assert.equal(mediaDownloads(source, posts).files.length, 2);
 assert.throws(() => mediaDownloads({ version: 1, media: [{ ...item, variants: { display: { path: '../secret' } } }] }, posts));
+const video = { ...item, type: 'video', variants: { ...item.variants, display: { mimeType: 'video/mp4' } } };
+assert.deepEqual(mediaDownloads({ version: 1, media: [video] }, posts).files, [`display/${id}.mp4`, `thumbnails/${id}.webp`]);
+assert.throws(() => mediaDownloads({ version: 1, media: [{ ...video, variants: { ...video.variants, display: { path: '../secret' } } }] }, posts));
+assert.throws(() => mediaDownloads({ version: 1, media: [{ ...video, variants: { thumbnail: video.variants.thumbnail } }] }, posts));
 
 async function main() {
 	const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'wasserkarte-pulldata-test-'));

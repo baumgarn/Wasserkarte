@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
-require("dotenv").config();
-
 const ftp = require("basic-ftp");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
+
+require("dotenv").config({
+	path: [path.join(os.homedir(), ".config", "wasserkarte", ".env"), path.join(__dirname, "..", ".env")]
+});
 
 const CACHE_FILES = [
 	"alltelemetry.json",
@@ -27,10 +30,12 @@ function mediaDownloads(index, posts) {
 	});
 	const files = [];
 	for (const item of media) {
-		if (!MEDIA_ID.test(item.id) || item.type !== 'image') throw new Error('Invalid production media entry');
+		if (!MEDIA_ID.test(item.id) || !['image', 'video'].includes(item.type)) throw new Error('Invalid production media entry');
 		for (const [variant, directory] of [['display', 'display'], ['thumbnail', 'thumbnails']]) {
-			const filename = `${directory}/${item.id}.webp`;
-			if (item.variants?.[variant]?.path !== filename) throw new Error('Invalid media file path');
+			const video = item.type === 'video' && variant === 'display';
+			const filename = `${directory}/${item.id}.${video ? 'mp4' : 'webp'}`;
+			const metadata = item.variants?.[variant];
+			if (!metadata || (metadata.path !== filename && !(video && metadata.path === undefined))) throw new Error('Invalid media file path');
 			files.push(filename);
 		}
 	}
@@ -69,7 +74,7 @@ async function pullMedia(client, remoteDir, mediaDir, posts) {
 		}
 		fs.writeFileSync(path.join(staging, 'media.json'), JSON.stringify(index, null, 2));
 		fs.renameSync(path.join(staging, 'media.json'), path.join(mediaDir, 'media.json'));
-		console.log(`Media download complete (${index.media.length} images).`);
+		console.log(`Media download complete (${index.media.length} media files).`);
 	} finally {
 		fs.rmSync(staging, { recursive: true, force: true });
 	}

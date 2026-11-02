@@ -6,6 +6,87 @@ import { config } from './config.js';
 import { displayutil } from './displayutil.js';
 import pako from 'pako';
 
+const DAY_MS = 86400000;
+
+export function calculateNfkStats(rows, valueIndex, timestampIndex = 0, timestamp = null) {
+	const targetDay = Number.isFinite(timestamp) ? Math.floor(timestamp / DAY_MS) : null;
+	let count = 0, dryDays = 0, dryRun = 0, longestDryRun = 0;
+	let sum = 0;
+	let previousDay = null;
+	let previousDryDay = null;
+	let min = null, max = null;
+	const window = [];
+	const trendWindow = [];
+	let latestDay = null;
+	for (const row of rows) {
+		const timestamp = row[timestampIndex];
+		const value = row[valueIndex];
+		const day = Math.floor(timestamp / DAY_MS);
+		if (targetDay !== null && day > targetDay) continue;
+		if (Number.isFinite(timestamp)) {
+			latestDay = day;
+			if (!trendWindow.length || trendWindow[trendWindow.length - 1].day !== day) {
+				trendWindow.push({ day, value });
+			}
+			while (trendWindow.length && trendWindow[0].day < day - 13) trendWindow.shift();
+		}
+		// The daily cache can end with an additional live reading of the same day.
+		if (Number.isFinite(timestamp) && day === previousDay) continue;
+		if (!Number.isFinite(timestamp) || !Number.isFinite(value)) {
+			window.length = 0;
+			previousDay = null;
+			continue;
+		}
+		if (day !== previousDay + 1) {
+			window.length = 0;
+		}
+		previousDay = day;
+		count++;
+		sum += value;
+		min = min === null ? Math.max(0, value) : Math.min(min, Math.max(0, value));
+		max = max === null ? Math.max(0, value) : Math.max(max, Math.max(0, value));
+		if (value < 50) {
+			dryDays++;
+			const distance = day - previousDryDay;
+			dryRun = previousDryDay !== null && distance > 0 && distance <= 4 ? dryRun + distance : 1;
+			previousDryDay = day;
+			longestDryRun = Math.max(longestDryRun, dryRun);
+		} else {
+			dryRun = 0;
+			previousDryDay = null;
+		}
+		window.push(value);
+		if (window.length > 14) window.shift();
+
+	}
+	const mean = values => Math.max(0, values.reduce((sum, value) => sum + value, 0) / values.length);
+	const endDay = targetDay ?? latestDay;
+	const dayEntry = trendWindow.find(entry => entry.day === endDay);
+	const dayValue = Number.isFinite(dayEntry?.value) ? Math.max(0, dayEntry.value) : null;
+	const recentWeek = trendWindow.filter(entry => entry.day >= endDay - 6 && Number.isFinite(entry.value)).map(entry => entry.value);
+	const previousWeek = trendWindow.filter(entry => entry.day >= endDay - 13 && entry.day < endDay - 6 && Number.isFinite(entry.value)).map(entry => entry.value);
+	const recentThree = trendWindow.filter(entry => entry.day >= endDay - 2 && Number.isFinite(entry.value)).map(entry => entry.value);
+	const previousThree = trendWindow.filter(entry => entry.day >= endDay - 5 && entry.day < endDay - 2 && Number.isFinite(entry.value)).map(entry => entry.value);
+	const yesterday = trendWindow.find(entry => entry.day === endDay - 1);
+	const lastWeek = trendWindow.find(entry => entry.day === endDay - 7);
+	return {
+		average: count ? Math.max(0, sum / count) : null,
+		dayValue,
+		threeDayTrend: recentThree.length >= 2 && previousThree.length >= 2 ? mean(recentThree) - mean(previousThree) : null,
+		dayTrend: dayValue !== null && Number.isFinite(yesterday?.value) ? dayValue - Math.max(0, yesterday.value) : null,
+		weekChange: dayValue !== null && Number.isFinite(lastWeek?.value) ? dayValue - Math.max(0, lastWeek.value) : null,
+		weekAverage: window.length >= 7 ? mean(window.slice(-7)) : null,
+		currentDryRun: dayValue !== null ? dryRun : null,
+		dryPercent: count ? dryDays / count * 100 : null,
+		longestDryRun: count ? longestDryRun : null,
+		trend: recentWeek.length >= 6 && previousWeek.length >= 6 ? mean(recentWeek) - mean(previousWeek) : null,
+		min,
+		max,
+	};
+}
+
+const nfkStatsCache = new WeakMap();
+
 const cacheddevicesurl = '/api/cache/devices.json.gz'
 const alltelemetryurl = '/api/cache/alltelemetry.json.gz'
 const textDecoder = new TextDecoder();
@@ -149,7 +230,7 @@ const dataStore = {
 			let telemetry = deviceTelemetry;
 			
 			// for daily aggregated data, add latest life data point, because daily aggregates are cut off at the last day
-			const lastTelemetryData = this.getLatestDeviceTelemetryRow(device);
+			const lastTelemetryData = this.getLatestDeviceTelemetryRow(device, telemetry.schema);
 
 			// TODO fehlerhafte letzte telemetrie ausschließen
 			if (lastTelemetryData && this.shouldAppendTelemetryRow(telemetry.data, lastTelemetryData)) {
@@ -307,9 +388,11 @@ const dataStore = {
 
 	},
 
-	getLatestDeviceTelemetryRow(device) {
+	getLatestDeviceTelemetryRow(device, targetSchema = device?.telemetrySchema?.schema) {
 		const liveRow = toRaw(device?.telemetrySchema?.data)?.[0];
-		return Array.isArray(liveRow) ? [...liveRow] : null;
+		const schema = device?.telemetrySchema?.schema;
+		if (!Array.isArray(liveRow) || !Array.isArray(schema) || !Array.isArray(targetSchema)) return null;
+		return targetSchema.map(key => liveRow[schema.indexOf(key)] ?? null);
 	},
 
 	shouldAppendTelemetryRow(rows, row) {
@@ -704,6 +787,20 @@ const dataStore = {
 		device.nfk_avg_all = Math.max(0,sum / count);
 		
 		return device.nfk_avg_all;
+	},
+
+	getDeviceNfkStats(device, timestamp = null, valueKey = 'nfk_avg') {
+		const telemetry = this.fetchTelemetryCache(device.id);
+		const rows = telemetry?.data || [];
+		const valueIndex = telemetry?.schema?.indexOf(valueKey) ?? -1;
+		const timestampIndex = telemetry?.schema?.indexOf('ts') ?? -1;
+		const source = toRaw(rows);
+		const day = Number.isFinite(timestamp) ? Math.floor(timestamp / 86400000) : null;
+		const cached = nfkStatsCache.get(source);
+		if (cached && cached.length === rows.length && cached.valueIndex === valueIndex && cached.timestampIndex === timestampIndex && cached.day === day) return cached.stats;
+		const stats = calculateNfkStats(rows, valueIndex, timestampIndex >= 0 ? timestampIndex : 0, timestamp);
+		nfkStatsCache.set(source, { length: rows.length, valueIndex, timestampIndex, day, stats });
+		return stats;
 	},
 
 	getDeviceMeasurementRange(device) {

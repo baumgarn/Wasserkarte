@@ -302,7 +302,7 @@ export default {
 			showHoverChart: true,
 			compactColumnWidth: 115,
 			veryCompactColumnWidth: 70,
-			pixelPerVol: 9,
+			pixelPerVol: 8,
 			hoverEndBounds: 16,
 			defaultChartGap: 12,
 			compactChartGap: 4,
@@ -336,15 +336,15 @@ export default {
 			return this.chartRange * this.pixelPerVol;
 		},
 		topPad() {
-			return (this.humusMode && this.selectedSoil) ? 56 : 20;
+			// return 0
+			return (this.humusMode && this.selectedSoil) ? 56 : 16;
+			// return (this.humusMode && this.selectedSoil) ? 56 : 20;
 		},
 		hoverPosTop() {
 			return this.chartHeight-this.hoverPos;
 		},
 		chartRange() {
-			if (this.topValue) return this.topValue
-			if (this.soilMode) return this.maxFK + 7
-			return this.maxSoilTableFK + 7;
+			return (this.humusMode ? this.maxSoilTableFK : this.maxFK) + 2;
 		},
 		maxFK() {
 			return this.chartSeries.reduce((maxValue, entry) => Math.max(maxValue, entry.fk), 0);
@@ -529,7 +529,8 @@ export default {
 	methods: {
 		getMaxSoilTableFK() {
 			return this.availableSoils.reduce((maxValue, soil) => {
-				const soilMax = Object.values(soil?.FK || {}).reduce((currentMax, fkValue) => {
+				const soilMax = ['h0-1', 'h2', 'h3', 'h4'].reduce((currentMax, humusKey) => {
+					const fkValue = soil?.FK?.[humusKey];
 					return typeof fkValue === 'number' ? Math.max(currentMax, fkValue) : currentMax;
 				}, 0);
 

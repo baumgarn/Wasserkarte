@@ -164,6 +164,7 @@ function managementUserSettingsFromValue($value): array
 		'showErrors',
 		'debugAttributes',
 		'showInfoOnStart',
+		'newLocationProperties',
 		'tableview_col_bookmarks',
 		'tableview_col_attributes',
 		'tableview_col_nfkavg',
@@ -428,6 +429,33 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	managementRespond(['role' => $role, 'locations' => $locations]);
 }
 
+if ($action === 'send-account-mail' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	managementRequireAdmin();
+	managementRequireCsrfToken();
+	$input = managementReadJsonBody();
+	$userId = is_array($input) ? (string) ($input['id'] ?? '') : '';
+	$token = managementServiceToken();
+	$user = managementRequireCustomerUser($userId, $token);
+	$activation = thingsBoardManagementRequest('GET', '/user/' . rawurlencode($userId) . '/activationLink', null, $token);
+	if ($activation['status'] === 200) {
+		if (!managementMailEnabled()) {
+			managementRespond(['error' => 'Der Mailversand ist derzeit deaktiviert.'], 503);
+		}
+		$link = managementActivationUrl(is_string($activation['rawBody']) ? trim($activation['rawBody']) : '');
+		if ($link === null || !managementSendActivationMail($user['email'], $user['firstName'] ?? '', $link)) {
+			managementRespond(['error' => 'Aktivierungs-Email konnte nicht gesendet werden.'], 502);
+		}
+	} elseif ($activation['status'] === 400 && ($activation['body']['message'] ?? '') === 'User is already activated!') {
+		$sent = thingsBoardManagementRequest('POST', '/noauth/resetPasswordByEmail', ['email' => $user['email']]);
+		if (!in_array($sent['status'], [200, 204], true)) {
+			managementRespond(['error' => 'Passwort-Email konnte nicht gesendet werden.'], 502);
+		}
+	} else {
+		managementRespond(['error' => 'Aktivierungslink konnte nicht geladen werden.'], 502);
+	}
+	managementRespond(['success' => true]);
+}
+
 if ($action === 'delete-user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	managementRequireAdmin();
 	managementRequireCsrfToken();
@@ -450,7 +478,7 @@ if ($action === 'create-user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$firstName = is_array($input) ? trim((string) ($input['firstName'] ?? '')) : '';
 	$lastName = is_array($input) ? trim((string) ($input['lastName'] ?? '')) : '';
 	if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($firstName) > 255 || mb_strlen($lastName) > 255) {
-		managementRespond(['error' => 'Bitte eine gültige E-Mail-Adresse sowie gültige Namen eingeben.'], 400);
+		managementRespond(['error' => 'Bitte eine gültige Email-Adresse sowie gültige Namen eingeben.'], 400);
 	}
 
 	$customerId = managementCustomerId();
@@ -588,14 +616,14 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$password = is_array($input) ? (string) ($input['password'] ?? '') : '';
 	$remember = is_array($input) && ($input['remember'] ?? false) === true;
 	if ($email === '' || $password === '' || strlen($email) > 254 || strlen($password) > 4096) {
-		managementRespond(['error' => 'Bitte E-Mail-Adresse und Passwort eingeben.'], 400);
+		managementRespond(['error' => 'Bitte Email-Adresse und Passwort eingeben.'], 400);
 	}
 
 	managementRequireLoginNotRateLimited($email);
 	$login = loginManagementUser($email, $password);
 	if ($login === null) {
 		managementRegisterFailedLogin($email);
-		managementRespond(['error' => 'E-Mail-Adresse oder Passwort ist nicht korrekt.'], 401);
+		managementRespond(['error' => 'Email-Adresse oder Passwort ist nicht korrekt.'], 401);
 	}
 	managementClearFailedLogin($email);
 

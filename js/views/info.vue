@@ -32,12 +32,20 @@
 
 					<Legend/>
 
-					<div class="legenditem clickable" @click="openMenu('standorttabelle', $event )">
+					<div class="legenditem clickable" @click="openMenu('posts')">
 						<div class="legendimage">
-							<Icon type="standorttabelle" :size="36" />
+							<Icon type="posts" :size="36" />
 						</div>
 						<div class="legendtext">
-							Tabellarische Zeitachse aller Sensorstandorte
+							Neueste Posts zu den Sensorstandorten
+						</div>
+					</div>
+					<div class="legenditem clickable" v-if="state.telemetryLoaded && state.showErrors && state.faultyDevices.length > 0" @click="openMenu('error')">
+						<div class="legendimage">
+							<Icon type="error" :size="36" />
+						</div>
+						<div class="legendtext">
+							Sensorstandorte mit Fehlermeldungen
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('orte', $event )">
@@ -72,8 +80,7 @@
 							Geologische Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
 						</div>
 					</div>
-					
-					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">
+					<div v-if="!state.account.authenticated" class="legenditem clickable" @click="openMenu('einstellungen', $event )">
 						<div class="legendimage">
 							<Icon type="einstellungen" :size="36" />
 						</div>
@@ -87,6 +94,14 @@
 						</div>
 						<div class="legendtext">
 							Hintergrundwissen zu Bodenkunde und Erläuterungen zur Methodik der Wasserkarte 
+						</div>
+					</div>
+					<div class="legenditem clickable" @click="openMenu('standorttabelle', $event )">
+						<div class="legendimage">
+							<Icon type="standorttabelle" :size="36" />
+						</div>
+						<div class="legendtext">
+							Tabellarische Zeitachse aller Sensorstandorte
 						</div>
 					</div>
 					<div class="legenditem">
@@ -227,6 +242,9 @@ export default {
 
 			} else {
 
+				state.menuOpen.account = false;
+				state.menuOpen.posts = false;
+				state.menuOpen.error = false;
 				state.menuOpen.standorttabelle = false;
 				state.menuOpen.orte = false;
 				state.menuOpen.bodenfeuchte = false;
@@ -234,9 +252,10 @@ export default {
 				state.menuOpen.karten = false;
 				state.menuOpen.bodenkunde = false;
 				state.menuOpen.einstellungen = false;
-				if (state.isMobile) {
+				if (state.isMobile || key === 'standorttabelle') {
 					state.menuOpen.info = false;
 				}
+				if (key === 'standorttabelle') state.selectedDevice = null;
 				state.menuOpen[key] = true;
 
 			}

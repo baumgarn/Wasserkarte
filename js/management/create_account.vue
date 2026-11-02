@@ -10,15 +10,15 @@
 				<input v-model.trim="lastName" autocomplete="family-name" maxlength="255">
 			</label>
 			<label class="management-field">
-				<span>E-Mail-Adresse</span>
+				<span>Email-Adresse</span>
 				<input v-model.trim="email" type="email" autocomplete="email" required>
 			</label>
 			<p v-if="error" class="management-note management-error">{{ error }}</p>
-			<button type="submit" :disabled="saving">{{ saving ? 'Erstellt …' : 'Account erstellen' }}</button>
+			<button type="submit" :disabled="saving"><Icon type="newaccount" :size="20" />{{ saving ? 'Erstellt …' : 'Account erstellen' }}</button>
 		</form>
 
 		<div v-else class="activation-result">
-			<p v-if="mailSent" class="management-note management-success">Die Aktivierungs-E-Mail wurde an {{ email }} versendet.</p>
+			<p v-if="mailSent" class="management-note management-success">Die Aktivierungs-Email wurde an {{ email }} versendet.</p>
 			<template v-else>
 				<p class="management-note management-notice">Der Account wurde angelegt. Der Mailversand ist derzeit deaktiviert.</p>
 				<label class="management-field">
@@ -33,9 +33,11 @@
 
 <script>
 import { managementAuth } from '@/management/auth.js';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'CreateAccount',
+	components: { Icon },
 	data() {
 		return {
 			firstName: '',

@@ -29,6 +29,7 @@ export const state = reactive({
 	wsmlegends: false,
 	menuOpen: {},
 	accountDetailsOpen: false,
+	mapSettingsOpen: false,
 	accountsOpen: false,
 	mediaManagerOpen: false,
 	createAccountOpen: false,
@@ -46,6 +47,7 @@ export const state = reactive({
 	postsLoaded: false,
 	postsError: '',
 	postsLocalMode: false,
+	postsSeenAt: 0,
 	media: {},
 	mediaLoaded: false,
 	mediaLoading: false,
@@ -95,6 +97,8 @@ localStorageState('debugAttributes', false);
 localStorageState('colorScheme', 'normal');
 localStorageState('filterFaultyValues', true);
 localStorageState('showDataGaps', false);
+localStorageState('fixedChartScale', false);
+localStorageState('locationView', 'oberboden');
 localStorageState('soilchart_texture_showbars', true);
 localStorageState('bodenkundeHumusSoilKey', 'Sl2');
 
@@ -112,6 +116,7 @@ export const accountSettingsKeys = [
 	'colorScheme',
 	'focusMode',
 	'showDataGaps',
+	'fixedChartScale',
 	'showErrors',
 	'debugAttributes',
 	'showInfoOnStart',
@@ -213,6 +218,7 @@ export function closeAllMenuWindowsAndSidebar() {
 
 export function closeAllModals() {
 	state.accountDetailsOpen = false;
+	state.mapSettingsOpen = false;
 	state.accountsOpen = false;
 	state.mediaManagerOpen = false;
 	state.createAccountOpen = false;

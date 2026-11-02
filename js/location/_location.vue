@@ -6,12 +6,13 @@
 
 	import * as d3 from 'd3'
 	import HeaderInfo from '@/location/headerinfo.vue';
-	import OberbodenUebersicht from '@/location/oberboden.vue';
+	import LocationDetails from '@/location/locationdetails.vue';
 	import Beschreibung from '@/location/beschreibung.vue';
 	import SoilProperties from '@/location/soilproperties.vue';
 	import DebugInfo from '@/location/debuginfo.vue';
 	import ChartHeat from '@/charts/chart_heat.vue';
 	import ChartGraph from '@/charts/chart_graph.vue';
+	import ChartYears from '@/charts/chart_years.vue';
 	import ChartRange from '@/charts/chart_rangebar.vue';
 	import ChartSettings from '@/charts/chart_settings.vue';
 	import SchichtenUebersicht from '@/location/schichten_uebersicht.vue';
@@ -19,6 +20,7 @@
 	import Icon from '@/ui/Icon.vue';
 	import MiniMap from '@/map/minimap.vue';
 	import LocationPosts from '@/posts/location_posts.vue';
+	import PostTimeline from '@/posts/post-timeline.vue';
 	import dataStore from '@/datastore.js';
 	import { state } from '@/state.js';
 	import { dataModel } from '@/dataModel.js'
@@ -35,22 +37,24 @@
 		
 		components: {
 			HeaderInfo,
-			OberbodenUebersicht,
+			LocationDetails,
 			SoilProperties,
 			Beschreibung,
 			ChartHeat,
 			Icon,
 			ChartGraph,
+			ChartYears,
 			ChartSettings,
 			DebugInfo,
 			ChartRange,
 			SchichtenUebersicht,
 			MiniMap,
 			LocationPosts,
+			PostTimeline,
 			SelectGroup
 		},
 		setup() {
-			return {dataModel, displayutil}
+			return {dataModel, displayutil, state}
 		},
 
 		props: {
@@ -73,12 +77,14 @@
 				latestTimestamp: 0,
 					frameMargin: 0,
 					hoverPosition: -1,
+					postHoverTimestamp: null,
 					frameWidth: 0,
 					dataPresent: false,
 					sensorLoadRequestId: 0,
 				};
 			},
 			computed: {
+
 			nfk() {
 				const nfk = dataModel.nfk(this.device, this.hoverData);
 				if (isNaN(nfk)) return '–'
@@ -211,7 +217,7 @@
 				if ((this.hoverPosition < 0 || this.hoverPosition > this.chartWidth) && !this.timelineDate) {
 					return null;	
 				}
-				if (this.hoverPosition < 0 && this.timelineDate) {
+				if (this.postHoverTimestamp === null && this.hoverPosition < 0 && this.timelineDate) {
 					if (this.timelineDate < this.earliestTimestamp || this.timelineDate > this.latestTimestamp + config.timelineHoverCutoff) {
 						return [];
 					}
@@ -221,7 +227,9 @@
 				const xScale = d3.scaleTime().domain(this.globalExtentX).range([0, this.chartWidth]);
 				let hovertime;
 
-				if (state.timelineDate && this.hoverPosition < 0) {
+				if (this.postHoverTimestamp !== null) {
+					hovertime = this.postHoverTimestamp;
+				} else if (state.timelineDate && this.hoverPosition < 0) {
 					hovertime = state.timelineDate;
 				} else {
 					hovertime = xScale.invert(this.hoverPosition + this.scrollLeft).getTime();
@@ -249,8 +257,8 @@
 				const isValidTime = !config.segmentation || gap <= config.dataGapLength;
 
 				const result = {
-					ts: closestTs,
-					xpos: xScale(new Date(closestTs)) - this.scrollLeft - 1
+					ts: this.postHoverTimestamp ?? closestTs,
+					xpos: xScale(new Date(this.postHoverTimestamp ?? closestTs)) - this.scrollLeft - 1
 				};
 
 				if (this.hoverPosition >= 0) {
@@ -406,6 +414,11 @@
 					this.graphPosition = newPosition;
 				}
 			},
+			setPostHover(timestamp) {
+				this.postHoverTimestamp = timestamp;
+				this.hoverPosition = -1;
+				state.timelineDate = timestamp;
+			},
 			hover(event) {
 				const rect = this.$refs.frameRef.getBoundingClientRect();
 				if (event.type === "mousemove") {
@@ -490,7 +503,7 @@
 					<span class="title">{{ device.attributes?.Anzeigename || device.name }}</span>
 				</h2>
 								
-				<OberbodenUebersicht :device :hoverData />
+				<LocationDetails :device :hoverData />
 				<SoilProperties :device />
 				<Beschreibung :device :alwaysExpanded="true" />
 				
@@ -511,7 +524,7 @@
 				<span class="title">{{ device.attributes?.Anzeigename || device.name }}</span>
 			</h2>
 						
-			<OberbodenUebersicht :device :hoverData />
+			<LocationDetails :device :hoverData />
 			<SoilProperties :device />
 			<Beschreibung :device />
 
@@ -519,7 +532,9 @@
 	
 		<ChartSettings v-if="hasBodenfeuchteSensors" :frameWidth :earliestTimestamp="aggregatedEarliestTimestamp" :latestTimestamp="aggregatedLatestTimestamp" :visibleDays="visibleRangeDays" />
 
-		<div class="scrollcontainer" @wheel="scrollWheel">
+		<ChartYears v-if="hasBodenfeuchteSensors && chartStyle === 'years'" :device :frameWidth @hover="setPostHover" />
+
+		<div v-show="chartStyle !== 'years'" class="scrollcontainer" @wheel="scrollWheel">
 			
 			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
 			
@@ -547,8 +562,11 @@
 						:isLoading="sensorDataLoading"
 						:hoverPosition
 						:hoverData
-						:baseline="0"
-						/>
+						:baseline="0">
+							<template #posts>
+								<PostTimeline v-if="dataPresent" :device :startTimestamp :latestTimestamp :chartWidth :frameWidth :scrollLeft @hover="setPostHover" @select="$refs.locationPosts.scrollToPost($event.id)" />
+							</template>
+						</ChartHeat>
 					</div>
 
 				</div>
@@ -576,8 +594,11 @@
 						:hoverPosition
 						:hoverData
 						:baseline="0"
-						:heatmap="true"
-						/>
+						:heatmap="true">
+							<template #posts>
+								<PostTimeline v-if="dataPresent" :device :startTimestamp :latestTimestamp :chartWidth :frameWidth :scrollLeft @hover="setPostHover" @select="$refs.locationPosts.scrollToPost($event.id)" />
+							</template>
+						</ChartHeat>
 
 					</div>
 				</div>
@@ -603,8 +624,11 @@
 							:dataPresent
 							:isLoading="sensorDataLoading"
 							:hoverPosition
-							:hoverData
-							/>
+							:hoverData>
+							<template #posts>
+								<PostTimeline v-if="dataPresent" :device :startTimestamp :latestTimestamp :chartWidth :frameWidth :scrollLeft @hover="setPostHover" @select="$refs.locationPosts.scrollToPost($event.id)" />
+							</template>
+						</ChartGraph>
 							
 					</div>
 				</div>
@@ -613,13 +637,13 @@
 		</div>
 
 		<ChartRange
-			v-if="hasBodenfeuchteSensors && dataPresent"
+			v-if="hasBodenfeuchteSensors && dataPresent && chartStyle !== 'years'"
 			:graph-scale="graphScale"
 			:graph-position="graphPosition"
 			:min-scale="minGraphScale"
 			@range-update="handleRangeUpdate" />
 
-		<LocationPosts :device @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)" />
+		<LocationPosts ref="locationPosts" :device @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)" />
 
 	<div v-if="context=='single'" class="linktomap" @click="linktomap">
 		<Icon type="tropfen" size="32"/>
@@ -637,6 +661,7 @@
 </template>
 
 <style lang="stylus" scoped>
+
 	.location
 		padding 10px 24px 0
 		z-index 10

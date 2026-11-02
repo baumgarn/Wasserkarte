@@ -12,30 +12,43 @@
 
 			<form v-else-if="!state.account.authenticated" class="management-form account-form" @submit.prevent="login">
 				<label class="management-field">
-					<span>E-Mail-Adresse</span>
+					<span>Email-Adresse</span>
 					<input v-model.trim="email" type="email" autocomplete="username" required>
 				</label>
 				<label class="management-field">
 					<span>Passwort</span>
 					<input v-model="password" type="password" autocomplete="current-password" required>
 				</label>
-				<div class="settings-item">
+				<div class="account-login-actions">
+					<div class="settings-item">
 					<input id="remember-me" v-model="rememberMe" type="checkbox">
 					<label for="remember-me">Eingeloggt bleiben</label>
+					</div>
+				<button type="submit" :disabled="submitting"><Icon type="login" :size="20" />
+					Anmelden
+				</button>
 				</div>
 				<p v-if="error" class="management-note management-error">{{ error }}</p>
-				<button class="" type="submit" :disabled="submitting">
-					{{ submitting ? 'Anmeldung läuft …' : 'Anmelden' }}
-				</button>
 			</form>
 
 			<div v-else class="account-summary">
 				<div class="account-type">{{ thingsboardAccountType }}</div>
 				<div class="account-actions">
-					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">Konto</button>
-					<button v-if="showMedia" :class="{ active: state.mediaManagerOpen }" type="button" @click="toggleAccountModal('mediaManagerOpen')">Medien</button>
-					<button class="" type="button" @click="logout">Abmelden</button>
-					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">Accounts</button>
+					<button class="" type="button" @click="logout">
+						<Icon type="logout" :size="20" />Abmelden
+					</button>
+					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">
+						<Icon type="person" :size="20" />Konto
+					</button>
+					<button :class="{ active: state.mapSettingsOpen }" type="button" @click="toggleAccountModal('mapSettingsOpen')">
+						<Icon type="einstellungen-black" :size="20" />Einstellungen
+					</button>
+					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">
+						<Icon type="accounts" :size="20" />Accounts
+					</button>
+					<button v-if="showMedia" :class="{ active: state.mediaManagerOpen }" type="button" @click="toggleAccountModal('mediaManagerOpen')">
+						<Icon type="medien" :size="20" />Medien
+					</button>
 				</div>
 				<div v-if="isWassermeister" class="account-locations-divider"></div>
 				<div v-if="isWassermeister" class="account-locations">
@@ -62,11 +75,13 @@ import { state, closeAllModals, toggleModal } from '../state.js'
 import { managementAuth } from '@/management/auth.js'
 import { loadManagedMedia } from '@/media/store.js'
 import ColorDot from '@/menu/colordot.vue'
+import Icon from '@/ui/Icon.vue'
 
 export default {
 	name: 'AccountMenu',
 	components: {
 		ColorDot,
+		Icon,
 	},
 	setup() {
 		return {state};
@@ -167,10 +182,23 @@ export default {
 <style lang="stylus" scoped>
 
 .menuwindow.account
-	width 275px
+	min-width 225px !important
+
 
 .account-form
 	padding 6px
+
+.account-login-actions
+	display flex
+	align-items center
+	justify-content space-between
+	gap 8px
+	white-space nowrap
+	.settings-item
+		margin 0
+	button
+		min-width 0
+		flex-shrink 0
 
 .account-summary
 	display flex
@@ -190,6 +218,7 @@ export default {
 
 .account-actions button
 	flex 0 0 auto
+	width 150px
 
 .account-locations-divider
 	border-top var(--thinline)

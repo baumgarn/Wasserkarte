@@ -23,7 +23,7 @@
 						<div class="bodenfeuchte" >
 
 							<span class="value">{{ getVolValue('Bodenfeuchte_'+depth+'cm') }}</span>
-							<span class="unit">%</span>
+							<span class="unit">Vol %</span>
 
 						</div>
 
@@ -72,12 +72,10 @@ export default {
 	},
 	computed: {
 		depths() {
-			let ds = [];
-			if (this.hoverData['Bodenfeuchte_10cm']) {ds.push(10);}
-			if (this.hoverData['Bodenfeuchte_30cm']) {ds.push(30);}
-			if (this.hoverData['Bodenfeuchte_60cm']) {ds.push(60);}
-			if (this.hoverData['Bodenfeuchte_80cm']) {ds.push(80);}
-			return ds;
+			return [10, 30, 60, 80].filter(depth => {
+				const value = this.hoverData?.['Bodenfeuchte_' + depth + 'cm'];
+				return value != null && value !== '' && Number.isFinite(Number(value));
+			});
 		},
 		dataAggregation () {
 			return state.dataAggregation;

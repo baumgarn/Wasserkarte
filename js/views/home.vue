@@ -31,7 +31,7 @@
 						<FilterMenu v-if="state.menuOpen.filter"/>
 						<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
 						<!-- <BodenkundeMenu v-if="!state.isMobile && state.menuOpen.bodenkunde"/> -->
-						<SettingsMenu v-if="state.menuOpen.einstellungen"/>
+						<SettingsMenu v-if="!state.account.authenticated && state.menuOpen.einstellungen"/>
 						<KartenMenu v-if="state.menuOpen.karten"/>
 					</div>
 										
@@ -55,8 +55,17 @@
 		<!-- <BodenkundeMenu v-if="state.isMobile && state.menuOpen.bodenkunde"/> -->
 
 	<Modal
+		v-if="state.account.authenticated && state.mapSettingsOpen"
+		title="Karteneinstellungen"
+		icon="einstellungen-black"
+		@close="state.mapSettingsOpen = false">
+		<SettingsMenu modal />
+	</Modal>
+
+	<Modal
 		v-if="state.accountDetailsOpen"
 		title="Konto"
+		icon="person"
 		:min-width="320"
 		:max-width="560"
 		:min-height="180"
@@ -68,6 +77,7 @@
 	<Modal
 		v-if="state.accountsOpen"
 		title="Accounts"
+		icon="accounts"
 		:min-width="560"
 		:max-width="820"
 		:min-height="180"

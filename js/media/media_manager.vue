@@ -1,5 +1,5 @@
 <template>
-	<Modal title="Medien" :modal="false" @close="close">
+	<Modal title="Medien" icon="medien" :modal="false" @close="close">
 		<template #titlebar>
 			<span v-if="loaded && allUsers" class="media-scope">
 				<span :class="{ 'is-active': scope === 'all' }" @click="scope = 'all'">Alle <span class="count" v-if="!loading">{{ items.length }}</span></span>&nbsp;

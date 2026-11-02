@@ -4,19 +4,18 @@
 			<h3>Posts</h3>
 		</div>
 		<div class="menuwindow-content">
-			<p v-if="loading" class="management-note management-notice">Einträge werden geladen …</p>
-			<p v-else-if="error" class="management-note management-error">{{ error }}</p>
-			<div v-else-if="posts.length" class="posts-list">
+			<p v-if="error" class="management-note management-error">{{ error }}</p>
+			<div v-if="posts.length" class="posts-list">
 				<PostItem v-for="post in posts" :key="post.id" :post context="allposts" @open-location="openLocation" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
 			</div>
-			<p v-else class="management-note management-notice">Noch keine Einträge vorhanden.</p>
+			<p v-else-if="state.postsLoaded && !error" class="management-note management-notice">Noch keine Einträge vorhanden.</p>
 		</div>
 	</div>
 </template>
 
 <script>
 import { state } from '@/state.js';
-import { loadPosts } from '@/posts/store.js';
+import { loadPosts, markPostsSeen } from '@/posts/store.js';
 import PostItem from '@/posts/post_item.vue';
 
 export default {
@@ -47,8 +46,12 @@ export default {
 			window.dispatchEvent(new CustomEvent('device-selected', { detail: device }));
 		},
 	},
+	watch: {
+		posts: { handler: markPostsSeen, flush: 'post' },
+		loading: { handler: markPostsSeen, flush: 'post' },
+	},
 	mounted() {
-		loadPosts().catch(() => {});
+		loadPosts().then(() => this.$nextTick(markPostsSeen)).catch(() => {});
 	},
 };
 </script>

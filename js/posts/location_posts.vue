@@ -1,12 +1,11 @@
 <template>
 	<section class="location-posts">
 		<div class="location-posts-header">
-			<button v-if="canCreateEntry" type="button" @click="$emit('create')">Neuen Post erstellen</button>
+			<button v-if="canCreateEntry" type="button" @click="$emit('create')"><Icon type="postbw" :size="20" />Neuer Post</button>
 		</div>
-		<p v-if="loading" class="management-note management-notice">Einträge werden geladen …</p>
-		<p v-else-if="error" class="management-note management-error">{{ error }}</p>
-		<div v-else-if="posts.length" class="location-posts-list">
-			<PostItem v-for="post in posts" :key="post.id" :post context="location" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
+		<p v-if="error" class="management-note management-error">{{ error }}</p>
+		<div v-if="posts.length" class="location-posts-list">
+			<PostItem ref="postItems" v-for="post in posts" :key="post.id" :post context="location" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
 		</div>
 	</section>
 </template>
@@ -14,11 +13,12 @@
 <script>
 import { state } from '@/state.js';
 import PostItem from '@/posts/post_item.vue';
+import Icon from '@/ui/Icon.vue';
 import { loadPosts } from '@/posts/store.js';
 
 export default {
 	name: 'LocationPosts',
-	components: { PostItem },
+	components: { PostItem, Icon },
 	emits: ['create', 'edit', 'delete'],
 	props: {
 		device: {
@@ -29,9 +29,6 @@ export default {
 	computed: {
 		posts() {
 			return state.posts.filter((post) => post?.deviceId === this.device.id);
-		},
-		loading() {
-			return state.postsLoading;
 		},
 		error() {
 			return state.postsError;
@@ -49,6 +46,12 @@ export default {
 			return this.role === 'wassermeister'
 				&& Array.isArray(state.account.user?.wasserkarteLocations)
 				&& state.account.user.wasserkarteLocations.includes(this.device.id);
+		},
+	},
+	methods: {
+		scrollToPost(id) {
+			const item = this.$refs.postItems?.find(item => item.post.id === id);
+			item?.$el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		},
 	},
 	mounted() {

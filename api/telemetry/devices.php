@@ -9,24 +9,24 @@ function getThingsBoardDevices() {
 		$telemetryCacheAge = time() - $cache['telemetryCacheTimestamp'];
 		if ($telemetryCacheAge > CACHE_TELEMETRY_ALL_DURATION && $deviceCacheAge < CACHE_DEVICES_DURATION) {
 			$authorization = getThingsBoardAuthorization();
+			if (!$authorization) return null;
 			$data = fetchLastTelemetryForCachedDevices($authorization, $cache);
 			if ($data) {
 				saveCache($data);
 			}
-			return ['query' => 'telemetry'] + $data; ;
-			return $data;
+			return is_array($data) ? ['query' => 'telemetry'] + $data : null;
 		} else if ($telemetryCacheAge < CACHE_TELEMETRY_ALL_DURATION && $deviceCacheAge < CACHE_DEVICES_DURATION) {
 			return ['query' => 'cached'] + $cache; ;
 		}
     }
 	
 	$authorization = getThingsBoardAuthorization();
+	if (!$authorization) return null;
 	$data = fetchDevicesFromThingsBoard($authorization);
 	if ($data) {
 		saveCache($data);
 	}
-	return ['query' => 'devices'] + $data; ;
-	return $data;
+	return is_array($data) ? ['query' => 'devices'] + $data : null;
 }
 
 // GET ALL DEVICES ATTRIBUTES LAST TELEMETRY
