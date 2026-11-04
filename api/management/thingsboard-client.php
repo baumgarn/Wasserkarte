@@ -35,14 +35,23 @@ function thingsBoardManagementRequest(string $method, string $path, ?array $payl
 	];
 }
 
-function loginManagementUser(string $email, string $password): ?array
+function loginManagementUser(string $email, string $password, ?array &$failure = null): ?array
 {
+	$failure = ['kind' => 'service', 'status' => 502, 'message' => 'Der Anmeldedienst ist momentan nicht erreichbar.'];
 	$login = thingsBoardManagementRequest('POST', '/auth/login', [
 		'username' => $email,
 		'password' => $password,
 	]);
 	$token = $login['body']['token'] ?? null;
 	if ($login['status'] !== 200 || !is_string($token) || $token === '') {
+		$message = strtolower((string) ($login['body']['message'] ?? ''));
+		if ($login['status'] === 429) {
+			$failure = ['kind' => 'limited', 'status' => 429, 'message' => 'Zu viele Anmeldeversuche. Bitte später erneut versuchen.'];
+		} elseif (str_contains($message, 'locked') || str_contains($message, 'disabled') || str_contains($message, 'not active')) {
+			$failure = ['kind' => 'locked', 'status' => 403, 'message' => 'Der Account ist gesperrt oder noch nicht aktiviert. Bitte eine neue Zugangsmail beim Admin anfordern.'];
+		} elseif ($login['status'] === 401 && (str_contains($message, 'invalid username or password') || str_contains($message, 'bad credentials') || $message === 'authentication failed')) {
+			$failure = ['kind' => 'credentials', 'status' => 401, 'message' => 'Email-Adresse oder Passwort ist nicht korrekt.'];
+		}
 		return null;
 	}
 

@@ -31,3 +31,5 @@ api/storage/
 # Local deployment helper
 kartedist
 pulldata
+
+/tests/

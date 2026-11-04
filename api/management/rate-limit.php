@@ -49,6 +49,8 @@ function managementRateLimitPrune(array $entries, int $windowSeconds): array
 	$now = time();
 	$cutoff = $now - $windowSeconds;
 	foreach ($entries as $key => $entry) {
+		// Account-Generationen bleiben erhalten, damit alte IP-Sperren nicht wieder aufleben.
+		if (isset($entry['reset_version'])) continue;
 		$attempts = is_array($entry['attempts'] ?? null) ? $entry['attempts'] : [];
 		$attempts = array_values(array_filter($attempts, static fn ($attempt) => is_int($attempt) && $attempt > $cutoff));
 		$blockedUntil = (int) ($entry['blocked_until'] ?? 0);
@@ -92,5 +94,23 @@ function managementClearRateLimit(string $scope, string $subject, int $windowSec
 	managementRateLimitTransaction(static function (array &$entries) use ($key, $windowSeconds): void {
 		$entries = managementRateLimitPrune($entries, $windowSeconds);
 		unset($entries[$key]);
+	});
+}
+
+// Eine neue Generation verwirft auch alte E-Mail/IP-Schlüssel, ohne die IP
+// des Nutzers kennen zu müssen. Allgemeine IP-Limits bleiben davon unberührt.
+function managementLoginSubject(string $email): string
+{
+	$email = mb_strtolower(trim($email));
+	$key = managementRateLimitKey('login-reset', $email);
+	$version = managementRateLimitTransaction(static fn (array &$entries): string => $entries[$key]['reset_version'] ?? '');
+	return managementRequestSource() . "\0" . $email . ($version !== '' ? "\0" . $version : '');
+}
+
+function managementResetAccountLoginLimits(string $email): void
+{
+	$key = managementRateLimitKey('login-reset', mb_strtolower(trim($email)));
+	managementRateLimitTransaction(static function (array &$entries) use ($key): void {
+		$entries[$key] = ['reset_version' => bin2hex(random_bytes(16))];
 	});
 }

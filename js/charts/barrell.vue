@@ -1,5 +1,5 @@
 <template>
-	<canvas ref="barrelCanvas"></canvas>
+	<canvas ref="barrelCanvas" @click="toggleView"></canvas>
 </template>
 	
 	<script>
@@ -35,6 +35,9 @@
 		this.drawBarrel();
 	},
 	computed: {
+		isSquare() {
+			return state.barrelView === 'square';
+		},
 		barrel_width() {
 			// return (state.windowWidth < 600) ? 140 : 175;
 			return (state.windowWidth < 600) ? 110 : 152;
@@ -111,6 +114,9 @@
 		},
 	},
 	watch: {
+		isSquare() {
+			this.drawBarrel();
+		},
 		nfk() {
 			this.drawBarrel();
 		},
@@ -128,6 +134,43 @@
 		}
 	},
 	methods: {
+		toggleView() {
+			state.barrelView = this.isSquare ? 'barrel' : 'square';
+			localStorage.setItem('barrelView', JSON.stringify(state.barrelView));
+		},
+		drawSquare(ctx, liquidColor, strokeColor, strokeWidth) {
+			const size = this.barrel_width;
+			const x = this.margin;
+			const y = (this.canvasHeight - size) / 2;
+			const bottom = y + size;
+			const liquidTop = bottom - size * this.percentage;
+			const totwasserTop = bottom - size * this.totwasser_percentage;
+
+			if (!this.isInactive && !isNaN(this.percentage)) {
+				ctx.fillStyle = liquidColor;
+				ctx.fillRect(x, liquidTop, size, bottom - liquidTop);
+				if (this.patternImage?.complete && this.patternImage.naturalWidth) {
+					const patternTop = Math.max(totwasserTop, liquidTop);
+					ctx.fillStyle = ctx.createPattern(this.patternImage, 'repeat');
+					ctx.globalAlpha = .3;
+					ctx.fillRect(x, patternTop, size, bottom - patternTop);
+					ctx.globalAlpha = 1;
+				}
+				if (this.percentage < this.totwasser_percentage) {
+					ctx.beginPath();
+					ctx.setLineDash([2, 2]);
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = '#00000077';
+					ctx.moveTo(x, totwasserTop);
+					ctx.lineTo(x + size, totwasserTop);
+					ctx.stroke();
+					ctx.setLineDash([]);
+				}
+			}
+			ctx.lineWidth = strokeWidth;
+			ctx.strokeStyle = strokeColor;
+			ctx.strokeRect(x, y, size, size);
+		},
 		drawBarrel() {
 			const liquidColor = dataModel.get_nfk_color(this.nfk);
 			// const strokeColor = '#000';
@@ -150,6 +193,10 @@
 			ctx.scale(dpr, dpr);
 
 			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+			if (this.isSquare) {
+				this.drawSquare(ctx, liquidColor, strokeColor, strokeWidth);
+				return;
+			}
 
 			const ellipseH = this.ellipseRatio * this.barrel_width;
 			const centerX = this.canvasWidth / 2;
@@ -325,5 +372,6 @@
 canvas
 	display block
 	margin-left 0
+	cursor pointer
 
 </style>

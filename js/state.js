@@ -99,6 +99,7 @@ localStorageState('filterFaultyValues', true);
 localStorageState('showDataGaps', false);
 localStorageState('fixedChartScale', false);
 localStorageState('locationView', 'oberboden');
+localStorageState('barrelView', 'barrel');
 localStorageState('soilchart_texture_showbars', true);
 localStorageState('bodenkundeHumusSoilKey', 'Sl2');
 

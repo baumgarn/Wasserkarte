@@ -27,11 +27,14 @@
 
 					</template>
 				</div>
-				<LocationDetailsAnalyse v-if="state.locationView === 'analyse'" :device />
+				<LocationDetailsAnalyse v-if="state.locationView === 'analyse'" :device :isInactive />
 				<LocationDetailsOberboden v-else :device :hoverData />
-				<div class="view-dots" @click.stop>
-					<span v-for="view in ['oberboden', 'analyse']" :key="view" :class="{ active: state.locationView === view }" @click="setView(view)"></span>
-				</div>
+			</div>
+			<div class="view-dots barrel-view-dots">
+				<span v-for="view in ['barrel', 'square']" :key="view" :class="{ active: state.barrelView === view }" @click="setBarrelView(view)"></span>
+			</div>
+			<div class="view-dots">
+				<span v-for="view in ['oberboden', 'analyse']" :key="view" :class="{ active: state.locationView === view }" @click="setView(view)"></span>
 			</div>
 		</div>
 	</div>
@@ -79,6 +82,10 @@ export default {
 		},
 	},
 	methods: {
+		setBarrelView(view) {
+			state.barrelView = view;
+			localStorage.setItem('barrelView', JSON.stringify(view));
+		},
 		setView(view) {
 			state.locationView = view;
 			localStorage.setItem('locationView', JSON.stringify(view));
@@ -89,15 +96,15 @@ export default {
 
 <style lang="stylus" scoped>
 	.locationdetails
-		--location-table-height 120px
+		--location-table-height 118px
 		margin .6em 0 0
 		width 100%
 		display flex
 		flex-direction column
 	.toparea
-		display flex
-		flex-direction row
-		align-items flex-start
+		display grid
+		grid-template-columns auto minmax(0, 1fr)
+		align-items start
 		width 100%
 		min-width 0
 		margin .2em 0 0
@@ -108,7 +115,7 @@ export default {
 		margin-right 12px
 		margin-top -4px
 		margin-bottom -4px
-		transform translateX(-2px)
+		transform translateX(-2px) translateY(-3px)
 		position relative
 	.datacol
 		box-sizing border-box
@@ -120,7 +127,7 @@ export default {
 		font-weight bold
 		font-size 13pt
 		height 20px
-		margin 0 0 6px
+		margin 0 0 4px
 		letter-spacing 0.03em;
 		position relative
 		text-transform uppercase
@@ -142,24 +149,34 @@ export default {
 	.view-dots
 		display flex
 		justify-content center
-		gap 4px
+		gap 0
 		height 0
 		position relative
+		top -3px
+		top 2px
 		span
-			width 5px
-			height 5px
+			width 10px
+			height 2px
 			transform translateY(1px)
-			border-radius 50%
-			background #ddd
+			background #00000022
 			cursor pointer
+			&:first-child
+				border-radius 2px 0 0 2px
+			&:last-child
+				border-radius 0 2px 2px 0
 			&.active
-				background #888
+				background #00000088
+	.barrel-view-dots
+		margin-right 12px
+		transform translateX(-2px)
 	@media (max-width 500px)
 		.nfklabel
 			font-size 11pt
 		.barrell
 			margin-right 6px
 			// margin-left 6px
+		.barrel-view-dots
+			margin-right 6px
 		.datacol
 			padding-left 6px
 			padding-right 6px

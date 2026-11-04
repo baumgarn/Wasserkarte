@@ -116,7 +116,7 @@
 		</div>
 
 		<div class="hinweis">
-			Modellierung Annäherung Oberboden 1m² bis 60cm Tiefe
+			Modellierte Annäherung Oberboden 1m² bis 60cm Tiefe
 		</div>
 	</div>
 </template>
@@ -227,11 +227,10 @@
 		width 100%
 	.oberboden_uebersicht .hinweis
 		font-size 8pt
-		color #000
-		opacity .5
+		color rgba(0,0,0,0.5)
+		opacity 1
 		font-weight normal
-		padding 5px 0 10px
-		border-top var(--thinnerline)
+		padding 5px 0 0
 	.soil-table
 		display grid
 		grid-template-rows repeat(4, minmax(0, 1fr))
@@ -251,7 +250,7 @@
 	.datarow
 		.label
 			flex-basis 39%
-			opacity .5
+			opacity .55
 			font-size 8.5pt
 			font-weight bold
 		.num
@@ -268,7 +267,7 @@
 		opacity .7
 		margin-right 8px
 		margin-top -12px
-		top 5px
+		top 4px
 	.datarow .icon.type-pflanze
 		opacity .65
 	.datarow .icon.type-gesamt
@@ -277,7 +276,6 @@
 		opacity .5
 	.value
 		display inline-block
-		// font-size 13.5pt
 		font-size 12pt
 		margin-right .2em
 	.num.light .value

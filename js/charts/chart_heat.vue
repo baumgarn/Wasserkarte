@@ -259,7 +259,7 @@ export default {
 			if (this.baseline !== undefined) min = this.baseline;
 			if (this.ceiling !== undefined) max = this.ceiling;
 			if (state.fixedChartScale && this.title === 'Bodenfeuchte') {
-				return [0, Math.max(50, Math.ceil(max / 10) * 10)];
+				return [0, Math.max(50, max)];
 			}
 			return [min, max];
 		},

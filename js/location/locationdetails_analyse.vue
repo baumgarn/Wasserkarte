@@ -3,7 +3,7 @@
 		<div class="soil-table">
 			<section v-for="group in propertyGroups" :key="group.title">
 				<div class="property-grid">
-					<div v-for="item in group.items" :key="item.label" v-tooltip="{ content: item.title, disabled: true, delay: 1000, maxWidth: 'trigger', align: 'left', alignOffset: -8, arrowPosition: 22 }">
+					<div v-for="item in group.items" :key="item.class" :class="item.class" v-tooltip="{ content: item.title, disabled: true, delay: 1000, maxWidth: 'trigger', align: 'left', alignOffset: -8, arrowPosition: 22 }">
 						<div class="label" :class="{ nowrap: item.label.endsWith('Trockenphase') }">
 							<template v-if="item.label.endsWith('Trockenphase')">
 								<span class="full-label">{{ item.label }}</span>
@@ -11,7 +11,7 @@
 							</template>
 							<template v-else>{{ item.label }}</template>
 						</div>
-						<div class="value"><span v-if="item.color" class="nfk-dot" :style="{ backgroundColor: item.color }"></span><span v-if="item.direction" class="trend-triangle" :class="item.direction" :style="{ color: item.trendColor }"></span>{{ item.value }}</div>
+						<div class="value"><span v-if="item.color" class="nfk-dot" :style="{ backgroundColor: item.color }"></span><span v-if="item.direction" class="trend-triangle" :class="item.direction" :style="{ color: item.trendColor }"></span><span v-if="item.sign" class="sign">{{ item.sign + ' ' }}</span><span class="values">{{ item.value }}</span><span v-if="item.unit" class="unit"> {{ item.unit }}</span></div>
 					</div>
 				</div>
 			</section>
@@ -30,7 +30,7 @@ export default {
 	setup() {
 		return { dataModel };
 	},
-	props: { device: Object },
+	props: { device: Object, isInactive: Boolean },
 	computed: {
 		measurementRange() {
 			return dataStore.getDeviceMeasurementRange(this.device);
@@ -70,24 +70,24 @@ export default {
 		},
 		propertyGroups() {
 			const stats = this.nfkStats;
-			const daily = this.dailyNfkStats;
-			const vol = this.dailyVolStats;
-			const days = value => value === null || value === 0 ? '–' : `${value} ${value === 1 ? 'Tag' : 'Tage'}`;
+			const daily = this.isInactive ? { dayValue: null, currentDryRun: null } : this.dailyNfkStats;
+			const vol = this.isInactive ? { dayValue: null, dayTrend: null, weekChange: null } : this.dailyVolStats;
+			const days = value => ({ value: value === null || value === 0 ? '–' : value, unit: value ? (value === 1 ? 'Tag' : 'Tage') : '' });
 			return [
 				{ title: 'Tageswerte', items: [
-					{ label: 'nFK des Tages', value: daily.dayValue === null ? '–' : `${Math.round(daily.dayValue)} %`, color: daily.dayValue === null ? null : dataModel.get_nfk_color(daily.dayValue) },
-					{ label: 'Vol des Tages', value: vol.dayValue === null ? '–' : `${vol.dayValue.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %` },
-					this.trendItem('Vol zu Vortag', vol.dayTrend, 'Änderung der Bodenfeuchte gegenüber dem Vortag in Vol.-Prozentpunkten', 1),
+					{ class: 'nfk-tag', label: 'nFK', value: daily.dayValue === null ? '–' : Math.round(daily.dayValue), unit: daily.dayValue === null ? '' : '%', color: daily.dayValue === null ? null : dataModel.get_nfk_color(daily.dayValue) },
+					{ class: 'vol-tag', label: 'Vol', value: vol.dayValue === null ? '–' : vol.dayValue.toLocaleString('de-DE', { maximumFractionDigits: 1 }), unit: vol.dayValue === null ? '' : '%' },
+					{ class: 'vol-vortag', ...this.trendItem('Vol zu Vortag', vol.dayTrend, 'Änderung der Bodenfeuchte gegenüber dem Vortag in Vol.-Prozentpunkten', 1) },
 				] },
 				{ title: 'Gesamt', items: [
-					{ label: 'Ø nFK Gesamt', value: this.nfkColor ? `${this.nfkAverage} %` : '–', color: this.nfkColor },
-					{ label: 'Ø Vol Gesamt', value: this.volStats.average === null ? '–' : `${this.volStats.average.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %` },
-					this.trendItem('Vol zu Vorwoche', vol.weekChange, 'Änderung der Bodenfeuchte gegenüber sieben Tagen zuvor in Vol.-Prozentpunkten', 1),
+					{ class: 'nfk-gesamt', label: 'Ø nFK Gesamt', value: this.nfkColor ? this.nfkAverage : '–', unit: this.nfkColor ? '%' : '', color: this.nfkColor },
+					{ class: 'vol-gesamt', label: 'Ø Vol Gesamt', value: this.volStats.average === null ? '–' : this.volStats.average.toLocaleString('de-DE', { maximumFractionDigits: 1 }), unit: this.volStats.average === null ? '' : '%' },
+					{ class: 'vol-vorwoche', ...this.trendItem('Vol zu Vorwoche', vol.weekChange, 'Änderung der Bodenfeuchte gegenüber sieben Tagen zuvor in Vol.-Prozentpunkten', 1) },
 				] },
 				{ title: 'Trockenheit', items: [
-					{ label: 'Trockene Tage', value: stats.dryPercent === null ? '–' : `${Math.round(stats.dryPercent)} %`, title: 'Anteil der gemessenen Tage unter 50 % nFK' },
-					{ label: 'Längste Trockenphase', value: days(stats.longestDryRun) },
-					{ label: 'Aktuelle Trockenphase', value: daily.currentDryRun === null ? '–' : daily.currentDryRun ? `${daily.currentDryRun} ${daily.currentDryRun === 1 ? 'Tag' : 'Tage'}` : '–' },
+					{ class: 'trockene-tage', label: 'Trockene Tage', value: stats.dryPercent === null ? '–' : Math.round(stats.dryPercent), unit: stats.dryPercent === null ? '' : '%', title: 'Anteil der gemessenen Tage unter 50 % nFK' },
+					{ class: 'laengste-trockenphase', label: 'Längste Trockenphase', ...days(stats.longestDryRun) },
+					{ class: 'aktuelle-trockenphase', label: 'Aktuelle Trockenphase', ...days(daily.currentDryRun) },
 				] },
 
 			];
@@ -125,7 +125,9 @@ export default {
 			const value = trend === null ? null : Number(trend.toFixed(decimals));
 			return {
 				label, title,
-				value: value === null ? '–' : `${value > 0 ? '+ ' : value < 0 ? '− ' : ''}${Math.abs(value).toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} %`,
+				value: value === null ? '–' : Math.abs(value).toLocaleString('de-DE', { maximumFractionDigits: decimals }),
+				unit: value === null ? '' : '%',
+				sign: value > 0 ? '+' : value < 0 ? '−' : '',
 				color: value === 0 ? '#ccc' : null,
 				direction: value ? (value > 0 ? 'up' : 'down') : null,
 				trendColor: dataModel.get_nfk_color(value < 0 ? 0 : 120),
@@ -139,10 +141,10 @@ export default {
 <style lang="stylus" scoped>
 .measurement-period
 	font-size 8pt
-	color #000
+	color rgba(0,0,0,.8)
 	opacity 1
 	font-weight normal
-	font-weight normal
+	padding 4px 0 0
 
 .standortanalyse
 	cursor pointer
@@ -156,7 +158,7 @@ export default {
 
 section
 	min-height 0
-	padding-top 5px
+	padding-top 3px
 	border-top var(--thinnerline)
 
 .property-grid
@@ -168,13 +170,32 @@ section
 	white-space nowrap
 
 .value
-	font-size 9pt
+	font-size 10pt
 	font-weight bold
+
+.sign
+.unit
+	font-weight normal
+	opacity .78
+	opacity .55
+.unit
+	font-size 8pt
+	margin-left .2em
+
+
+.laengste-trockenphase .unit
+.aktuelle-trockenphase .unit
+	margin-left .3em
+
+.nfk-dot
+.trend-triangle
+	position relative
+	top -2px
 
 .nfk-dot
 	display inline-block
-	width 12px
-	height 12px
+	width 14px
+	height 14px
 	border-radius 50%
 	margin-right 5px
 	vertical-align middle
@@ -183,14 +204,14 @@ section
 	display inline-block
 	width 0
 	height 0
-	border-left 6px solid transparent
-	border-right 6px solid transparent
+	border-left 7px solid transparent
+	border-right 7px solid transparent
 	margin-right 5px
 	vertical-align middle
 	&.up
-		border-bottom 10px solid currentColor
+		border-bottom 12px solid currentColor
 	&.down
-		border-top 10px solid currentColor
+		border-top 12px solid currentColor
 .short-label
 	display none
 

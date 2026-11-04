@@ -4,7 +4,7 @@
 			<p class="management-section-title account-name">{{ userName }}</p>
 		</header>
 		<div class="management-actions account-header-actions">
-			<button type="button" :disabled="loading || saving || sendingMail" @click="sendAccountMail">{{ sendingMail ? 'Sendet …' : mailSent ? 'Email gesendet' : 'Passwort-Email erneut senden' }}</button>
+			<button type="button" :disabled="loading || saving || sendingMail" @click="sendAccountMail">{{ sendingMail ? 'Sendet …' : mailSent ? 'Email angefordert' : 'Zugang entsperren / Email senden' }}</button>
 			<button type="button" class="warning" :disabled="loading || saving || sendingMail" @click="$emit('delete-account', user)">Account löschen</button>
 		</div>
 		<form class="management-form" @submit.prevent="save">

@@ -235,11 +235,11 @@ function managementRequireLoginNotRateLimited(string $email): void
 	$window = managementLoginLimit('MANAGEMENT_LOGIN_WINDOW_SECONDS', 900);
 	$retryAfter = max(
 		managementRateLimitRetryAfter('login-ip', $source, $window),
-		managementRateLimitRetryAfter('login-email-ip', $source . "\0" . mb_strtolower($email), $window)
+		managementRateLimitRetryAfter('login-email-ip', managementLoginSubject($email), $window)
 	);
 	if ($retryAfter > 0) {
 		header('Retry-After: ' . $retryAfter);
-		managementRespond(['error' => 'Zu viele Anmeldeversuche. Bitte versuche es später erneut.'], 429);
+		managementRespond(['error' => 'Zu viele Anmeldeversuche. Bitte in ' . (int) ceil($retryAfter / 60) . ' Min. erneut versuchen.'], 429);
 	}
 }
 
@@ -249,13 +249,12 @@ function managementRegisterFailedLogin(string $email): void
 	$window = managementLoginLimit('MANAGEMENT_LOGIN_WINDOW_SECONDS', 900);
 	$block = managementLoginLimit('MANAGEMENT_LOGIN_BLOCK_SECONDS', 900);
 	managementRegisterRateLimitFailure('login-ip', $source, managementLoginLimit('MANAGEMENT_LOGIN_IP_MAX_ATTEMPTS', 20), $window, $block);
-	managementRegisterRateLimitFailure('login-email-ip', $source . "\0" . mb_strtolower($email), managementLoginLimit('MANAGEMENT_LOGIN_EMAIL_MAX_ATTEMPTS', 5), $window, $block);
+	managementRegisterRateLimitFailure('login-email-ip', managementLoginSubject($email), managementLoginLimit('MANAGEMENT_LOGIN_EMAIL_MAX_ATTEMPTS', 5), $window, $block);
 }
 
 function managementClearFailedLogin(string $email): void
 {
-	$source = managementRequestSource();
-	managementClearRateLimit('login-email-ip', $source . "\0" . mb_strtolower($email), managementLoginLimit('MANAGEMENT_LOGIN_WINDOW_SECONDS', 900));
+	managementClearRateLimit('login-email-ip', managementLoginSubject($email), managementLoginLimit('MANAGEMENT_LOGIN_WINDOW_SECONDS', 900));
 }
 
 function managementActivationUrl(string $thingsBoardLink): ?string
@@ -446,13 +445,18 @@ if ($action === 'send-account-mail' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 			managementRespond(['error' => 'Aktivierungs-Email konnte nicht gesendet werden.'], 502);
 		}
 	} elseif ($activation['status'] === 400 && ($activation['body']['message'] ?? '') === 'User is already activated!') {
+		$enabled = thingsBoardManagementRequest('POST', '/user/' . rawurlencode($userId) . '/userCredentialsEnabled?userCredentialsEnabled=true', null, $token);
+		if (!in_array($enabled['status'], [200, 204], true)) {
+			managementRespond(['error' => 'Account konnte nicht entsperrt werden. Es wurde keine Passwort-Email angefordert.'], 502);
+		}
 		$sent = thingsBoardManagementRequest('POST', '/noauth/resetPasswordByEmail', ['email' => $user['email']]);
 		if (!in_array($sent['status'], [200, 204], true)) {
-			managementRespond(['error' => 'Passwort-Email konnte nicht gesendet werden.'], 502);
+			managementRespond(['error' => 'Passwort-Email konnte nicht angefordert werden.'], 502);
 		}
 	} else {
 		managementRespond(['error' => 'Aktivierungslink konnte nicht geladen werden.'], 502);
 	}
+	managementResetAccountLoginLimits($user['email']);
 	managementRespond(['success' => true]);
 }
 
@@ -620,8 +624,11 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	}
 
 	managementRequireLoginNotRateLimited($email);
-	$login = loginManagementUser($email, $password);
+	$login = loginManagementUser($email, $password, $failure);
 	if ($login === null) {
+		if (($failure['kind'] ?? '') !== 'credentials') {
+			managementRespond(['error' => $failure['message']], $failure['status']);
+		}
 		managementRegisterFailedLogin($email);
 		managementRespond(['error' => 'Email-Adresse oder Passwort ist nicht korrekt.'], 401);
 	}
