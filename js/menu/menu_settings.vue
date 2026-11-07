@@ -1,8 +1,8 @@
 <template>
-	<div :class="modal ? 'settings-modal' : 'menuwindow settings'">
+	<div class="menuwindow settings">
 
-		<div v-if="!modal" class="menuwindow-header">
-			<h3>Einstellungen</h3>
+		<div class="menuwindow-header">
+			<h3>Karteneinstellungen</h3>
 		</div>
 
 		<div class="menuwindow-content">
@@ -76,9 +76,6 @@ export default {
 			return dataModel.get_color_scheme_name('nfk');
 		},
 	},
-	props: {
-		modal: { type: Boolean, default: false },
-	},
 	methods: {
 	},
 	mounted() {
@@ -90,10 +87,6 @@ export default {
 
 .menuwindow.settings
 	width 400px
-
-.settings-modal
-	width 400px
-	max-width 100vw
 
 // .settings
 // 	user-select none

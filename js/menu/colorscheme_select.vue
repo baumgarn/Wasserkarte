@@ -20,7 +20,7 @@
 				@keydown.enter.space.prevent="selectColorScheme(key)">
 
 				<!-- <div class="colorscheme-label">{{ colorSchemes[key].name }}</div> -->
-				<ColorSchemeGradient :width="220" :height="16" :colorScheme="colorSchemes[key].colors" />
+				<ColorSchemeGradient :width="220" :height="18" :colorScheme="colorSchemes[key].colors" />
 				<!-- <ColorSchemeItem :width="220" :height="20" :colorScheme="colorSchemes[key].colors" /> -->
 
 			</div>

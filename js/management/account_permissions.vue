@@ -1,13 +1,23 @@
 <template>
 	<div class="management-panel management-window-size-mid account-permissions">
-		<header class="account-permissions-header">
-			<p class="management-section-title account-name">{{ userName }}</p>
-		</header>
-		<div class="management-actions account-header-actions">
-			<button type="button" :disabled="loading || saving || sendingMail" @click="sendAccountMail">{{ sendingMail ? 'Sendet …' : mailSent ? 'Email angefordert' : 'Zugang entsperren / Email senden' }}</button>
-			<button type="button" class="warning" :disabled="loading || saving || sendingMail" @click="$emit('delete-account', user)">Account löschen</button>
-		</div>
 		<form class="management-form" @submit.prevent="save">
+			<div class="management-actions account-header-actions">
+				<button type="button" :disabled="loading || saving || sendingMail" @click="sendAccountMail">{{ sendingMail ? 'Sendet …' : mailSent ? 'E-Mail angefordert' : 'Passwort-Reset senden' }}</button>
+				<button type="button" class="warning" :disabled="loading || saving || sendingMail" @click="$emit('delete-account', user)">Account löschen</button>
+			</div>
+			<label class="management-field">
+				<span>Email-Adresse</span>
+				<input :value="user.email" type="email" disabled>
+			</label>
+
+			<label class="management-field">
+				<span>Vorname</span>
+				<input v-model.trim="firstName" maxlength="255" :disabled="loading || saving">
+			</label>
+			<label class="management-field">
+				<span>Nachname</span>
+				<input v-model.trim="lastName" maxlength="255" :disabled="loading || saving">
+			</label>
 			<label class="management-field">
 				<span>Berechtigungsstufe</span>
 				<select v-model="role" :disabled="loading || saving" @change="previewRole">
@@ -19,6 +29,7 @@
 			<div class="management-field">
 				<LocationSelect :model-value="locations" :save-selection="saveLocations" :disabled="loading || saving" @update:model-value="setLocations" />
 			</div>
+
 			<p v-if="error" class="management-note management-error">{{ error }}</p>
 			<div class="management-actions account-permissions-actions">
 				<button :class="{ success: saved }" type="submit" :disabled="loading || saving || !hasChanges">{{ saving ? 'Speichert …' : saved ? 'Gespeichert' : 'Speichern' }}</button>
@@ -44,6 +55,8 @@ export default {
 	data() {
 		const role = ['wassermeister', 'super_wassermeister'].includes(this.user.role) ? this.user.role : 'none';
 		return {
+			firstName: this.user.firstName || '',
+			lastName: this.user.lastName || '',
 			role,
 			savedRole: role,
 			locations: Array.isArray(this.user.locations) ? [...this.user.locations] : [],
@@ -60,10 +73,7 @@ export default {
 		hasChanges() {
 			const saved = new Set(this.savedLocations);
 			const current = new Set(this.locations);
-			return this.role !== this.savedRole || saved.size !== current.size || [...current].some(id => !saved.has(id));
-		},
-		userName() {
-			return [this.user.firstName, this.user.lastName].filter(Boolean).join(' ') || this.user.email;
+			return this.firstName !== (this.user.firstName || '') || this.lastName !== (this.user.lastName || '') || this.role !== this.savedRole || saved.size !== current.size || [...current].some(id => !saved.has(id));
 		},
 	},
 	methods: {
@@ -76,7 +86,7 @@ export default {
 				await managementAuth.sendAccountMail(this.user.id);
 				this.mailSent = true;
 			} catch (error) {
-				this.error = error.message || 'Email konnte nicht gesendet werden.';
+				this.error = error.message || 'E-Mail konnte nicht gesendet werden.';
 			} finally {
 				this.sendingMail = false;
 			}
@@ -87,7 +97,9 @@ export default {
 			this.saved = false;
 			this.saving = true;
 			try {
-				await managementAuth.updateUserPermissions(this.user.id, this.role, this.locations);
+				await managementAuth.updateUserPermissions(this.user.id, this.role, this.locations, { firstName: this.firstName, lastName: this.lastName });
+				this.user.firstName = this.firstName;
+				this.user.lastName = this.lastName;
 				this.user.role = this.role;
 				this.user.locations = [...this.locations];
 				this.user.locationCount = this.locations.length;
@@ -133,25 +145,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.account-permissions-header
-	display flex
-	align-items center
-	gap 8px
-	margin-bottom 14px
-
-.account-name
-	flex 1
-	min-width 0
-	margin 0
-	overflow hidden
-	text-overflow ellipsis
-	white-space nowrap
-	font-weight 500
-
 .account-header-actions
 	justify-content flex-start
 	flex-wrap wrap
-	margin-bottom 14px
 
 .account-permissions-actions
 	justify-content flex-start

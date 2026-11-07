@@ -1,9 +1,17 @@
 <template>
-	<Modal :title="isEditing ? 'Post bearbeiten' : 'Neuen Post erstellen'" @close="close">
+	<Modal :title="isEditing ? 'Post bearbeiten' : 'Neuer Post'" @close="close">
+		<template #titlebar><span class="post-title-location">{{ locationName }}</span></template>
 		<form class="management-panel management-window-size-mid management-form post-form" @submit.prevent="savePost">
-				
-			<!-- <div class="author-name"><span>Autor:</span> {{ authorName }}</div> -->
-			<div class="location-name"><span>Standort:</span> {{ locationName }}</div>
+			<div class="post-header">
+				<label class="management-field">
+					<select v-model="category" :disabled="saving">
+						<option value="">Unkategorisiert</option>
+						<option value="Bewässerung">Bewässerung</option>
+						<option value="Niederschlag">Niederschlag</option>
+						<option value="Fehler">Fehler</option>
+					</select>
+				</label>
+			</div>
 		
 			<label class="management-field">
 				<textarea v-model="content" rows="6" placeholder="Text" maxlength="5000" :disabled="saving"></textarea>
@@ -30,23 +38,11 @@
 				<input ref="fileInput" class="upload-input" type="file" :accept="canUploadVideo && !attachments.length ? 'image/jpeg,image/png,image/webp,video/mp4' : 'image/jpeg,image/png,image/webp'" :multiple="!hasVideo" :disabled="!canAddAttachments" @change="selectFiles">
 				<p v-if="uploadError" class="upload-error management-error">{{ uploadError }}</p>
 			</section>
-			<div v-if="manualTimestamp || isEditing" class="post-date-fields">
-				<label class="management-field">
-					<span>Datum</span>
+			<p v-if="error" class="management-note management-error">{{ error }}</p>
+			<div class="post-actions">
+				<label class="management-field post-date-field">
 					<input v-model="date" type="date" required>
 				</label>
-				<label class="management-field">
-					<span>Uhrzeit</span>
-					<input v-model="time" type="time" required>
-				</label>
-			</div>
-			<p v-if="error" class="management-note management-error">{{ error }}</p>
-			<div class="split post-actions">
-
-				<div v-if="!isEditing" class="settings-item">
-					<input id="post-manual-time" v-model="manualTimestamp" type="checkbox" @change="setManualTimestamp">
-					<label for="post-manual-time">Datum auswählen</label>
-				</div>
 				<div class="management-actions">
 					<button type="submit" :disabled="saving || discarding || uploading || hasUploadErrors"><Icon v-if="!isEditing" type="send" :size="20" />{{ isEditing ? 'Speichern' : 'Abschicken' }}</button>
 				</div>
@@ -80,12 +76,12 @@ export default {
 		},
 	},
 	data() {
-		const initialDate = this.post ? new Date(Number(this.post.timestamp)) : null;
+		const initialDate = this.post ? new Date(Number(this.post.timestamp)) : new Date();
 		return {
-			manualTimestamp: this.post !== null,
 			date: initialDate && !Number.isNaN(initialDate.getTime()) ? [initialDate.getFullYear(), String(initialDate.getMonth() + 1).padStart(2, '0'), String(initialDate.getDate()).padStart(2, '0')].join('-') : '',
 			time: initialDate && !Number.isNaN(initialDate.getTime()) ? [String(initialDate.getHours()).padStart(2, '0'), String(initialDate.getMinutes()).padStart(2, '0')].join(':') : '',
 			content: this.post?.content || '',
+			category: this.post?.category || '',
 			postId: this.post?.id || draftId(),
 			attachments: (this.post?.mediaIds || []).map((id) => ({ key: id, id, existing: true, status: 'ready' })),
 			processingQueue: false,
@@ -390,9 +386,7 @@ export default {
 				this.error = 'Bitte Text eingeben oder ein Bild hinzufügen.';
 				return;
 			}
-			const timestamp = this.manualTimestamp
-				? new Date(`${this.date}T${this.time}`).getTime()
-				: (this.saveTimestamp || Date.now());
+			const timestamp = new Date(`${this.date}T${this.time}`).getTime();
 			if (!Number.isFinite(timestamp)) {
 				this.error = 'Bitte einen gültigen Zeitpunkt auswählen.';
 				return;
@@ -402,8 +396,8 @@ export default {
 			this.saveTimestamp = timestamp;
 			try {
 				const response = this.isEditing
-					? await postsApi.update(this.post.id, this.content, timestamp, mediaIds)
-					: await postsApi.create(this.deviceId, this.content, timestamp, mediaIds, this.postId);
+					? await postsApi.update(this.post.id, this.content, timestamp, mediaIds, this.category)
+					: await postsApi.create(this.deviceId, this.content, timestamp, mediaIds, this.postId, this.category);
 				this.saved = true;
 				this.$emit(this.isEditing ? 'saved' : 'create', response.post);
 				loadMedia(true).catch(() => {});
@@ -414,38 +408,50 @@ export default {
 				this.saving = false;
 			}
 		},
-		setManualTimestamp() {
-			if (!this.manualTimestamp) return;
-			const now = new Date();
-			this.date = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
-			this.time = [String(now.getHours()).padStart(2, '0'), String(now.getMinutes()).padStart(2, '0')].join(':');
-		},
 	},
 };
 </script>
 
 <style lang="stylus" scoped>
-.post-date-fields
-	display grid
-	grid-template-columns 1fr 1fr
-	gap 8px
+.post-title-location
+	font-size 12px
+	padding-right 36px
+
 
 .post-form
+	padding-top 12px
+	gap 14px
 	min-width 0
 	grid-template-columns minmax(0, 1fr)
+	.post-header
+		display grid
+		grid-template-columns repeat(3, minmax(0, 1fr))
+		align-items center
+		input, select
+			width 100%
+	.management-field
+		input, select, textarea
+			background transparent
 	textarea
 		resize vertical
-	.split
-		flex-wrap wrap
-		gap 12px
-	.management-actions
-		margin-left auto
 	.post-actions
+		display grid
+		grid-template-columns repeat(3, minmax(0, 1fr))
+		align-items center
+		.management-field input
+			width 100%
+		.management-actions
+			grid-column 3
+			min-width 0
+			button
+				width 100%
+				min-width 0
+				padding-left 4px
+				padding-right 4px
 		position sticky
 		bottom 0
 		z-index 1
-		padding 12px 0
-		background #fff
+		background transparent
 
 .video-badge
 	position absolute
@@ -461,7 +467,6 @@ export default {
 
 .post-upload
 	min-width 0
-	margin 8px 0 16px
 
 .upload-input
 	display none

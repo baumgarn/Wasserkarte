@@ -1,14 +1,15 @@
 <template>
 	<div class="management-panel accounts">
-		<div v-if="loading" class="upper management-note management-notice">Accounts werden geladen …</div>
-		<p v-else-if="error" class="upper management-note management-error">{{ error }}</p>
+		<p v-if="!loading && error" class="upper management-note management-error">{{ error }}</p>
 		<div v-else class="upper accounts-list">
-			<table v-if="users.length" class="accounts-table">
+			<table v-if="!loading && users.length" class="accounts-table">
 				<thead>
 					<tr>
 						<th>Name</th>
 						<th>Email-Adresse</th>
-						<th>Standorte</th>
+						<th>Orte</th>
+						<th>Posts</th>
+						<th>Medien</th>
 						<th>Berechtigung</th>
 					</tr>
 				</thead>
@@ -16,12 +17,14 @@
 					<tr v-for="user in users" :key="user.id" class="account-row" tabindex="0" @click="$emit('permissions', user)" @keydown.enter="$emit('permissions', user)">
 						<td class="account-name" :title="userName(user)">{{ userName(user) }}</td>
 						<td class="account-email" :title="user.email">{{ user.email }}</td>
-						<td class="account-location-count">{{ user.locationCount || 0 }}</td>
+						<td class="account-location-count"><span :class="{ 'empty-count': !user.locationCount }">{{ user.locationCount || '-' }}</span></td>
+						<td class="account-post-count"><span :class="{ 'empty-count': !user.postCount }">{{ user.postCount || '-' }}</span></td>
+						<td class="account-media-count"><span :class="{ 'empty-count': !user.mediaCount }">{{ user.mediaCount || '-' }}</span></td>
 						<td class="account-authority">{{ permissionLabel(user.role) }}</td>
 					</tr>
 				</tbody>
 			</table>
-			<p v-else class="management-note management-notice">Keine Accounts gefunden.</p>
+			<p v-else-if="!loading" class="management-note management-notice">Keine Accounts gefunden.</p>
 		</div>
 		<div class="management-actions accounts-actions">
 			<button type="button" @click="$emit('create')"><Icon type="newaccount" :size="20" />Neuer Account</button>
@@ -82,8 +85,8 @@ export default {
 	display flex
 	flex-direction column
 	gap 10px
-	width 600px
-	min-height 200px
+	width 720px
+	min-height 300px
 	max-width calc(100vw - 32px)
 
 // .accounts-list
@@ -109,16 +112,19 @@ export default {
 	color var(--menusectionheadercolor)
 
 .accounts-table th:nth-child(1)
-	width 24%
+	width 22%
 
 .accounts-table th:nth-child(2)
-	width 36%
+	width 30%
 
 .accounts-table th:nth-child(3)
-	width 15%
-
 .accounts-table th:nth-child(4)
-	width 25%
+.accounts-table th:nth-child(5)
+	width 8%
+	text-align center
+
+.accounts-table th:nth-child(6)
+	width 24%
 
 .accounts-actions
 	padding-top 4px
@@ -150,7 +156,12 @@ export default {
 	max-width 180px
 
 .account-location-count
+.account-post-count
+.account-media-count
 	text-align center
+
+.empty-count
+	opacity .3
 
 .account-name
 	font-weight 500

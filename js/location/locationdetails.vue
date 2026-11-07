@@ -122,6 +122,7 @@ export default {
 		flex-grow 1
 		min-width 0
 		padding-left 0
+		padding-bottom 10px
 		cursor pointer
 	.nfklabel
 		font-weight bold
@@ -173,11 +174,16 @@ export default {
 		.nfklabel
 			font-size 11pt
 		.barrell
+			align-self center
 			margin-right 6px
-			// margin-left 6px
+			transform translateX(-2px)
 		.barrel-view-dots
 			margin-right 6px
 		.datacol
 			padding-left 6px
 			padding-right 6px
+		:deep(.location-table-caption)
+			white-space nowrap
+			overflow hidden
+			text-overflow ellipsis
 </style>

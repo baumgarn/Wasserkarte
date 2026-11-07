@@ -20,7 +20,7 @@
 	import Icon from '@/ui/Icon.vue';
 	import MiniMap from '@/map/minimap.vue';
 	import LocationPosts from '@/posts/location_posts.vue';
-	import PostTimeline from '@/posts/post-timeline.vue';
+	import PostTimeline from '@/posts/post_timeline.vue';
 	import dataStore from '@/datastore.js';
 	import { state } from '@/state.js';
 	import { dataModel } from '@/dataModel.js'
@@ -30,6 +30,8 @@
 	const RANGE_EPSILON = 0.000001;
 	const PRESET_TIME_RANGES = [365, 180, 90, 30, 7, 1];
 	const PRESET_RANGE_TOLERANCE_DAYS = 0.01;
+	const PINCH_HINT_DISMISS_COUNT = 2;
+	const PINCH_WHEEL_IDLE_MS = 250;
 	export default {
 
 		name: 'LocationView',
@@ -73,6 +75,10 @@
 					sensorDataLoading: false,
 					graphScale: 1.0,
 					graphPosition: 0,
+					pinch: null,
+					wheelPinch: null,
+					showZoomHint: state.chartPinchZoomCount < PINCH_HINT_DISMISS_COUNT,
+					touchPan: null,
 				earliestTimestamp: 0,
 				latestTimestamp: 0,
 					frameMargin: 0,
@@ -161,7 +167,7 @@
 				return Array.isArray(rows) && rows.length ? (rows[rows.length - 1]?.[0] ?? 0) : this.latestTimestamp;
 			},
 			numberOfDays() {
-				return Math.max(this.chartTimeRange,(this.latestTimestamp - this.earliestTimestamp) / (1000 * 60 * 60 * 24));
+				return Math.max(1, (this.latestTimestamp - this.earliestTimestamp) / DAY_MS);
 			},
 			minGraphScale() {
 				// A range smaller than the available data is limited to 24 hours.
@@ -334,14 +340,7 @@
 					this.earliestTimestamp = rows[0]?.[0] ?? 0;
 					this.latestTimestamp = rows[rows.length - 1]?.[0] ?? 0;
 
-					if (this.chartTimeRange === 0) {
-						// A custom range is relative to the previous location's data span.
-						// Start the new location at the standard 365-day range instead.
-						this.chartTimeRange = 365;
-					}
-					if (this.chartTimeRange > 0) {
-						this.selectTimeRange(this.chartTimeRange)
-					}
+					this.selectTimeRange(this.chartTimeRange === 0 ? state.chartCustomRangeDays : this.chartTimeRange);
 				} finally {
 					if (this.isCurrentSensorLoad(loadContext)) {
 						this.sensorDataLoading = false;
@@ -367,6 +366,7 @@
 			handleRangeUpdate(rangeData) {
 				this.graphScale = rangeData.scale;
 				this.graphPosition = rangeData.position;
+				state.chartCustomRangeDays = this.visibleRangeDays;
 				this.chartTimeRange = this.matchTimeRange(rangeData);
 			},
 			matchTimeRange({ position, scale }) {
@@ -387,7 +387,7 @@
 					this.graphScale = 1;
 					this.graphPosition = 0;
 				} else {
-					this.graphScale = rangeValue / this.numberOfDays;
+					this.graphScale = Math.min(1, rangeValue / this.numberOfDays);
 					this.graphPosition = 1 - this.graphScale;
 				}
 			},
@@ -402,17 +402,103 @@
 				this.frameWidth = frameRef ? (frameRef.clientWidth - this.frameMargin) : 0;
 				})
 			},
+			zoomGraph(scale, anchor, x) {
+				if (!this.frameWidth) return;
+				this.graphScale = Math.max(this.minGraphScale, Math.min(1, scale));
+				this.graphPosition = Math.max(0, Math.min(1 - this.graphScale, anchor - x / this.frameWidth * this.graphScale));
+				state.chartCustomRangeDays = this.visibleRangeDays;
+				this.chartTimeRange = this.graphScale === 1 ? -1 : 0;
+				this.hoverOut();
+			},
+			graphX(clientX) {
+				return Math.max(0, Math.min(this.frameWidth, clientX - this.$refs.frameRef.getBoundingClientRect().left));
+			},
 			scrollWheel(event) {
-				if (this.graphScale < 1) {
-					let newPosition = ((this.scrollLeft + event.deltaX) / (this.chartWidth - this.frameWidth)) * (1-this.graphScale);
-					if (newPosition < 0) {
-						newPosition = 0;
-					}
-					if (newPosition + this.graphScale > 1) {
-						newPosition = 1 - this.graphScale;
-					}
-					this.graphPosition = newPosition;
+				if (!this.frameWidth) return;
+				if (event.ctrlKey) {
+					event.preventDefault();
+					const x = this.graphX(event.clientX);
+					const anchor = this.graphPosition + x / this.frameWidth * this.graphScale;
+					const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? this.frameWidth : 1);
+					const startScale = this.graphScale;
+					this.zoomGraph(this.graphScale * Math.exp(delta * 0.01), anchor, x);
+					if (state.chartPinchZoomCount < PINCH_HINT_DISMISS_COUNT) this.trackWheelPinch(startScale);
+				} else if (this.graphScale < 1) {
+					this.graphPosition = Math.max(0, Math.min(1 - this.graphScale, this.graphPosition + event.deltaX / this.chartWidth));
 				}
+			},
+			trackWheelPinch(startScale) {
+				this.wheelPinch ??= { scale: startScale, zoomed: false, timer: null };
+				const pinch = this.wheelPinch;
+				pinch.zoomed ||= Math.abs(this.graphScale - pinch.scale) >= pinch.scale * 0.01;
+				clearTimeout(pinch.timer);
+				pinch.timer = setTimeout(() => {
+					this.wheelPinch = null;
+					if (pinch.zoomed) this.recordPinchZoom();
+				}, PINCH_WHEEL_IDLE_MS);
+			},
+			recordPinchZoom() {
+				if (state.chartPinchZoomCount < PINCH_HINT_DISMISS_COUNT) state.chartPinchZoomCount++;
+			},
+			startPinch(event) {
+				if (event.touches.length !== 2 || !this.frameWidth) return;
+				const [a, b] = event.touches;
+				const distance = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+				if (!distance) return;
+				event.preventDefault();
+				const x = this.graphX((a.clientX + b.clientX) / 2);
+				this.pinch = { distance, scale: this.graphScale, anchor: this.graphPosition + x / this.frameWidth * this.graphScale, zoomed: false };
+				this.hoverOut();
+			},
+			movePinch(event) {
+				if (!this.pinch || event.touches.length !== 2) return;
+				event.preventDefault();
+				const [a, b] = event.touches;
+				const distance = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+				if (!distance) return;
+				this.zoomGraph(this.pinch.scale * this.pinch.distance / distance, this.pinch.anchor, this.graphX((a.clientX + b.clientX) / 2));
+				this.pinch.zoomed ||= Math.abs(this.graphScale - this.pinch.scale) >= this.pinch.scale * 0.01;
+			},
+			endPinch() {
+				if (this.pinch?.zoomed) this.recordPinchZoom();
+				this.pinch = null;
+			},
+			startGraphTouch(event) {
+				this.touchPan = null;
+				if (event.touches.length === 1 && this.graphScale < 1 && this.frameWidth) {
+					const { clientX, clientY } = event.touches[0];
+					this.touchPan = { clientX, clientY, position: this.graphPosition, active: false };
+				}
+				this.startPinch(event);
+			},
+			moveGraphTouch(event) {
+				const pan = this.touchPan;
+				if (!pan || event.touches.length !== 1) {
+					this.movePinch(event);
+					return;
+				}
+
+				const dx = event.touches[0].clientX - pan.clientX;
+				if (!pan.active) {
+					const dy = event.touches[0].clientY - pan.clientY;
+					if (Math.max(Math.abs(dx), Math.abs(dy)) < 6) return;
+					if (Math.abs(dx) <= Math.abs(dy) || !event.cancelable) {
+						this.touchPan = null;
+						return;
+					}
+					pan.active = true;
+				}
+				if (!event.cancelable || !this.chartWidth) return;
+				event.preventDefault();
+				this.graphPosition = Math.max(0, Math.min(1 - this.graphScale, pan.position - dx / this.chartWidth));
+			},
+			endGraphTouch() {
+				this.touchPan = null;
+				this.endPinch();
+				this.hoverOut();
+			},
+			scrollToPost(id) {
+				this.$refs.locationPosts?.scrollToPost(id);
 			},
 			setPostHover(timestamp) {
 				this.postHoverTimestamp = timestamp;
@@ -420,11 +506,13 @@
 				state.timelineDate = timestamp;
 			},
 			hover(event) {
-				const rect = this.$refs.frameRef.getBoundingClientRect();
-				if (event.type === "mousemove") {
+				if (event.touches) {
+					if (this.pinch || event.touches.length !== 1 || !this.frameWidth) return;
+					this.postHoverTimestamp = null;
+					this.hoverPosition = this.graphX(event.touches[0].clientX);
+				} else if (event.pointerType !== 'touch') {
+					const rect = this.$refs.frameRef.getBoundingClientRect();
 					this.hoverPosition = event.clientX - rect.left;
-				} else if (event.type === "touchmove" || event.type === "touchstart") {
-					this.hoverPosition = event.touches[0].clientX; - rect.left;
 				}
 			},
 			hoverOut() {
@@ -476,6 +564,7 @@
 			},
 			beforeUnmount() {
 				this.sensorLoadRequestId++;
+				clearTimeout(this.wheelPinch?.timer);
 				window.removeEventListener('resize', this.updateFrameWidth);
 				if (this.resizeObserver) {
 					this.resizeObserver.disconnect();
@@ -532,11 +621,11 @@
 	
 		<ChartSettings v-if="hasBodenfeuchteSensors" :frameWidth :earliestTimestamp="aggregatedEarliestTimestamp" :latestTimestamp="aggregatedLatestTimestamp" :visibleDays="visibleRangeDays" />
 
-		<ChartYears v-if="hasBodenfeuchteSensors && chartStyle === 'years'" :device :frameWidth @hover="setPostHover" />
+		<ChartYears v-if="hasBodenfeuchteSensors && chartStyle === 'years'" :device :frameWidth @hover="setPostHover" @select-post="scrollToPost($event.id)" />
 
-		<div v-show="chartStyle !== 'years'" class="scrollcontainer" @wheel="scrollWheel">
+		<div v-show="chartStyle !== 'years'" class="scrollcontainer" @wheel="scrollWheel" @touchstart.capture="startGraphTouch" @touchmove.capture="moveGraphTouch" @touchend.capture="endGraphTouch" @touchcancel.capture="endGraphTouch">
 			
-			<div class="hovercontainer" @mousemove="hover" @mouseleave="hoverOut" @touchstart="hoverOut" @touchmove="hover" @touchend="hoverOut" @touchcancel="hoverOut">
+			<div class="hovercontainer" @pointermove="hover" @pointerleave="event => event.pointerType !== 'touch' && hoverOut()" @touchstart="hover" @touchmove="hover">
 			
 				<div v-if="hasBodenfeuchteSensors">
 				<!-- <hr/> -->
@@ -641,9 +730,21 @@
 			:graph-scale="graphScale"
 			:graph-position="graphPosition"
 			:min-scale="minGraphScale"
+			@wheel="scrollWheel"
+			@touchstart.capture="startPinch"
+			@touchmove.capture="movePinch"
+			@touchend.capture="endPinch"
+			@touchcancel.capture="endPinch"
 			@range-update="handleRangeUpdate" />
 
-		<LocationPosts ref="locationPosts" :device @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)" />
+		<LocationPosts ref="locationPosts" :device @hover="setPostHover" @create="$emit('create-post', device)" @edit="$emit('edit-post', $event)" @delete="$emit('delete-post', $event)">
+			<template #header-end>
+				<p v-if="showZoomHint && hasBodenfeuchteSensors && dataPresent && chartStyle !== 'years' && minGraphScale < 1" class="zoom-hint">
+					<span>Zwei Finger auseinanderziehen<br>um Ausschnitt zu vergrößern</span>
+					<img src="/img/pinch_horizontal.svg" width="20" height="20">
+				</p>
+			</template>
+		</LocationPosts>
 
 	<div v-if="context=='single'" class="linktomap" @click="linktomap">
 		<Icon type="tropfen" size="32"/>
@@ -661,6 +762,24 @@
 </template>
 
 <style lang="stylus" scoped>
+	.zoom-hint
+		position absolute
+		top 50%
+		right 0
+		margin 0
+		transform translateY(calc(-50% - 4px))
+		display flex
+		align-items center
+		gap 6px
+		text-align right
+		font-size 11px
+		opacity .4
+		img
+			flex-shrink 0
+
+	.scrollcontainer
+		touch-action pan-y
+
 
 	.location
 		padding 10px 24px 0

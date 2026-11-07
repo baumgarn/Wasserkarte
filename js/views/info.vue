@@ -34,7 +34,7 @@
 
 					<div class="legenditem clickable" @click="openMenu('posts')">
 						<div class="legendimage">
-							<Icon type="posts" :size="36" />
+							<Icon type="pinkpost" :size="36" />
 						</div>
 						<div class="legendtext">
 							Neueste Posts zu den Sensorstandorten
@@ -80,12 +80,12 @@
 							Geologische Karten der Landesvermessung und Geobasisinformation Brandenburg (LGB)
 						</div>
 					</div>
-					<div v-if="!state.account.authenticated" class="legenditem clickable" @click="openMenu('einstellungen', $event )">
+					<div class="legenditem clickable" @click="openMenu('einstellungen', $event )">
 						<div class="legendimage">
 							<Icon type="einstellungen" :size="36" />
 						</div>
 						<div class="legendtext">
-							Einstellungen sowie alternative Farbschemata
+							Karteneinstellungen wie alternative Farbschemata
 						</div>
 					</div>
 					<div class="legenditem clickable" @click="openMenu('bodenkunde', $event )">

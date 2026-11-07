@@ -20,6 +20,15 @@ export function loadMedia(force = false) {
 		}
 		state.mediaLoaded = true;
 		state.postsLocalMode = response.localMode === true;
+		// Die ersten Menübilder schon laden, bevor das Posts-Menü geöffnet wird.
+		const ids = state.posts.flatMap(post => post.mediaIds || []).slice(0, 8);
+		for (const id of ids) {
+			const url = state.media[id]?.variants?.thumbnail?.url;
+			if (url) {
+				const image = new Image();
+				image.src = url;
+			}
+		}
 		return state.media;
 	}).catch((error) => {
 		state.mediaError = error.message;

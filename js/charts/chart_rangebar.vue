@@ -235,6 +235,7 @@ export default {
 <style lang="stylus" scoped>
 
 .chart-range
+	touch-action pan-y
 	--barheight .2em
 	--barheight 12px
 	padding: 0

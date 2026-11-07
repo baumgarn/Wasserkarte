@@ -29,7 +29,6 @@ export const state = reactive({
 	wsmlegends: false,
 	menuOpen: {},
 	accountDetailsOpen: false,
-	mapSettingsOpen: false,
 	accountsOpen: false,
 	mediaManagerOpen: false,
 	createAccountOpen: false,
@@ -59,6 +58,7 @@ export const state = reactive({
 	mediaManagerAllUsers: false,
 	mediaManagerLocalMode: false,
 	chartTimeRange: 365,
+	chartCustomRangeDays: 365,
 	dataAggregation: '1d',
 	iframeWidth: '800',
 	iframeHeight: '950',
@@ -70,6 +70,7 @@ export const state = reactive({
 	popupMenuOpen: false,
 	markerClicked: false,
 	timelineDate: null,
+	hoveredPostId: null,
 	account: {
 		loading: true,
 		authenticated: false,
@@ -88,6 +89,7 @@ export const state = reactive({
 localStorageState('markerStyle', 'Bodenfeuchte_Farbkreis');
 localStorageState('focusMode', false);
 localStorageState('chartStyle', 'schichten');
+localStorageState('chartPinchZoomCount', 0, true);
 localStorageState('timelineRange', '365d');
 localStorageState('timelineStyle', 'nfk_avg');
 localStorageState('showHelp', true);
@@ -182,15 +184,20 @@ dataModel.bookmarkfilter_obj.count = state.bookmarks.length;
 // LOCAL STORAGE
 
 // Stores and retrieves state property in local storage
-function localStorageState(key, defaultValue) {
+function localStorageState(key, defaultValue, saveOnChange = false) {
 	if (localStorage.getItem(key)) {
 		state[key] = JSON.parse(localStorage.getItem(key));
 	} else {
 		state[key] = defaultValue;
 	}
-	window.addEventListener('beforeunload', () => {
+	const save = () => {
 		localStorage.setItem(key, JSON.stringify(state[key]));
-	});
+	};
+	if (saveOnChange) {
+		watch(() => state[key], save, { flush: 'sync' });
+	} else {
+		window.addEventListener('beforeunload', save);
+	}
 }
 
 // Defines a computed reactive state property.
@@ -219,7 +226,6 @@ export function closeAllMenuWindowsAndSidebar() {
 
 export function closeAllModals() {
 	state.accountDetailsOpen = false;
-	state.mapSettingsOpen = false;
 	state.accountsOpen = false;
 	state.mediaManagerOpen = false;
 	state.createAccountOpen = false;

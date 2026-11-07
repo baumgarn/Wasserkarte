@@ -2,15 +2,15 @@
     "name": "nest-baume1",
     "label": "Arensnest Hausweide B\u00e4ume#1",
     "id": "795fda80-9b62-11ef-9dbe-c5b4566b6e95",
-    "timestamp": 1793700300,
-    "queryTime": 4.585555791854858,
-    "newDataPoints": 628,
-    "totalDataPoints": 628,
+    "timestamp": 1793889949,
+    "queryTime": 0.1031639575958252,
+    "newDataPoints": 1,
+    "totalDataPoints": 630,
     "earliestTimestamp": 1737072000000,
-    "latestTimestamp": 1793577600000,
+    "latestTimestamp": 1793750400000,
     "earliestDate": "2025-01-17 01:00:00",
-    "latestDate": "2026-11-02 01:00:00",
-    "days": 655,
+    "latestDate": "2026-11-04 01:00:00",
+    "days": 657,
     "telemetry": {
         "schema": [
             "ts",
@@ -5673,6 +5673,24 @@
                 123.63,
                 189.33,
                 41.44
+            ],
+            [
+                1793664000000,
+                46.37,
+                28.67,
+                213.94,
+                122.94,
+                183.61,
+                40.47
+            ],
+            [
+                1793750400000,
+                44.97,
+                28.45,
+                205.71,
+                121.56,
+                177.66,
+                39.46
             ]
         ]
     }

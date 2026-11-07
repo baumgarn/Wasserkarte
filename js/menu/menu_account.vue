@@ -40,9 +40,6 @@
 					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">
 						<Icon type="person" :size="20" />Konto
 					</button>
-					<button :class="{ active: state.mapSettingsOpen }" type="button" @click="toggleAccountModal('mapSettingsOpen')">
-						<Icon type="einstellungen-black" :size="20" />Einstellungen
-					</button>
 					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">
 						<Icon type="accounts" :size="20" />Accounts
 					</button>

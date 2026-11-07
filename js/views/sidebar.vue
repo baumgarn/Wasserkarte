@@ -4,7 +4,7 @@
 		<div class="windowrow">
 			<MenuDevices :sideview="true" v-if="sidebarFullView"/>
 			<div class="scrollcontent">
-				<LocationView :device="device" @create-post="$emit('create-post', $event)" @edit-post="$emit('edit-post', $event)" @delete-post="$emit('delete-post', $event)" />
+				<LocationView ref="location" :device="device" @create-post="$emit('create-post', $event)" @edit-post="$emit('edit-post', $event)" @delete-post="$emit('delete-post', $event)" />
 			</div>
 			<WindowButtons :device="device" :close="close"/>
 		</div>
@@ -42,6 +42,10 @@ export default {
 		},
 	},
 	methods: {
+		async scrollToPost(id) {
+			await this.$nextTick();
+			this.$nextTick(() => this.$refs.location?.scrollToPost(id));
+		},
 		close() {
 			state.selectedDevice = null;
 			state.sidebarFullView = false;

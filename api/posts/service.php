@@ -175,6 +175,8 @@ function postsNormalise($value, string $deviceId, int $storageTs): ?array
 		'content' => $value['content'],
 		'mediaIds' => mediaIds($value['mediaIds'] ?? []) ?? [],
 	];
+	$category = postsCategory($value['category'] ?? '') ?? '';
+	if ($category !== '') $post['category'] = $category;
 	if (isset($value['environment'])) {
 		$post['environment'] = $value['environment'];
 	}
@@ -373,6 +375,11 @@ function postsTimestamp($value): ?int
 	}
 	$timestamp = (int) $value;
 	return $timestamp >= 946684800000 && $timestamp <= ((int) floor(microtime(true) * 1000) + 31536000000) ? $timestamp : null;
+}
+
+function postsCategory($value): ?string
+{
+	return in_array($value, ['', 'Bewässerung', 'Niederschlag', 'Fehler'], true) ? $value : null;
 }
 
 function postsContent($value): ?string

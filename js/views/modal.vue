@@ -7,10 +7,16 @@
 			<section
 				ref="window"
 				class="modal-window"
+				:style="{ background }"
 				role="dialog"
 				:aria-modal="modal ? 'true' : undefined"
 				:aria-label="title || 'Dialog'">
-				<header class="modal-titlebar">
+				<header
+					class="modal-titlebar"
+					:class="{ dragging: drag }"
+					@pointerdown="startDrag"
+					@pointermove="moveDrag"
+					@lostpointercapture="endDrag">
 					<div class="modal-title">
 						<Icon v-if="icon" :type="icon" :size="22" />
 						<h2 v-if="title">{{ title }}</h2>
@@ -23,6 +29,7 @@
 						class="iconbutton close"
 						type="button"
 						aria-label="Dialog schließen"
+						@pointerdown.stop
 						@click="close">
 				</div>
 				</header>
@@ -43,6 +50,7 @@ export default {
 	components: { Icon },
 	emits: ['close'],
 	props: {
+		background: { type: String, default: '#fff' },
 		icon: { type: String, default: '' },
 		title: {
 			type: String,
@@ -54,6 +62,15 @@ export default {
 		},
 		modal: { type: Boolean, default: true },
 		stacked: { type: Boolean, default: false },
+		positionKey: { type: String, default: '' },
+	},
+	data() {
+		return { position: null, drag: null, resizeObserver: null };
+	},
+	computed: {
+		storageKey() {
+			return `modalPosition:${this.positionKey || this.title}`;
+		},
 	},
 	methods: {
 		close() {
@@ -65,12 +82,63 @@ export default {
 		handleKeydown(event) {
 			if (event.key === 'Escape') this.close();
 		},
+		placeWindow(x, y) {
+			const dialog = this.$refs.window;
+			const { width, height } = dialog.getBoundingClientRect();
+			const bounds = dialog.parentElement.getBoundingClientRect();
+			const spaceX = Math.max(0, bounds.width - width);
+			const spaceY = Math.max(0, bounds.height - height);
+			x = Math.min(spaceX, Math.max(0, x));
+			y = Math.min(spaceY, Math.max(0, y));
+			dialog.style.left = `${x - spaceX / 2}px`;
+			dialog.style.top = `${y - spaceY / 2}px`;
+			return { x, y };
+		},
+		fitPosition() {
+			if (this.position) this.placeWindow(this.position.x, this.position.y);
+		},
+		startDrag(event) {
+			if (event.button !== 0 || this.drag) return;
+			const dialog = this.$refs.window;
+			const rect = dialog.getBoundingClientRect();
+			const bounds = dialog.parentElement.getBoundingClientRect();
+			event.currentTarget.setPointerCapture(event.pointerId);
+			this.drag = {
+				id: event.pointerId,
+				x: event.clientX - rect.left + bounds.left,
+				y: event.clientY - rect.top + bounds.top,
+				moved: false,
+			};
+		},
+		moveDrag(event) {
+			if (event.pointerId !== this.drag?.id) return;
+			this.position = this.placeWindow(event.clientX - this.drag.x, event.clientY - this.drag.y);
+			this.drag.moved = true;
+		},
+		endDrag(event) {
+			if (event.pointerId !== this.drag?.id) return;
+			if (this.drag.moved) {
+				try {
+					localStorage.setItem(this.storageKey, JSON.stringify(this.position));
+				} catch {}
+			}
+			this.drag = null;
+		},
 	},
 	mounted() {
+		try {
+			const position = JSON.parse(localStorage.getItem(this.storageKey));
+			if (Number.isFinite(position?.x) && Number.isFinite(position?.y)) this.position = position;
+		} catch {}
+		this.fitPosition();
+		this.resizeObserver = new ResizeObserver(this.fitPosition);
+		this.resizeObserver.observe(this.$refs.window);
+		this.resizeObserver.observe(this.$refs.window.parentElement);
 		window.addEventListener('keydown', this.handleKeydown);
 		this.$refs.closeButton.focus();
 	},
 	beforeUnmount() {
+		this.resizeObserver.disconnect();
 		window.removeEventListener('keydown', this.handleKeydown);
 	},
 };
@@ -96,6 +164,7 @@ export default {
 	z-index 500
 
 .modal-window
+	position relative
 	display flex
 	flex-direction column
 	box-sizing border-box
@@ -119,6 +188,12 @@ export default {
 	flex 0 0 36px
 	box-sizing border-box
 	border-bottom 1px solid #00000022
+	cursor grab
+	touch-action none
+	user-select none
+
+.modal-titlebar.dragging
+	cursor grabbing
 
 
 .modal-title h2

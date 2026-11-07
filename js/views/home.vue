@@ -31,7 +31,7 @@
 						<FilterMenu v-if="state.menuOpen.filter"/>
 						<ColorschemeMenu v-if="state.menuOpen.colorscheme"/>
 						<!-- <BodenkundeMenu v-if="!state.isMobile && state.menuOpen.bodenkunde"/> -->
-						<SettingsMenu v-if="!state.account.authenticated && state.menuOpen.einstellungen"/>
+						<SettingsMenu v-if="state.menuOpen.einstellungen"/>
 						<KartenMenu v-if="state.menuOpen.karten"/>
 					</div>
 										
@@ -55,14 +55,6 @@
 		<!-- <BodenkundeMenu v-if="state.isMobile && state.menuOpen.bodenkunde"/> -->
 
 	<Modal
-		v-if="state.account.authenticated && state.mapSettingsOpen"
-		title="Karteneinstellungen"
-		icon="einstellungen-black"
-		@close="state.mapSettingsOpen = false">
-		<SettingsMenu modal />
-	</Modal>
-
-	<Modal
 		v-if="state.accountDetailsOpen"
 		title="Konto"
 		icon="person"
@@ -80,7 +72,7 @@
 		icon="accounts"
 		:min-width="560"
 		:max-width="820"
-		:min-height="180"
+		:min-height="300"
 		:max-height="600"
 		@close="state.accountsOpen = false">
 		<Accounts ref="accounts" @create="state.createAccountOpen = true" @permissions="openAccountPermissions" />
@@ -99,7 +91,9 @@
 
 	<Modal
 		v-if="state.accountPermissionsOpen && state.accountPermissionsUser"
-		title="Berechtigungen"
+		:title="[state.accountPermissionsUser.firstName, state.accountPermissionsUser.lastName].filter(Boolean).join(' ') || state.accountPermissionsUser.email"
+		position-key="accountPermissions"
+		icon="person"
 		:min-width="320"
 		:max-width="480"
 		:min-height="180"
@@ -159,7 +153,7 @@
 		<Info v-if="state.menuOpen.info"/>
 		
 
-		<Sidebar @create-post="openPostCreate" @edit-post="openPostEdit" @delete-post="openPostDelete" />
+		<Sidebar ref="sidebar" @create-post="openPostCreate" @edit-post="openPostEdit" @delete-post="openPostDelete" />
 		
 		<LayerLegends />
 

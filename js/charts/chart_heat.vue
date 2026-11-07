@@ -746,6 +746,7 @@ export default {
 	flex-direction row
 	justify-content space-between
 	align-items baseline
+	white-space nowrap
 	padding 2px 2px
 	height 20px
 	margin-bottom 0
@@ -758,12 +759,15 @@ export default {
 		opacity .7
 		position relative
 	.soilinfo
+		display flex
+		min-width 0
 		font-size 8pt
 		opacity .7
 		.soil
 		.humus
 			margin-left 16px
-			display inline-block
+			overflow hidden
+			text-overflow ellipsis
 	.value
 		font-weight bold
 		font-size 10.5pt
@@ -783,7 +787,6 @@ export default {
 		flex-grow 1
 		align-items baseline
 		justify-content center
-		white-space nowrap
 		.bodenfeuchteName
 			flex 2
 			text-align left

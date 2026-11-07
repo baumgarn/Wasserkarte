@@ -493,23 +493,6 @@ button.success
 // MANAGEMENT
 
 
-.media-more
-.post-item-more
-	flex 0 0 18px
-	width 18px
-	margin -2px 0px -2px 6px
-	padding 0
-	border 0
-	border-radius 4px
-	cursor pointer
-	display flex
-	align-items center
-	justify-content center
-	background #0000000c
-	transition background linear .1s 
-	&:hover
-		background #00000018
-
 .split
 	display flex
 	justify-content space-between
@@ -877,6 +860,7 @@ hr
 		background transparent
 
 .chartheader
+	padding-bottom 2px
 	display flex
 	align-items baseline
 	justify-content space-between
@@ -1116,3 +1100,299 @@ hr
 // 	background #888
 // 	// border 2px solid #00000077
 // 	pointer-events none
+
+// POSTS
+
+.media-more
+.post-item-more
+	flex 0 0 18px
+	width 18px
+	margin -2px 0px -2px 6px
+	padding 0
+	border 0
+	border-radius 4px
+	cursor pointer
+	display flex
+	align-items center
+	justify-content center
+	background rgba(0,0,0,.075)
+	transition background linear .1s
+	filter drop-shadow(0 1px 1px rgba(0,0,0,0.2))
+	&:hover
+		background rgba(0,0,0,.125)
+
+.post-item
+	padding 8px
+	width 100%
+	min-width 0
+	max-width 100%
+
+.post-item + .post-item
+	border-top 1px solid #00000022
+
+.post-item-open-location
+	cursor pointer
+
+// .post-item-open-location:hover
+// 	background-color #00000008
+
+.post-item-open-location:focus-visible
+	outline 2px solid var(--menusectionheadercolor)
+	outline-offset 2px
+
+
+.post-item-header
+	display flex
+	align-items center
+	font-size 8.5pt
+	width 100%
+	min-width 0
+	color rgba(0,0,0,.6)
+	margin 0
+	margin-right 2px
+	padding 0
+
+.post-item-location
+.post-item-author
+	overflow hidden
+	text-overflow ellipsis
+	white-space nowrap
+	min-width 0
+
+.post-item-location
+.post-item-author
+	flex-shrink 1
+.post-item-location
+.post-item-author
+	color rgba(0,0,0,.5)
+
+.post-item-separator
+	opacity .3
+	flex none
+	margin 0 .3em
+	&::before
+		content '•'
+
+.post-item-date
+	font-size 9.5pt
+	font-weight bold
+	color #000
+	display flex
+	align-items center
+	flex 0 0 auto
+	min-width 0
+	text-align left
+
+.post-item-content
+	margin 6px 0 0
+	white-space pre-wrap
+	overflow-wrap anywhere
+	line-height 1.45
+	// font-size 11pt
+
+.post-item-author + .post-item-more
+.post-item-schichten
+	margin-left auto
+
+.post-item-schichten
+	--moistureiconsize 16px
+	flex 0 0 var(--moistureiconsize)
+	width var(--moistureiconsize)
+	height var(--moistureiconsize)
+	border-radius 50%
+	cursor pointer
+	filter drop-shadow(0 1px 1px rgba(0,0,0,0.2))
+	position relative
+	&:hover
+	&.active
+		outline 1px solid rgba(0,0,0,.35)
+		outline-offset 0
+
+
+.post-moisture-popup
+	position fixed
+	z-index 10000
+	padding 0px
+	background #fff
+	color #111
+	border none
+	outline none
+	border-radius 6px
+	box-shadow 0 2px 8px #0002
+	outline 1px solid rgba(0,0,0,.2)
+	font-size 7.5pt
+	max-width calc(100vw - 8px)
+	overflow-x auto
+	table
+		border-collapse collapse
+		white-space nowrap
+	td
+		padding 3px 4px
+	td:first-child
+		padding-left 6px
+	td:last-child
+		padding-right 6px
+	.vol
+	.nfk
+		text-align right
+		font-variant-numeric tabular-nums
+	.level
+		color #000
+		font-weight normal
+
+.post-timeline
+	position relative
+	height 0
+	overflow visible
+	box-sizing border-box
+	z-index 101
+	max-width 100%
+	&:has(.post-preview)
+		z-index 1001
+.post-marker
+	border-radius 0
+	display grid
+	place-items center
+	width 18px
+	height 18px
+	background-color #444
+	color white
+	pointer-events auto
+	position absolute
+	top -13px
+	transform translateX(-50%)
+	cursor pointer
+	img
+		width 100%
+		height 100%
+		object-fit cover
+	&:before
+		content ''
+		position absolute
+		top 100%
+		left 0
+		width 100%
+		height 9px
+	&:after
+		display none
+		content ''
+		position absolute
+		top 100%
+		left calc(50% - 3px)
+		border-left 3px solid transparent
+		border-right 3px solid transparent
+		border-top 6px solid #444
+	&:hover
+		background #aaa
+	.icon.icon
+		background-color white !important
+	.icon.icon.type-post-text
+		mask url(/img/post-note.svg) center / contain no-repeat
+.post-marker.overlap-left
+	box-shadow -1.5px 0 #ddd
+.post-marker.overlap-right
+	box-shadow 1.5px 0 #ddd
+.post-marker.overlap-left.overlap-right
+	box-shadow -1.5px 0 #ddd, 1.5px 0 #ddd
+.post-preview
+	pointer-events auto
+	position absolute
+	width max-content
+	bottom 13px
+	z-index 20
+	box-sizing border-box
+	padding 0
+	max-height 60vh
+	overflow-y auto
+	scrollbar-width none
+	&::-webkit-scrollbar
+		display none
+	background white
+	border 1px solid rgba(0,0,0,0.2)
+	box-shadow 0 2px 8px rgba(0,0,0,0.2)
+	cursor pointer
+	p
+		margin 6px 0 0
+		font-size 9pt
+		white-space pre-wrap
+		overflow-wrap anywhere
+		display -webkit-box
+		-webkit-line-clamp 5
+		-webkit-box-orient vertical
+		overflow hidden
+.post-preview-gallery
+	display flex
+	flex-wrap wrap
+	align-items flex-start
+	gap 4px
+	margin-top 6px
+	img
+		width auto
+		max-width 75%
+		height auto
+		max-height 180px
+		object-fit contain
+.post-preview-fade-enter-active
+.post-preview-fade-leave-active
+	transition opacity 100ms ease
+.post-preview-fade-enter-from
+.post-preview-fade-leave-to
+	opacity 0
+.post-preview-fade-leave-active
+	pointer-events none
+.post-preview-item
+	padding 8px 10px
+	& + &
+		border-top 1px solid #00000022
+.post-preview-header
+	display flex
+	align-items baseline
+	font-size 8pt
+	color rgba(0,0,0,.6)
+	opacity 1
+.post-preview-author
+	color rgba(0,0,0,.5)
+	min-width 0
+	overflow hidden
+	text-overflow ellipsis
+	white-space nowrap
+.post-preview-date
+	font-size 9pt
+	font-weight bold
+	color #000
+	flex-shrink 0
+	white-space nowrap
+
+.location-posts
+	margin 16px var(--sidebartextmargin) 8px
+
+.location-posts-header
+	display flex
+	align-items center
+	justify-content space-between
+	gap 12px
+
+.location-posts-header h3
+	margin 0
+	font-size 11pt
+
+.location-posts-list
+	margin 12px 0
+	min-width 0
+	max-width 100%
+
+.menu-posts-list
+	margin-top 1px
+	box-shadow 0 2px 8px rgba(0,0,0,0.2)
+	
+.location-posts-list
+	box-shadow 0 1px 8px rgba(0,0,0,0.25)
+	margin-top 16px
+	margin-bottom 26px
+
+.post-item
+.post-preview-item
+	transition background-color 150ms linear
+	&.hovered:not(.post-preview-item:only-child)
+		background-color #f6f6f6
+		background-color var(--activecolorgreybrighter)

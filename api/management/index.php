@@ -5,6 +5,7 @@ require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/thingsboard-client.php';
 require_once __DIR__ . '/rate-limit.php';
+require_once __DIR__ . '/../posts/service.php';
 
 function managementRespond(array $payload, int $status = 200): void
 {
@@ -334,6 +335,21 @@ if ($action === 'users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 	$token = managementServiceToken();
 	$users = [];
 	$page = 0;
+	$postCounts = [];
+	$mediaCounts = [];
+	$postsCache = postsReadCache() ?? postsRebuildCache($token);
+	foreach ($postsCache['posts'] as $post) {
+		if (!postsLocalMode() && isset($post['environment'])) continue;
+		$authorId = $post['authorUserId'] ?? '';
+		$postCounts[$authorId] = ($postCounts[$authorId] ?? 0) + 1;
+	}
+	foreach (postsLocalMode() ? [false, true] : [false] as $local) {
+		foreach (mediaReadIndex($local)['media'] as $item) {
+			if (!is_array($item) || !mediaValidId($item['id'] ?? null) || !mediaInEnvironment($item, $local)) continue;
+			$authorId = $item['authorUserId'] ?? '';
+			$mediaCounts[$authorId] = ($mediaCounts[$authorId] ?? 0) + 1;
+		}
+	}
 
 	do {
 		$response = thingsBoardManagementRequest(
@@ -361,6 +377,8 @@ if ($action === 'users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 				'role' => $userPermissions['role'],
 				'locations' => $userPermissions['locations'],
 				'locationCount' => count($userPermissions['locations']),
+				'postCount' => $postCounts[$userId] ?? 0,
+				'mediaCount' => $mediaCounts[$userId] ?? 0,
 				'createdTime' => $user['createdTime'] ?? null,
 			];
 		}
@@ -413,9 +431,28 @@ if ($action === 'user-permissions' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (count($locations) > 500) {
 		managementRespond(['error' => 'Es können höchstens 500 Standorte zugeordnet werden.'], 400);
 	}
+	$updateProfile = is_array($input) && array_key_exists('firstName', $input) && array_key_exists('lastName', $input);
+	if ($updateProfile) {
+		$firstName = trim((string) $input['firstName']);
+		$lastName = trim((string) $input['lastName']);
+		if (mb_strlen($firstName) > 255 || mb_strlen($lastName) > 255) {
+			managementRespond(['error' => 'Vor- und Nachname dürfen jeweils höchstens 255 Zeichen enthalten.'], 400);
+		}
+	}
 
 	$token = managementServiceToken();
-	managementRequireCustomerUser($userId, $token);
+	$user = managementRequireCustomerUser($userId, $token);
+	if ($updateProfile) {
+		$user['firstName'] = $firstName;
+		$user['lastName'] = $lastName;
+		$updated = thingsBoardManagementRequest('POST', '/user?sendActivationMail=false', $user, $token);
+		if ($updated['status'] !== 200 || !is_array($updated['body'])) {
+			managementRespond(['error' => 'Profil konnte nicht gespeichert werden.'], 502);
+		}
+		if ((getManagementIdentity()['id'] ?? '') === $userId) {
+			updateManagementIdentity(['firstName' => $firstName, 'lastName' => $lastName]);
+		}
+	}
 	$saved = thingsBoardManagementRequest(
 		'POST',
 		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/attributes/SERVER_SCOPE',

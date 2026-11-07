@@ -1,11 +1,12 @@
 <template>
 	<section class="location-posts">
 		<div class="location-posts-header">
-			<button v-if="canCreateEntry" type="button" @click="$emit('create')"><Icon type="postbw" :size="20" />Neuer Post</button>
+			<button v-if="canCreateEntry" type="button" @click="$emit('create')"><Icon type="plus-square" :size="14" />Neuer Post</button>
+			<slot name="header-end" />
 		</div>
 		<p v-if="error" class="management-note management-error">{{ error }}</p>
 		<div v-if="posts.length" class="location-posts-list">
-			<PostItem ref="postItems" v-for="post in posts" :key="post.id" :post context="location" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
+			<PostItem ref="postItems" v-for="post in posts" :key="post.id" :post context="location" @mouseenter="$emit('hover', Number(post.timestamp))" @mouseleave="$emit('hover', null)" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
 		</div>
 	</section>
 </template>
@@ -19,7 +20,7 @@ import { loadPosts } from '@/posts/store.js';
 export default {
 	name: 'LocationPosts',
 	components: { PostItem, Icon },
-	emits: ['create', 'edit', 'delete'],
+	emits: ['create', 'edit', 'delete', 'hover'],
 	props: {
 		device: {
 			type: Object,
@@ -61,25 +62,10 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.location-posts
-	margin 16px var(--sidebartextmargin) 8px
-
 .location-posts-header
-	display flex
-	align-items center
-	justify-content space-between
-	gap 12px
-
-.location-posts-header h3
-	margin 0
-	font-size 11pt
-
-.location-posts-list
-	margin 12px 0
-	min-width 0
-	max-width 100%
-	border-top var(--thinline)
-	border-bottom var(--thinline)
-
-
+	position relative
+	&:has(> *)
+		height 26px
+	> button
+		height 100%
 </style>

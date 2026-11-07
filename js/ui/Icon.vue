@@ -1,6 +1,6 @@
 <template>
 
-	<div v-if="shouldRender"
+	<component :is="tag" v-if="shouldRender"
 		 class="icon icon"
 		 :class="[filterNameClass, typeClass, { excluded: exclude, shadow: shadow }]"
 		 :style="iconStyle">
@@ -8,12 +8,7 @@
 		<svg v-else-if="typeClass === 'type-standorttabelle'" width="100%" height="100%" viewBox="3 3 36 36">
 			<rect v-for="(color, index) in timelineColors" :key="index" x="7" :y="8 + index * 6.5" :width="28.3 - index * 4" height="6.5" :fill="color" />
 		</svg>
-		<svg v-else-if="['type-post-text', 'type-post-imag', 'type-post-video'].includes(typeClass)" width="100%" height="100%" viewBox="0 0 24 24">
-			<path v-if="typeClass === 'type-post-text'" d="M5 5h14M5 10h14M5 15h10M5 20h7" fill="none" stroke="currentColor" stroke-width="2"/>
-			<path v-else-if="typeClass === 'type-post-imag'" d="M8 3h8l2 4h4v14H2V7h4z M17 13a5 5 0 1 0-10 0 5 5 0 0 0 10 0" fill="currentColor" fill-rule="evenodd"/>
-			<path v-else d="m7 4 13 8-13 8z" fill="currentColor"/>
-		</svg>
-	</div>
+	</component>
 
 </template>
 
@@ -62,6 +57,7 @@ function normalizePixelSize(value) {
 export default {
 	name: 'Icon',
 	props: {
+		tag: { type: String, default: 'div' },
 		obj: {
 			type: Object,
 			required: false,
@@ -84,6 +80,7 @@ export default {
 			type: [Number, String],
 			default: null
 		},
+		bgColor: String,
 		exclude: {
 			type: Boolean,
 			default: false
@@ -188,6 +185,10 @@ export default {
 				style.opacity = this.opacity;
 			}
 
+			if (this.bgColor) {
+				style.backgroundColor = this.bgColor;
+			}
+
 			return style;
 		},
 		initialStyle() {
@@ -251,6 +252,7 @@ export default {
 	opacity 1
 
 .icon-initial
+	transform translateY(0)
 	position absolute
 	inset 0
 	background-size contain
@@ -363,7 +365,7 @@ export default {
 .icon.type-einstellungen
 	background-image url(/img/settings.png)
 	background-size 85% 85%
-	opacity .8
+	opacity .7
 
 .icon.type-einstellungen-black
 	background-image url(/img/settings-black.svg)
@@ -377,7 +379,7 @@ export default {
 .icon.type-moreinfo
 	background-image url(/img/morev.png)
 	background-size 70% 70%
-	background-color #eeeeeeee
+	background-color #eee
 	border-radius 50%
 
 .icon.type-morev
@@ -429,4 +431,47 @@ export default {
 .icon.type-postbw
 	background-image url(/img/postbw.png)
 	background-size 85%
+	
+.icon.type-pinkpost
+	background-color #eba9ce
+	opacity 1
+	mask url(/img/post-text.svg) center / 65% no-repeat
+
+.icon.type-post-text
+	background-color #000000b3
+	mask url(/img/post-text.svg) center / contain no-repeat
+
+.icon.type-post-imag
+	background-color currentColor
+	mask url(/img/post-imag.svg) center / contain no-repeat
+
+.icon.type-post-niederschlag
+	background-color currentColor
+	mask url(/img/post-niederschlag.svg?v=11) center / contain no-repeat
+
+.icon.type-post-bewaessert
+	background-color currentColor
+	mask url(/img/post_bewaessert.svg?v=8) center / contain no-repeat
+
+.icon.type-post-fehler
+	background-color currentColor
+	mask url(/img/post-fehler.svg?v=6) center / contain no-repeat
+
+.icon.type-post-video
+	background-color currentColor
+	mask url(/img/post-video.svg) center / contain no-repeat
+.icon.type-pen
+	background-image url(/img/pen.png)
+	background-size contain
+.icon.type-penthin
+	background-image url(/img/penthin.png)
+	background-size contain
+.icon.type-plus
+	background-image url(/img/plus.png)
+	background-size contain
+.icon.type-plus-square
+	background-image url(/img/plus-square.png)
+	background-size contain
+	opacity .8
+	margin-left 2px
 </style>

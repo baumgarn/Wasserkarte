@@ -27,6 +27,7 @@
 				:obj="item.iconObj || null"
 				:size="42"
 				fill
+				:bg-color="item.iconStyle?.bgColor"
 				:style="item.iconStyle || {}" />
 
 			<div v-if="item.key =='error'" class="count">
@@ -77,14 +78,14 @@ export default {
 					iconType: this.accountIcon ? 'account-login' : 'account',
 					iconObj: this.accountIcon,
 				},
-				{ title: 'Posts', tooltip: 'Neueste Posts', key: 'posts', group: '1' },
+				{ title: 'Posts', tooltip: 'Neueste Posts', key: 'posts', group: '1', iconType: 'pinkpost' },
 				{ title: 'Fehlermeldungen', tooltip: 'Fehlermeldungen', key: 'error', group: '1' },
 				{ title: 'Standorte', tooltip: 'Standort Liste', key: 'orte', group: '1' },
 				{ title: 'Darstellung', tooltip: 'Standort Marker Darstellung', key: 'bodenfeuchte', group: '1' },
 				{ title: 'Filter', tooltip: 'Filter nach Standorteigenschaften', key: 'filter', group: '1' },
 				{ title: 'Karten', tooltip: 'Karten der Landesvermessung\nund Geobasisinformation Brandenburg (LGB)', key: 'karten', group: '1' },
 				// { title: 'Bodenarten', tooltip: 'Bodenarten', key: 'bodenarten', group: '1' },
-				...(!state.account.authenticated ? [{ title: 'Einstellungen', tooltip: 'Einstellungen', key: 'einstellungen', group: '1' }] : []),
+				{ title: 'Einstellungen', tooltip: 'Karteneinstellungen', key: 'einstellungen', group: '1' },
 				{ title: 'Bodenkunde', tooltip: 'Hintergrundwissen Bodenkunde', key: 'bodenkunde', group: '1' },
 				{ title: 'Standorttabelle', tooltip: 'Tabellarische Zeitachse', activate: this.activateTableView, key: 'standorttabelle', group: '1' },
 				{ title: 'Info', tooltip: 'Über das Projekt', key: 'info', activate: this.activateInfo, solo: true, class: "solo", group: '2' },
@@ -229,13 +230,17 @@ export default {
 
 .new-posts-dot
 	position absolute
-	top 4px
-	right 4px
+	top 3px
+	right 3px
 	width 8px
 	height 8px
 	border-radius 50%
-	background #739e95
+	background #ff7777
+	background #ff8888
 	pointer-events none
+
+.menubaricon.type-pinkpost
+	transform translateY(-1px)
 
 .menubaricon
 	width 100%

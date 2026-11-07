@@ -58,6 +58,38 @@ export const dataModel = {
 					{ value: 120, color: '#0000fa'},
 				],
 			},
+			rotblaustark: {
+				name: 'Rot Blau Stärker',
+				colors: [
+					{ value: 0, color: '#ff6666'},
+					{ value: 50, color: '#ffffff'},
+					{ value: 120, color: '#6666ff'},
+				],
+			},
+			rotblau: {
+				name: 'Rot Blau',
+				colors: [
+					{ value: 0, color: '#ff8e70'},
+					{ value: 50, color: '#ffffff'},
+					{ value: 120, color: '#407dff'},
+				],
+			},
+			orangeblau: {
+				name: 'Orange Blau',
+				colors: [
+					{ value: 0, color: '#ffbf00'},
+					{ value: 50, color: '#ffffff'},
+					{ value: 120, color: '#407dff'},
+				],
+			},
+			gelbblau: {
+				name: 'Gelb Blau',
+				colors: [
+					{ value: 0, color: '#ffee00'},
+					{ value: 50, color: '#ffffff'},
+					{ value: 120, color: '#55c9f0'},
+				],
+			},
 			blau: {
 				name: 'Blau',
 				colors: [

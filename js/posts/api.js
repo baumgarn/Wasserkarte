@@ -23,11 +23,11 @@ export const postsApi = {
 	list(force = false) {
 		return request('GET', null, force);
 	},
-	create(deviceId, content, timestamp, mediaIds = [], id = undefined) {
-		return request('POST', { deviceId, content, timestamp, mediaIds, id });
+	create(deviceId, content, timestamp, mediaIds = [], id = undefined, category = '') {
+		return request('POST', { deviceId, content, timestamp, mediaIds, id, category });
 	},
-	update(id, content, timestamp, mediaIds = undefined) {
-		return request('PATCH', { id, content, timestamp, mediaIds });
+	update(id, content, timestamp, mediaIds = undefined, category = undefined) {
+		return request('PATCH', { id, content, timestamp, mediaIds, category });
 	},
 	delete(id) {
 		return request('DELETE', { id });

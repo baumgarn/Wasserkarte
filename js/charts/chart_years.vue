@@ -3,18 +3,14 @@ import dataStore from '@/datastore.js';
 import { dataModel } from '@/dataModel.js';
 import { state } from '@/state.js';
 import DateAxis from '@/charts/dateaxis.vue';
-import GraphTooltip from '@/charts/graph_tooltip.vue';
-import { displayutil } from '@/displayutil.js';
+import PostTimeline from '@/posts/post_timeline.vue';
 
 const DAY_MS = 86400000;
 
 export default {
 	name: 'ChartYears',
-	components: { DateAxis, GraphTooltip },
-	setup() {
-		return { displayutil };
-	},
-	emits: ['hover'],
+	components: { DateAxis, PostTimeline },
+	emits: ['hover', 'select-post'],
 	props: {
 		device: { type: Object, required: true },
 		frameWidth: { type: Number, required: true },
@@ -52,7 +48,7 @@ export default {
 						color: dataModel.get_nfk_color(value),
 					});
 				}
-				years.push({ year, days, cells });
+				years.push({ year, days, cells, startTimestamp: new Date(year, 0, 1).getTime(), latestTimestamp: new Date(year + 1, 0, 1).getTime() - 1 });
 			}
 			return years;
 		},
@@ -77,6 +73,15 @@ export default {
 				x: closest.x / year.days * 100,
 			};
 			this.$emit('hover', closest.ts);
+		},
+		hoverPost(timestamp) {
+			const year = timestamp === null ? null : this.years.find(year => timestamp >= year.startTimestamp && timestamp <= year.latestTimestamp);
+			this.hover = year ? {
+				year: year.year,
+				ts: timestamp,
+				x: (timestamp - year.startTimestamp) / (year.latestTimestamp - year.startTimestamp) * 100,
+			} : null;
+			this.$emit('hover', timestamp);
 		},
 		clearHover() {
 			this.hover = null;
@@ -107,6 +112,7 @@ export default {
 		</div>
 		<div class="years-frame">
 		<div v-for="year in years" :key="year.year" class="year" :style="{ height: rowHeight + 'px' }" @mousemove="hoverYear($event, year)" @mouseleave="clearHover" @touchstart="hoverYear($event, year)" @touchmove="hoverYear($event, year)" @touchend="clearHover" @touchcancel="clearHover">
+			<PostTimeline :device :startTimestamp="year.startTimestamp" :latestTimestamp="year.latestTimestamp" :chartWidth="frameWidth" :frameWidth @hover="hoverPost" @select="$emit('select-post', $event)" />
 			<svg :viewBox="`0 0 ${year.days} 1`" preserveAspectRatio="none">
 				<rect v-for="cell in year.cells" :key="cell.x" :x="cell.x" y="0" width="1" height="1" :fill="cell.color">
 				</rect>
@@ -114,10 +120,6 @@ export default {
 			<div class="label">{{ year.year }}</div>
 			<template v-if="hover?.year === year.year">
 				<div class="year-hoverline" :style="{ left: hover.x + '%' }"></div>
-				<GraphTooltip class="year-tooltip" :device :hoverData="hover" :mouseOverChart="true">
-					<div class="tooltip-date">{{ displayutil.formatDateShort(hover.ts) }}</div>
-					<div class="tooltip-value">Ø nFK <span class="value">{{ Math.round(hover.value) }}</span><span class="unit">%</span></div>
-				</GraphTooltip>
 			</template>
 		</div>
 		</div>
@@ -132,7 +134,6 @@ export default {
 	margin 0
 	border-top 1px solid transparent
 .years-frame
-	overflow hidden
 	border-radius var(--chartborderradius)
 	border var(--chartborderstyle)
 	filter var(--chartdropshadowfilter)
@@ -146,6 +147,13 @@ export default {
 		width 100%
 		height 100%
 		shape-rendering crispEdges
+.year :deep(.post-marker)
+	top 0
+.year :deep(.post-preview)
+	bottom 0
+	&.below
+		top 18px
+		bottom auto
 .label
 	position absolute
 	top calc(10% - 6px)
@@ -160,20 +168,4 @@ export default {
 	bottom 0
 	border-left 1px dotted #000
 	pointer-events none
-.year-tooltip
-	min-width 0
-	width 80px
-.tooltip-date
-	padding 3px 0
-	font-size 8pt
-	opacity .8
-	text-align right
-.tooltip-value
-	font-size 8pt
-	text-align right
-	.value
-		font-size 9pt
-	.unit
-		margin-left .25em
-		opacity .8
 </style>

@@ -255,26 +255,26 @@ export default {
 </script>
 
 <style scoped lang="stylus">
-		.menuwindow.devices:focus
-			outline none
-		.menuwindow.devices
-			background #fff
-			width 275px
-			.menuwindow-content
-				overflow-y auto
-				overflow-x hidden
-				padding 6px
-				min-height 0
-				position relative
-		.bookmark-container
-			position sticky
-			z-index 5
-			top -6px
-			background #fff
-			border-bottom var(--thinline)
-			margin-bottom 6px
-			margin-top -6px
-			padding 6px 0
+	.menuwindow.devices:focus
+		outline none
+	.menuwindow.devices
+		background #fff
+		width 275px
+		.menuwindow-content
+			overflow-y auto
+			overflow-x hidden
+			padding 6px
+			min-height 0
+			position relative
+	.bookmark-container
+		position sticky
+		z-index 5
+		top -6px
+		background #fff
+		border-bottom var(--thinline)
+		margin-bottom 6px
+		margin-top -6px
+		padding 6px 0
 	.sideview
 		flex-grow 0
 		flex-shrink 0

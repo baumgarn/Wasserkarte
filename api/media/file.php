@@ -24,8 +24,8 @@ try {
 			if (!is_file($file)) break;
 			header('Content-Type: ' . (($item['type'] ?? 'image') === 'video' && $variant === 'display' ? 'video/mp4' : 'image/webp'));
 			header('X-Content-Type-Options: nosniff');
-			// Auch nach Entfernen eines Bildes soll keine langlebige öffentliche Kopie bleiben.
-			header($published ? 'Cache-Control: private, no-cache' : 'Cache-Control: private, no-store');
+			// Jede Datei hat eine eigene ID und wird nach dem Upload nicht mehr verändert.
+			header($published ? 'Cache-Control: private, max-age=31536000, immutable' : 'Cache-Control: private, no-store');
 			$etag = '"' . $id . '-' . $variant . '"';
 			header('ETag: ' . $etag);
 			if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {

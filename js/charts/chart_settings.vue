@@ -9,8 +9,8 @@
 			<div v-if="state.chartStyle !== 'years'" ref="openTimeRangeRef" class="daterange" @click="openTimeRanges" >
 
 				<template v-if="!isPopoverOpen">
-					{{ selectedTimeRange }}
-					<template v-if="showDuration">
+					{{ state.chartTimeRange === 0 ? displayedDurationDays + ' Tage' : selectedTimeRange }}
+					<template v-if="showDuration && state.chartTimeRange !== 0">
 						<span class="separator"></span>
 						{{displayedDurationDays}} Tage
 					</template>
@@ -111,6 +111,9 @@ export default {
 			return this.showTelemetryDuration && ["Gesamte Zeit", "Eigener Zeitraum"].includes(this.selectedTimeRange);
 		},
 		selectedTimeRange() {
+			if (this.showTelemetryDuration && state.chartTimeRange > 0 && state.chartTimeRange >= (this.latestTimestamp - this.earliestTimestamp) / 86400000) {
+				return 'Gesamte Zeit';
+			}
 			if (state.chartTimeRange === 0) {
 				return 'Eigener Zeitraum';
 			}
@@ -126,7 +129,7 @@ export default {
 			},
 			displayedDurationDays() {
 				return this.selectedTimeRange === 'Eigener Zeitraum'
-					? Math.floor(this.visibleDays)
+					? Math.max(1, Math.round(this.visibleDays))
 					: this.daysSinceFirstTelemetry;
 			},
 			isPopoverOpen() {

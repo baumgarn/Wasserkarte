@@ -96,11 +96,11 @@ export const managementAuth = {
 		return request(`user-permissions&id=${encodeURIComponent(userId)}`);
 	},
 
-	async updateUserPermissions(userId, role, locations) {
+	async updateUserPermissions(userId, role, locations, profile = {}) {
 		return request('user-permissions', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id: userId, role, locations }),
+			body: JSON.stringify({ id: userId, role, locations, ...profile }),
 		});
 	},
 

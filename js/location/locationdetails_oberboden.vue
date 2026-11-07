@@ -115,8 +115,8 @@
 			</div>
 		</div>
 
-		<div class="hinweis">
-			Modellierte Annäherung Oberboden 1m² bis 60cm Tiefe
+		<div class="hinweis location-table-caption">
+			<span class="nomobile">Modellierte Annäherung</span><span class="mobile">Modellierung</span> Oberboden 1m² bis 60cm Tiefe
 		</div>
 	</div>
 </template>
@@ -231,6 +231,8 @@
 		opacity 1
 		font-weight normal
 		padding 5px 0 0
+	.hinweis .mobile
+		display none
 	.soil-table
 		display grid
 		grid-template-rows repeat(4, minmax(0, 1fr))
@@ -300,6 +302,8 @@
 	@media (max-width 500px)
 		.nomobile
 			display none
+		.hinweis .mobile
+			display inline
 		.datarow .label
 			flex-grow 1
 </style>

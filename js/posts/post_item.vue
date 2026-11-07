@@ -1,26 +1,45 @@
 <template>
 	<article
 		class="post-item"
-		:class="{ 'post-item-open-location': canOpenLocation }"
+		:class="{ 'post-item-open-location': canOpenLocation, hovered: highlighted }"
 		:role="canOpenLocation ? 'button' : undefined"
 		:tabindex="canOpenLocation ? 0 : undefined"
 		:aria-label="canOpenLocation ? `Standort ${locationName} öffnen` : undefined"
+		@pointerenter="$event.pointerType === 'mouse' && (state.hoveredPostId = post.id)"
+		@pointerleave="$event.pointerType === 'mouse' && (state.hoveredPostId = null)"
 		@click="openLocation"
 		@keydown.enter.self="openLocation"
 		@keydown.space.self.prevent="openLocation">
 		<header class="post-item-header">
-			<div v-if="context === 'allposts'" class="post-item-location">{{ locationName }}</div>
+
+			<div class="post-item-date">{{ formattedTimestamp }}</div>
+			<template v-if="context === 'allposts'">
+				<span class="post-item-separator"></span>
+				<div class="post-item-location">{{ locationName }}</div>
+			</template>
+			<span class="post-item-separator"></span>
 			<div class="post-item-author">{{ post.authorName || 'Unbekannt' }}</div>
-			<div class="post-item-date">
-				{{ formattedTimestamp }}
-				<span
-					v-if="moistureLayers.length"
-					ref="moistureIcon"
-					class="post-item-moisture"
-					:class="{ active: moistureOpen }"
-					:style="{ background: moistureBackground }"
-					@click.stop="toggleMoisture"></span>
+
+			<div
+				v-if="moistureLayers.length"
+				ref="moistureIcon"
+				class="post-item-schichten"
+				:class="{ active: moistureOpen }"
+				:style="{ background: moistureBackground }"
+				@click.stop="toggleMoisture">
 			</div>
+
+			<div
+				v-if="canManagePost"
+				ref="moreButton"
+				class="post-item-more"
+				aria-label="Optionen für diesen Post"
+				@click.stop="openMore">
+				<Icon type="morev" :size="18" />
+			</div>
+
+			<PopoverMenu v-if="canManagePost" ref="moreMenu" :items="moreItems" />
+
 			<Teleport to="body">
 				<div v-if="moistureOpen" ref="moisturePopup" class="post-moisture-popup" :style="moisturePosition" @click.stop>
 					<table><tbody>
@@ -33,39 +52,35 @@
 					</tbody></table>
 				</div>
 			</Teleport>
-			<div
-				v-if="canManagePost"
-				ref="moreButton"
-				class="post-item-more"
-				aria-label="Optionen für diesen Post"
-				@click.stop="openMore">
-				<Icon type="morev" :size="18" />
-			</div>
-			<PopoverMenu v-if="canManagePost" ref="moreMenu" :items="moreItems" />
+
 		</header>
-		<p v-if="post.content" class="post-item-content">{{ post.content }}</p>
-		<PostMedia :ids="post.mediaIds || []" />
+		<p v-if="post.content" class="post-item-content"><PostCategoryIcon :category="post.category" inline />{{ post.content }}</p>
+		<PostMedia :inert="context === 'allposts'" :ids="post.mediaIds || []" :style="{ '--post-image-height': context === 'allposts' ? '200px' : '200px' }" />
 	</article>
 </template>
 
 <script>
+import { formatPostDate } from '@/posts/format.js';
 import { state } from '@/state.js';
 import { postMoistureLayers, moistureBackground } from '@/posts/moisture.js';
 import dataStore from '@/datastore.js';
 import { dataModel } from '@/datamodel.js';
 import PopoverMenu from '@/ui/popovermenu.vue';
 import Icon from '@/ui/Icon.vue';
+import PostCategoryIcon from '@/posts/post_category_icon.vue';
 import PostMedia from '@/media/post_media.vue';
 
 export default {
 	name: 'PostItem',
 	emits: ['edit', 'delete', 'open-location'],
-	components: { PopoverMenu, Icon, PostMedia },
+	components: { PopoverMenu, Icon, PostCategoryIcon, PostMedia },
+	setup() { return { state }; },
 	data() {
 		return { moistureOpen: false, moisturePosition: {} };
 	},
 	beforeUnmount() {
 		this.closeMoisture();
+		if (state.hoveredPostId === this.post.id) state.hoveredPostId = null;
 	},
 	props: {
 		post: {
@@ -79,6 +94,10 @@ export default {
 		},
 	},
 	computed: {
+		highlighted() {
+			if (state.hoveredPostId !== null) return state.hoveredPostId === this.post.id;
+			return state.timelineDate !== null && formatPostDate(state.timelineDate) === this.formattedTimestamp;
+		},
 		moistureLayers() {
 			return postMoistureLayers(this.post);
 		},
@@ -116,12 +135,7 @@ export default {
 			return Number.isNaN(this.date.getTime()) ? '' : this.date.toISOString();
 		},
 		formattedTimestamp() {
-			if (Number.isNaN(this.date.getTime())) return '';
-			return new Intl.DateTimeFormat('de-DE', {
-				day: '2-digit',
-				month: '2-digit',
-				year: 'numeric',
-			}).format(this.date);
+			return formatPostDate(this.post.timestamp);
 		},
 	},
 	methods: {
@@ -131,11 +145,11 @@ export default {
 			await this.$nextTick();
 			if (!this.$refs.moisturePopup) return;
 			const icon = this.$refs.moistureIcon.getBoundingClientRect();
-			const post = this.$el.getBoundingClientRect();
 			const popup = this.$refs.moisturePopup.getBoundingClientRect();
+			const postRight = this.$el.getBoundingClientRect().right;
 			this.moisturePosition = {
-				left: `${Math.max(4, Math.min(post.right - popup.width, window.innerWidth - popup.width - 4))}px`,
-				top: `${Math.max(4, icon.top - popup.height - 6) + 2}px`,
+				left: `${Math.max(4, Math.min(postRight - 4, window.innerWidth - 4) - popup.width)}px`,
+				top: `${Math.max(4, icon.top - popup.height - 7) + 3}px`,
 			};
 			document.addEventListener('pointerdown', this.closeMoistureOutside);
 			window.addEventListener('resize', this.closeMoisture);
@@ -174,105 +188,18 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.post-item
-	padding 8px 0
-	width 100%
-	min-width 0
-	max-width 100%
-.post-item + .post-item
-	border-top var(--thinline)
-
 .post-item-open-location
-	cursor pointer
+	touch-action manipulation
 
-// .post-item-open-location:hover
-// 	background-color #00000008
-
-.post-item-open-location:focus-visible
-	outline 2px solid var(--menusectionheadercolor)
-	outline-offset 2px
-
-
-.post-item-header
-	display flex
-	align-items center
-	font-size 8pt
-	width 100%
-	min-width 0
-	color #777
-	
-.post-item-location
-.post-item-author
-	overflow hidden
-	text-overflow ellipsis
-	white-space nowrap
-	min-width 0
-
-.post-item-location
-.post-item-author
-	flex-shrink 1
-.post-item-location + .post-item-author:before
-	content '-'
-	display inline-block
-	margin 0 .25em
-	
-.post-item-date
-	display flex
-	align-items center
-	flex 0 0 auto
-	min-width 0
-	margin-left auto
-	text-align right
-
-.post-item-moisture
-	flex 0 0 14px
-	width 14px
-	height 14px
-	margin-left 5px
-	border-radius 50%
-	cursor pointer
-	&:hover:not(.active)
-		outline 2px solid #ddd
-		outline-offset 0
-
-.post-item-header time
-	opacity .6
-	white-space nowrap
-	flex 0 0 auto
-
-.post-item-content
-	margin 6px 0 0
-	white-space pre-wrap
-	overflow-wrap anywhere
-	line-height 1.45
-
-.post-moisture-popup
-	position fixed
-	z-index 10000
-	padding 0px
-	background #fff
-	color #111
-	border none
-	outline none
-	border-radius 6px
-	box-shadow 0 2px 8px #0002
-	font-size 7.5pt
-	max-width calc(100vw - 8px)
-	overflow-x auto
-	table
-		border-collapse collapse
-		white-space nowrap
-	td
-		padding 3px 4px
-	td:first-child
-		padding-left 6px
-	td:last-child
-		padding-right 6px
-	.vol
-	.nfk
-		text-align right
-		font-variant-numeric tabular-nums
-	.level
-		color #000
-		font-weight normal
+.post-item-content :deep(.icon.post-category-inline)
+	font-size .85em
+	top 3px
+	// Align the visible shapes by offsetting the transparent space below each mask.
+	&.type-post-niederschlag
+		vertical-align -4%
+	&.type-post-bewaessert
+		vertical-align -15%
+		top 2px
+	&.type-post-fehler
+		vertical-align -17%
 </style>

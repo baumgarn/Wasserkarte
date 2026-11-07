@@ -34,6 +34,8 @@ try {
 		if ($method === 'POST') {
 			$deviceId = $input['deviceId'] ?? null;
 			$content = postsContent($input['content'] ?? null);
+			$category = postsCategory($input['category'] ?? ($post['category'] ?? ''));
+			if ($category === null) postsRespond(['error' => 'Ungültige Kategorie.'], 400, true);
 			$mediaIds = mediaIds($input['mediaIds'] ?? []);
 			$timestamp = postsTimestamp($input['timestamp'] ?? (int) floor(microtime(true) * 1000));
 			postsRequireLocation(is_string($deviceId) ? $deviceId : '');
@@ -52,6 +54,7 @@ try {
 				// Gleicher Entwurf nach verlorener HTTP-Antwort: bereits gespeicherten Post zurückgeben.
 				if (postsWritableInEnvironment($existing) && $existing['authorUserId'] === $identity['id']
 					&& $existing['deviceId'] === $deviceId && $existing['content'] === $content
+					&& ($existing['category'] ?? '') === $category
 					&& (int) $existing['timestamp'] === $timestamp && ($existing['mediaIds'] ?? []) === $mediaIds) {
 					postsUpsertCache($existing, $token);
 					postsRespond(['post' => $existing], 200, true);
@@ -70,6 +73,7 @@ try {
 				'content' => $content,
 				'mediaIds' => $mediaIds,
 			];
+			if ($category !== '') $post['category'] = $category;
 			if (postsLocalMode()) {
 				$post['environment'] = 'local';
 			}
@@ -94,6 +98,8 @@ try {
 
 		if ($method === 'PATCH') {
 			$content = postsContent($input['content'] ?? null);
+			$category = postsCategory($input['category'] ?? ($post['category'] ?? ''));
+			if ($category === null) postsRespond(['error' => 'Ungültige Kategorie.'], 400, true);
 			$mediaIds = mediaIds($input['mediaIds'] ?? ($post['mediaIds'] ?? []));
 			$timestamp = postsTimestamp($input['timestamp'] ?? null);
 			if ($content === null || $timestamp === null || $mediaIds === null || ($content === '' && $mediaIds === [])) {
@@ -101,6 +107,8 @@ try {
 			}
 			$previous = $post;
 			$post['content'] = $content;
+			unset($post['category']);
+			if ($category !== '') $post['category'] = $category;
 			$post['mediaIds'] = $mediaIds;
 			$post['timestamp'] = $timestamp;
 			$post['updatedAt'] = (int) floor(microtime(true) * 1000);

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#000">
+  <path transform="translate(-2.3 0)" d="M7 1 4 4l3 3m-3-3h6m7-3 3 3-3 3m3-3h-6" fill="none" stroke="#000" stroke-width="1.5"/>
+  <path transform="translate(-3.3 0)" d="M14.83 23q-.6 0-1.15-.23t-.98-.64L7.6 17l.75-.77q.4-.4.94-.54t1.06.01l1.65.48V8q0-.43.29-.71T13 7t.71.29T14 8v7h1v-3q0-.43.29-.71T16 11q.43 0 .71.29T17 12v3h1v-2q0-.43.29-.71T19 12t.71.29T20 13v2h1q0-.43.29-.71T22 14q.43 0 .71.29T23 15v4q0 1.65-1.17 2.82T19 23Z"/>
+</svg>

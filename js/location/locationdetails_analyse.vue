@@ -4,7 +4,7 @@
 			<section v-for="group in propertyGroups" :key="group.title">
 				<div class="property-grid">
 					<div v-for="item in group.items" :key="item.class" :class="item.class" v-tooltip="{ content: item.title, disabled: true, delay: 1000, maxWidth: 'trigger', align: 'left', alignOffset: -8, arrowPosition: 22 }">
-						<div class="label" :class="{ nowrap: item.label.endsWith('Trockenphase') }">
+						<div class="label">
 							<template v-if="item.label.endsWith('Trockenphase')">
 								<span class="full-label">{{ item.label }}</span>
 								<span class="short-label">{{ item.label === 'Längste Trockenphase' ? 'Längste Trocken' : 'Aktuell Trocken' }}</span>
@@ -16,7 +16,7 @@
 				</div>
 			</section>
 		</div>
-		<section class="measurement-period">{{ measurementPeriod }}</section>
+		<section class="measurement-period location-table-caption">{{ measurementPeriod }}</section>
 	</div>
 </template>
 
@@ -149,7 +149,6 @@ export default {
 .standortanalyse
 	cursor pointer
 	width 100%
-	margin-bottom 10px
 
 .soil-table
 	display grid
@@ -166,7 +165,7 @@ section
 	grid-template-columns repeat(3, minmax(0, 1fr))
 	gap 8px 12px
 
-.label.nowrap
+.label
 	white-space nowrap
 
 .value
@@ -215,7 +214,10 @@ section
 .short-label
 	display none
 
-@media (max-width: 499.98px)
+@media (max-width: 500px)
+	.label
+		overflow hidden
+		text-overflow ellipsis
 	.full-label
 		display none
 	.short-label

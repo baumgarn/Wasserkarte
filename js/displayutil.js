@@ -1,8 +1,23 @@
 import { config } from './config.js';
+import { dataModel } from './datamodel.js';
 
 
 
 export const displayutil = {
+
+	postCategoryColors: {
+		Bewässerung: { nfk: 80, opacity: 0.15 },
+		Niederschlag: { nfk: 120, opacity: 0.15 },
+		Fehler: { nfk: 0, opacity: 0.15 },
+	},
+
+	getPostCategoryColor(category) {
+		const settings = this.postCategoryColors[category];
+		if (!settings) return '#fff';
+		const hex = dataModel.get_nfk_color(settings.nfk).replace('#', '');
+		const channels = [0, 2, 4].map(index => Math.round(parseInt(hex.slice(index, index + 2), 16) * settings.opacity + 255 * (1 - settings.opacity)));
+		return `rgb(${channels.join(', ')})`;
+	},
 
 	soilMoistureLevels : {
 		"reiner-sand-humusarm": [0, 3.2, 4.53, 9.85, 12.51, 15.17, 19.16],

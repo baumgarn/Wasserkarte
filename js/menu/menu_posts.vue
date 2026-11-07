@@ -5,8 +5,17 @@
 		</div>
 		<div class="menuwindow-content">
 			<p v-if="error" class="management-note management-error">{{ error }}</p>
-			<div v-if="posts.length" class="posts-list">
-				<PostItem v-for="post in posts" :key="post.id" :post context="allposts" @open-location="openLocation" @edit="$emit('edit', $event)" @delete="$emit('delete', $event)" />
+			<div v-if="posts.length" class="menu-posts-list">
+				<PostItem
+					v-for="post in posts"
+					:key="post.id"
+					:post
+					context="allposts"
+					@pointerenter="$event.pointerType === 'mouse' && (state.timelineDate = Number(post.timestamp))"
+					@pointerleave="$event.pointerType === 'mouse' && (state.timelineDate = null)"
+					@open-location="openLocation"
+					@edit="$emit('edit', $event)"
+					@delete="$emit('delete', $event)" />
 			</div>
 			<p v-else-if="state.postsLoaded && !error" class="management-note management-notice">Noch keine Einträge vorhanden.</p>
 		</div>
@@ -59,10 +68,6 @@ export default {
 <style lang="stylus" scoped>
 .menuwindow.posts
 	width 400px
+	// width 275px
 
-// .posts-list
-	// display flex
-	// flex-direct
-	// min-width 0
-	// max-width 100%
 </style>

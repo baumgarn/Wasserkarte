@@ -1,7 +1,7 @@
 <template>
 	<Modal title="Medien" icon="medien" :modal="false" @close="close">
 		<template #titlebar>
-			<span v-if="loaded && allUsers" class="media-scope">
+			<span v-if="loaded && allUsers" class="media-scope" @pointerdown.stop>
 				<span :class="{ 'is-active': scope === 'all' }" @click="scope = 'all'">Alle <span class="count" v-if="!loading">{{ items.length }}</span></span>&nbsp;
 				<span :class="{ 'is-active': scope === 'own' }" @click="scope = 'own'">Deine <span class="count" v-if="!loading">{{ ownItems.length }}</span></span>
 			</span>
