@@ -13,10 +13,12 @@ import { dataModel } from '@/datamodel.js';
 import Icon from '@/ui/Icon.vue';
 
 const categoryIcons = new Map([
-	['Bewässerung', { type: 'post-bewaessert', size: 18, nfk: 120 }],
 	['Niederschlag', { type: 'post-niederschlag', size: 16, nfk: 120 }],
+	['Bewässerung', { type: 'post-bewaessert', size: 18, nfk: 120 }],
 	['Fehler', { type: 'post-fehler', size: 18, nfk: 0 }],
 ]);
+
+export const postCategories = [...categoryIcons.keys()];
 
 export default {
 	components: { Icon },

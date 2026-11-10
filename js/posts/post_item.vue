@@ -202,4 +202,5 @@ export default {
 		top 2px
 	&.type-post-fehler
 		vertical-align -17%
+		top 1px
 </style>
