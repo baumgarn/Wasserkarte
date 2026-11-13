@@ -17,7 +17,8 @@
   --dropshadowfilter: drop-shadow(0 2px 3px rgba(0,0,0,0.133));
   --activecolor: #b9d0eb;
   --activecolordarker: rgba(137,156,179,0.6);
-  --activecolorgrey: rgba(82,117,160,0.333);
+  --activecolorgrey: rgba(82,117,160,0.267);
+  --activecolorgreybutton: rgba(82,117,160,0.267);
   --activecolorgreyopaque: #c5d1df;
   --activecolorgreydarker: rgba(82,117,160,0.533);
   --activecolorgreymid: rgba(82,117,160,0.2);
@@ -410,6 +411,11 @@ input[type=radio] {
   accent-color: #888;
   cursor: pointer;
 }
+input[type=checkbox] {
+  accent-color: #000;
+  width: 16px;
+  height: 16px;
+}
 input[type=radio] {
   top: 1px;
 }
@@ -429,7 +435,7 @@ button {
   min-width: 120px;
   align-self: flex-start;
   cursor: pointer;
-  background: var(--activecolorgrey);
+  background: var(--activecolorgreybutton);
 }
 button:has(> .icon) {
   display: inline-flex;
@@ -438,6 +444,18 @@ button:has(> .icon) {
   gap: 6px;
   text-align: left;
   padding-left: 0.6em;
+}
+button.save-button {
+  width: 120px;
+  flex-shrink: 0;
+  font-weight: normal;
+}
+button.save-button:not(:disabled) {
+  background: #b7e1b8;
+  color: #123d20;
+}
+button.save-button:not(:disabled):hover {
+  background: #a0d7a3;
 }
 button:disabled {
   opacity: 0.45;

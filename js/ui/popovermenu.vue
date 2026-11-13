@@ -8,6 +8,7 @@
 			v-if="item.type === 'select'"
 			class="item select"
 			:class="{ active: isActive(item) }"
+			:style="item.backgroundColor ? { backgroundColor: item.backgroundColor } : null"
 			v-tooltip
 			:tooltipcontent="item.tooltip"
 			:tooltipdisabled="!item.tooltip"
@@ -18,7 +19,9 @@
 				<Icon v-if="item.obj" class="item-obj-icon" :obj="item.obj" :size="20" shadow="true" />
 				<div v-else-if="item.icon" class="popovericon" :class="item.icon"></div>
 				<div v-else class="popovericon"></div>
+				<slot name="select" :item="item">
 				<span v-html="item.label" />
+				</slot>
 			</div>
 			
 			<div
@@ -279,7 +282,7 @@ export default {
 	background #ffffffcc
 	backdrop-filter: blur(20px);
 	border 1px solid rgba(0,0,0,0.2)
-	border-radius 8px
+	border-radius 4px
 	box-shadow 0 2px 8px rgba(0, 0, 0, 0.2)
 	z-index 1000
 	overflow hidden

@@ -29,6 +29,7 @@ export const state = reactive({
 	wsmlegends: false,
 	menuOpen: {},
 	accountDetailsOpen: false,
+	emailSettingsOpen: false,
 	accountsOpen: false,
 	mediaManagerOpen: false,
 	createAccountOpen: false,
@@ -226,6 +227,7 @@ export function closeAllMenuWindowsAndSidebar() {
 
 export function closeAllModals() {
 	state.accountDetailsOpen = false;
+	state.emailSettingsOpen = false;
 	state.accountsOpen = false;
 	state.mediaManagerOpen = false;
 	state.createAccountOpen = false;

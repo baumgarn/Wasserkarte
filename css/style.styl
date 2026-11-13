@@ -45,7 +45,8 @@ uicardgrau = #eee
 	--dropshadowfilter drop-shadow(0 2px 3px #00000022)
 	--activecolor #b9d0eb
 	--activecolordarker #899cb399
-	--activecolorgrey #5275a055
+	--activecolorgrey #5275a044
+	--activecolorgreybutton #5275a044
 	--activecolorgreyopaque #c5d1df
 	--activecolorgreydarker #5275a088
 	--activecolorgreymid #5275a033
@@ -435,6 +436,10 @@ input[type=radio]
 	top 2px
 	accent-color: #888
 	cursor pointer
+input[type=checkbox]
+	accent-color #000
+	width 16px
+	height 16px
 input[type=radio]
 	top 1px
 
@@ -456,7 +461,7 @@ button
 	min-width: 120px
 	align-self flex-start
 	cursor pointer
-	background var(--activecolorgrey)
+	background var(--activecolorgreybutton)
 
 button:has(> .icon)
 	display inline-flex
@@ -465,6 +470,17 @@ button:has(> .icon)
 	gap 6px
 	text-align left
 	padding-left .6em
+
+button.save-button
+	width 120px
+	flex-shrink 0
+	font-weight normal
+
+button.save-button:not(:disabled)
+	background #b7e1b8
+	color #123d20
+	&:hover
+		background #a0d7a3
 
 button:disabled
 	opacity .45

@@ -14,8 +14,8 @@
 				<span>Nachname</span>
 				<input v-model.trim="lastName" autocomplete="family-name" maxlength="255">
 			</label>
-			<p v-if="profileMessage" :class="['management-note', profileError ? 'management-error' : 'management-success']">{{ profileMessage }}</p>
-			<button type="submit" :disabled="savingProfile"><Icon type="save" :size="20" />{{ savingProfile ? 'Speichert …' : 'Speichern' }}</button>
+			<p v-if="profileMessage && profileError" class="management-note management-error">{{ profileMessage }}</p>
+			<button class="save-button" type="submit" :disabled="savingProfile || !hasProfileChanges"><Icon :type="profileSaved ? 'check' : 'save'" :size="20" />{{ savingProfile ? 'Speichert …' : profileSaved ? 'Gespeichert' : 'Speichern' }}</button>
 		</form>
 
 		<form class="management-form" @submit.prevent="changePassword">
@@ -32,8 +32,8 @@
 				<span>Neues Passwort wiederholen</span>
 				<input v-model="newPasswordConfirmation" type="password" autocomplete="new-password" required>
 			</label>
-			<p v-if="passwordMessage" :class="['management-note', passwordError ? 'management-error' : 'management-success']">{{ passwordMessage }}</p>
-			<button type="submit" :disabled="savingPassword"><Icon type="password" :size="20" />{{ savingPassword ? 'Ändert …' : 'Passwort ändern' }}</button>
+			<p v-if="passwordMessage && passwordError" class="management-note management-error">{{ passwordMessage }}</p>
+			<button class="password-save-button" type="submit" :disabled="savingPassword"><Icon :type="passwordSaved ? 'check' : 'password'" :size="20" />{{ savingPassword ? 'Ändert …' : passwordSaved ? 'Gespeichert' : 'Passwort ändern' }}</button>
 		</form>
 
 	</div>
@@ -57,23 +57,35 @@ export default {
 			savingProfile: false,
 			savingPassword: false,
 			profileMessage: '',
+			profileSaved: false,
 			profileError: false,
 			passwordMessage: '',
 			passwordError: false,
 		};
 	},
 	computed: {
+		hasProfileChanges() {
+			return this.firstName !== (this.user.firstName || '') || this.lastName !== (this.user.lastName || '');
+		},
+		passwordSaved() {
+			return !!this.passwordMessage && !this.passwordError && !this.currentPassword && !this.newPassword && !this.newPasswordConfirmation;
+		},
 		user() {
 			return state.account.user || {};
 		},
 	},
+	watch: {
+		firstName() { this.profileSaved = false; },
+		lastName() { this.profileSaved = false; },
+	},
 	methods: {
 		async saveProfile() {
+			if (this.savingProfile || !this.hasProfileChanges) return;
 			this.profileMessage = '';
 			this.savingProfile = true;
 			try {
 				await managementAuth.updateProfile(this.firstName, this.lastName);
-				this.profileMessage = 'Profil gespeichert.';
+				this.profileSaved = true;
 				this.profileError = false;
 			} catch (error) {
 				this.profileMessage = error.message || 'Profil konnte nicht gespeichert werden.';
@@ -109,6 +121,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.password-save-button
+	width 165px
+
 .account-settings
 	display grid
 	gap 24px

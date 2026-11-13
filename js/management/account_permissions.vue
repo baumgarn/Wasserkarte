@@ -32,7 +32,7 @@
 
 			<p v-if="error" class="management-note management-error">{{ error }}</p>
 			<div class="management-actions account-permissions-actions">
-				<button :class="{ success: saved }" type="submit" :disabled="loading || saving || !hasChanges">{{ saving ? 'Speichert …' : saved ? 'Gespeichert' : 'Speichern' }}</button>
+				<button class="save-button" type="submit" :disabled="loading || saving || !hasChanges"><Icon :type="saved && !hasChanges ? 'check' : 'save'" :size="20" />{{ saving ? 'Speichert …' : saved && !hasChanges ? 'Gespeichert' : 'Speichern' }}</button>
 			</div>
 		</form>
 	</div>
@@ -41,11 +41,12 @@
 <script>
 import { managementAuth } from '@/management/auth.js';
 import LocationSelect from '@/management/location_select.vue';
+import Icon from '@/ui/Icon.vue';
 
 export default {
 	name: 'AccountPermissions',
 	emits: ['delete-account', 'saved'],
-	components: { LocationSelect },
+	components: { LocationSelect, Icon },
 	props: {
 		user: {
 			type: Object,

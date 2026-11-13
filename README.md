@@ -103,6 +103,34 @@ Das Skript ist nur über PHP CLI ausführbar, verhindert parallele Daily-Läufe 
 Dateilock und meldet Fehler mit Exit-Code 1. Bestehende Cronjobs für
 `dailyaverages.php` durch diesen gemeinsamen Einstieg ersetzen.
 
+Zwischen Tagesmittelberechnung und Posts-Cache versendet `api/daily.php` die
+aktivierten E-Mail-Benachrichtigungen. Über `/users/info` und die einzelnen
+Profile unter `/user/{id}` werden seitenweise
+Tenant-Admins und Nutzer des konfigurierten Wasserkarte-Customers berücksichtigt.
+Das Account-Attribut `wasserkarte_email_settings` enthält Aktivierung, Standorte
+und den gemeinsamen Grenzwert. Verwendet werden ausschließlich die Vortagswerte;
+fehlende Werte bleiben neutral und lösen keine Grenzwertwarnung aus. „Immer“
+enthält alle ausgewählten Standorte, auch solche ohne Messwerte.
+
+Für Benachrichtigungen sind ein gültiger `MAIL_FROM` und ein funktionsfähiger
+PHP-`mail()`-Transport nötig. `MAIL_ENABLED` steuert ausschließlich Aktivierungs-/
+Zugangsmails und blockiert keine Benachrichtigungen oder Testmails. Das gilt auch auf localhost:
+ein vorhandenes `sendmail` allein bestätigt noch keine Zustellung. Der Button
+„Test-E-Mail senden“ schickt die aktuelle Fensterauswahl ausschließlich an den
+angemeldeten Account, auch bei deaktiviertem Abonnement. Er speichert die Auswahl
+nicht und ist auf einen Versuch pro Minute begrenzt. Der Test prüft dieselbe
+Empfängerliste und den Einstellungsabruf wie der Cronjob; ThingsBoard-Fehler
+erscheinen mit Anfragepfad, HTTP-Status und Fehlermeldung im Fenster. Ohne passende Vortagswerte
+enthält die Testmail einen entsprechenden Hinweis.
+
+Das dauerhafte Verzeichnis `NOTIFICATION_STORAGE_DIR` (Standard:
+`api/storage/notifications`) darf nicht mit dem Cache gelöscht werden. Es enthält
+keine Mailadressen und verhindert erneuten Tagesversand nach erfolgreicher
+Übergabe an den Mailserver. Bei Prozessabbruch während der Übergabe bleibt der
+Status `sending`: erst Mailserver-Logs prüfen, bevor der zugehörige Protokolleintrag
+zurückgesetzt wird. Einzelne Versandfehler verhindern keine anderen Empfänger;
+der Cronjob meldet sie mit Exit-Code 1. Lokal keinen Produktions-Cronjob starten.
+
 Posts-Cache manuell vollständig neu aufbauen:
 
 ```bash

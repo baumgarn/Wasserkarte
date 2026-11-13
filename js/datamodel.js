@@ -446,6 +446,16 @@ export const dataModel = {
 		}
 	},
 	
+	darkenColor(color, amount = 0.10) {
+		if (!color || color === 'transparent') return color;
+		const { r, g, b } = hexToRgb(color);
+		return rgbToHex(...[r, g, b].map(channel => Math.round(channel * (1 - amount))));
+	},
+
+	get_nfk_label_color(value) {
+		return this.darkenColor(this.get_nfk_color(value));
+	},
+
 	get_nfk_color_alpha(value, alpha) {
 		var color = this.get_nfk_color(value);
 		var hex = color.replace(/^#/, '');

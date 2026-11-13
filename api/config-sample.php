@@ -31,8 +31,10 @@
 	define('ALLOWED_SENSOR_KEYS', ['Bodenfeuchte_10cm', 'Bodenfeuchte_30cm', 'Bodenfeuchte_60cm', 'Bodenfeuchte_80cm']);
 	define('CUTOFF_DATE', 1737072000000); // Jan 17, 2025 UTC in ms
 	define('WASSERKARTE_CUSTOMER_ID', ''); // Customer muss im Thingsboard angelegt werden um User Accounts anzuheften
-	define('MAIL_ENABLED', false);
+	define('MAIL_ENABLED', false); // Nur Aktivierungs-/Zugangsmails, nicht Standortbenachrichtigungen.
 	define('MAIL_FROM', 'noreply@wasserkarte.org');
+	// Dauerhaftes Versandprotokoll; beim Deploy nicht löschen (verhindert doppelte E-Mails).
+	define('NOTIFICATION_STORAGE_DIR', __DIR__ . '/storage/notifications');
 	define('WASSERKARTE_URL', 'https://wasserkarte.org');
 	// Lokal true: neue Posts/Medien erhalten environment="local"; Produktionsposts sind lokal nur lesbar.
 	// Lokale Medien: api/storage/local/. Produktionskopien von pulldata: api/storage/.

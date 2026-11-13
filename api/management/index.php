@@ -5,6 +5,7 @@ require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/thingsboard-client.php';
 require_once __DIR__ . '/rate-limit.php';
+require_once __DIR__ . '/email-settings.php';
 require_once __DIR__ . '/../posts/service.php';
 
 function managementRespond(array $payload, int $status = 200): void
@@ -200,24 +201,21 @@ function managementUserSettingsFromValue($value): array
 	return $settings;
 }
 
-function managementUserSettings(string $userId, string $token): array
+function managementProfileAttributes(string $userId, string $token): array
 {
-	$response = thingsBoardManagementRequest(
-		'GET',
-		'/plugins/telemetry/USER/' . rawurlencode($userId) . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_settings',
-		null,
-		$token
-	);
-	if ($response['status'] !== 200 || !is_array($response['body'])) {
-		return [];
-	}
-	foreach ($response['body'] as $attribute) {
-		if (is_array($attribute) && ($attribute['key'] ?? '') === 'wasserkarte_settings') {
-			return managementUserSettingsFromValue($attribute['value'] ?? null);
-		}
-	}
-
-	return [];
+	$response = thingsBoardManagementRequest('GET', '/plugins/telemetry/USER/' . rawurlencode($userId)
+		. '/values/attributes/SERVER_SCOPE?keys=wasserkarte_settings,wasserkarte_role,wasserkarte_locations,wasserkarte_email_settings', null, $token);
+	if ($response['status'] !== 200 || !is_array($response['body'])) return [];
+	$attributes = array_column($response['body'], 'value', 'key');
+	$locations = managementLocationIdsFromAttribute($attributes['wasserkarte_locations'] ?? []);
+	return [
+		'wasserkarteSettings' => managementUserSettingsFromValue($attributes['wasserkarte_settings'] ?? []),
+		'wasserkarteRole' => managementUserRoleFromValue($attributes['wasserkarte_role'] ?? null),
+		'wasserkarteLocations' => $locations,
+		'wasserkarteEmailSettings' => array_key_exists('wasserkarte_email_settings', $attributes)
+			? managementEmailSettingsFromValue($attributes['wasserkarte_email_settings'])
+			: ['enabled' => false, 'threshold' => 50, 'style' => 'detailed', 'locations' => array_values(array_unique($locations))],
+	];
 }
 
 function managementMailEnabled(): bool
@@ -288,22 +286,15 @@ function managementSendActivationMail(string $email, string $firstName, string $
 	return mail($email, $subject, $message, implode("\r\n", $headers));
 }
 
-function managementSessionPayload(): array
+function managementSessionPayload(bool $refresh = false): array
 {
 	$identity = getManagementIdentity();
 	if ($identity === null) {
 		return ['authenticated' => false];
 	}
-	if (!array_key_exists('wasserkarteSettings', $identity) || (($identity['thingsboardAuthority'] ?? '') === 'CUSTOMER_USER' && !array_key_exists('wasserkarteLocations', $identity))) {
-		$token = managementServiceToken();
-		if (($identity['thingsboardAuthority'] ?? '') === 'CUSTOMER_USER' && !array_key_exists('wasserkarteLocations', $identity)) {
-			$userPermissions = managementUserPermissions((string) $identity['id'], $token);
-			$identity['wasserkarteRole'] = $userPermissions['role'];
-			$identity['wasserkarteLocations'] = $userPermissions['locations'];
-		}
-		if (!array_key_exists('wasserkarteSettings', $identity)) {
-			$identity['wasserkarteSettings'] = managementUserSettings((string) $identity['id'], $token);
-		}
+	if ($refresh || !array_key_exists('wasserkarteSettings', $identity) || managementEmailSettingsFromValue($identity['wasserkarteEmailSettings'] ?? null) === null
+		|| !array_key_exists('wasserkarteLocations', $identity)) {
+		$identity = array_merge($identity, managementProfileAttributes((string) $identity['id'], managementServiceToken()));
 		updateManagementIdentity($identity);
 	}
 
@@ -318,6 +309,7 @@ function managementSessionPayload(): array
 			'wasserkarteRole' => $identity['wasserkarteRole'] ?? 'none',
 			'wasserkarteLocations' => $identity['wasserkarteLocations'] ?? [],
 			'settings' => $identity['wasserkarteSettings'] ?? [],
+			'emailSettings' => $identity['wasserkarteEmailSettings'] ?? null,
 		],
 		'permissions' => managementPermissions($identity['thingsboardAuthority']),
 		'csrfToken' => getManagementCsrfToken(),
@@ -325,8 +317,86 @@ function managementSessionPayload(): array
 }
 
 $action = $_GET['action'] ?? '';
+if ($action === 'preview-email' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	managementRequireIdentity();
+	managementRequireCsrfToken();
+	$input = managementReadJsonBody();
+	$settings = managementEmailSettingsFromValue($input['settings'] ?? null);
+	if ($settings === null) {
+		managementRespond(['error' => 'Ungültige E-Mail-Einstellungen.'], 400);
+	}
+	require_once __DIR__ . '/../notifications/service.php';
+	try {
+		[$devices, $telemetry] = notificationData(false);
+		$day = notificationDay();
+		$rows = notificationRows($settings, $devices, $telemetry, $day);
+		$message = notificationMessage($rows, $day, $settings['threshold'], $settings['style']);
+		managementRespond(['html' => $message['html']]);
+	} catch (Throwable $error) {
+		managementRespond(['error' => $error->getMessage()], 502);
+	}
+}
+
+if ($action === 'test-email' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	$identity = managementRequireIdentity();
+	managementRequireCsrfToken();
+	$input = managementReadJsonBody();
+	$settings = managementEmailSettingsFromValue($input['settings'] ?? null);
+	if ($settings === null || !$settings['locations']) {
+		managementRespond(['error' => 'Bitte mindestens einen Standort auswählen.'], 400);
+	}
+	require_once __DIR__ . '/../notifications/service.php';
+	try {
+		notificationTest(managementServiceToken(), $identity['id'], $settings);
+		managementRespond(['success' => true]);
+	} catch (Throwable $error) {
+		managementRespond(['error' => $error->getMessage()], 502);
+	}
+}
+
+if ($action === 'email-settings' && in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'], true)) {
+	$identity = managementRequireIdentity();
+	$isSave = $_SERVER['REQUEST_METHOD'] === 'POST';
+	if ($isSave) {
+		managementRequireCsrfToken();
+		$input = managementReadJsonBody();
+		$settings = managementEmailSettingsFromValue($input['settings'] ?? null);
+		if ($settings === null) {
+			managementRespond(['error' => 'Ungültige E-Mail-Einstellungen.'], 400);
+		}
+	}
+	$token = managementServiceToken();
+	$path = '/plugins/telemetry/USER/' . rawurlencode($identity['id']);
+	if ($isSave) {
+		$response = thingsBoardManagementRequest('POST', $path . '/attributes/SERVER_SCOPE', [
+			'wasserkarte_email_settings' => $settings,
+		], $token);
+		if ($response['status'] !== 200) {
+			managementRespond(['error' => 'E-Mail-Einstellungen konnten nicht gespeichert werden.'], 502);
+		}
+	} else {
+		$response = thingsBoardManagementRequest('GET', $path . '/values/attributes/SERVER_SCOPE?keys=wasserkarte_email_settings,wasserkarte_locations', null, $token);
+		if ($response['status'] !== 200 || !is_array($response['body'])) {
+			managementRespond(['error' => 'E-Mail-Einstellungen konnten nicht geladen werden.'], 502);
+		}
+		$attributes = array_column($response['body'], 'value', 'key');
+		if (array_key_exists('wasserkarte_email_settings', $attributes)) {
+			$settings = managementEmailSettingsFromValue($attributes['wasserkarte_email_settings']);
+			if ($settings === null) {
+				managementRespond(['error' => 'Die gespeicherten E-Mail-Einstellungen sind ungültig.'], 502);
+			}
+		} else {
+			$settings = ['enabled' => false, 'threshold' => 50, 'style' => 'detailed', 'locations' =>
+				array_values(array_unique(managementLocationIdsFromAttribute($attributes['wasserkarte_locations'] ?? [])))
+			];
+		}
+	}
+	updateManagementIdentity(['wasserkarteEmailSettings' => $settings]);
+	managementRespond(['settings' => $settings]);
+}
+
 if ($action === 'me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-	managementRespond(managementSessionPayload());
+	managementRespond(managementSessionPayload(true));
 }
 
 if ($action === 'users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -677,10 +747,6 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		managementRespond(['error' => 'Das ThingsBoard-Nutzerprofil ist unvollständig.'], 502);
 	}
 	$authority = (string) ($profile['authority'] ?? '');
-	$userPermissions = $authority === 'CUSTOMER_USER'
-		? managementUserPermissions($id, managementServiceToken())
-		: ['role' => 'none', 'locations' => []];
-	$userSettings = managementUserSettings($id, managementServiceToken());
 
 	setManagementIdentity([
 		'id' => $id,
@@ -688,9 +754,6 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		'firstName' => (string) ($profile['firstName'] ?? ''),
 		'lastName' => (string) ($profile['lastName'] ?? ''),
 		'thingsboardAuthority' => $authority,
-		'wasserkarteRole' => $userPermissions['role'],
-		'wasserkarteLocations' => $userPermissions['locations'],
-		'wasserkarteSettings' => $userSettings,
 	], $remember);
 	managementRespond(managementSessionPayload());
 }

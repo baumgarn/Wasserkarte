@@ -4,7 +4,7 @@
 			{{ locationSelectLabel }}
 		</button>
 
-		<Modal v-if="open" title="Standorte auswählen" close-click-outside @close="closeSelection">
+		<Modal v-if="open" title="Standorte auswählen" stacked close-click-outside @close="closeSelection">
 			<div class="management-panel management-window-size-mid location-select-modal">
 				<input
 					ref="search"
@@ -35,19 +35,30 @@
 				<footer class="location-select-footer">
 					<p v-if="error" class="management-note management-error" role="alert">{{ error }}</p>
 					<div class="management-actions location-select-actions">
-						<button type="button" :disabled="disabled || saving || !hasChanges" @click="save">{{ saving ? 'Speichert …' : 'Speichern' }}</button>
+						<button class="save-button" type="button" :disabled="disabled || saving || !hasChanges" @click="save">{{ saving ? 'Speichert …' : 'Speichern' }}</button>
 					</div>
 				</footer>
 			</div>
 		</Modal>
 
-		<div v-if="!open" class="location-select-selected">
-			<div v-for="location in selectedLocations" :key="location.id" class="location-item">
-				<span class="location-select-label"><ColorDot :device="location" />{{ locationLabel(location) }}</span>
-				<div class="location-select-remove" role="button" :tabindex="disabled || saving ? -1 : 0" :aria-label="`${locationLabel(location)} entfernen`" :aria-disabled="disabled || saving" @click="removeLocation(location.id)" @keydown.enter.prevent="removeLocation(location.id)" @keydown.space.prevent="removeLocation(location.id)">
-					<div class="iconbutton close" aria-hidden="true"></div>
-				</div>
-			</div>
+		<div v-if="showSelected && selectedLocations.length" class="location-select-frame">
+			<table class="location-select-selected">
+				<thead v-if="$slots.controls">
+					<tr class="location-item location-heading">
+						<th class="location-select-label">Standort</th>
+						<th class="location-select-controls">Benachrichtigen bei</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="location in selectedLocations" :key="location.id" class="location-item">
+						<td class="location-select-label"><ColorDot :device="location" /><span :title="locationLabel(location)">{{ locationLabel(location) }}</span></td>
+						<td v-if="$slots.controls" class="location-select-controls"><slot name="controls" :location="location"></slot></td>
+						<td class="location-select-remove" role="button" :tabindex="disabled || saving ? -1 : 0" :aria-label="`${locationLabel(location)} entfernen`" :aria-disabled="disabled || saving" @click="removeLocation(location.id)" @keydown.enter.prevent="removeLocation(location.id)" @keydown.space.prevent="removeLocation(location.id)">
+							<div class="iconbutton close" aria-hidden="true"></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 	</div>
 </template>
@@ -73,6 +84,7 @@ export default {
 		},
 		saveSelection: { type: Function, required: true },
 		disabled: { type: Boolean, default: false },
+		showSelected: { type: Boolean, default: true },
 	},
 	data() {
 		return {
@@ -177,7 +189,7 @@ export default {
 <style lang="stylus" scoped>
 .management-location-select
 	display grid
-	gap 8px
+	gap 12px
 
 .location-select-modal
 	display grid
@@ -243,17 +255,44 @@ export default {
 	min-width 0
 
 .location-select-options
-.location-select-selected
 	display flex
 	flex-direction column
 	gap 0
 
+.location-select-frame
+	border 1px solid #00000033
+	border-radius 4px
+	overflow hidden
+
+.location-select-selected
+	width 100%
+	table-layout fixed
+	border-collapse collapse
+	.location-item
+		height 26px
+		line-height 16px
+		padding 5px 29px 5px 5px
+		td
+			padding 0
+	.location-select-label > span
+		overflow hidden
+		text-overflow ellipsis
+		white-space nowrap
+	.location-heading
+		color var(--menusectionheadercolor)
+		font-weight normal
+		th
+			font-weight normal
+			padding 0
+
+.location-select-controls
+	width 185px
+	flex 0 0 185px
+	text-align left
+
 .location-item .location-select-label
 	flex 1
 	overflow-wrap anywhere
-
-.location-select-selected .location-select-label
-	padding-right 35px
 
 .location-select-remove
 	position absolute
@@ -289,4 +328,9 @@ export default {
 @media (hover: none)
 	.location-select-remove .iconbutton
 		opacity .8
+
+@media (max-width: 431px)
+	.location-select-controls
+		width 175px
+		flex-basis 175px
 </style>

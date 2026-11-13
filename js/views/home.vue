@@ -66,6 +66,11 @@
 		<AccountSettings />
 	</Modal>
 
+	<EmailSettings
+		v-if="state.emailSettingsOpen && state.account.authenticated"
+		:key="state.account.user.id"
+		@close="state.emailSettingsOpen = false" />
+
 	<Modal
 		v-if="state.accountsOpen"
 		title="Accounts"
@@ -187,6 +192,7 @@ import AccountMenu from '@/menu/menu_account.vue';
 import PostsMenu from '@/menu/menu_posts.vue';
 import Modal from '@/views/modal.vue';
 import AccountSettings from '@/management/account_settings.vue';
+import EmailSettings from '@/management/email_settings.vue';
 import Accounts from '@/management/accounts.vue';
 import CreateAccount from '@/management/create_account.vue';
 import AccountPermissions from '@/management/account_permissions.vue';
@@ -233,6 +239,7 @@ export default {
 		PostsMenu,
 		Modal,
 		AccountSettings,
+		EmailSettings,
 		Accounts,
 		CreateAccount,
 		AccountPermissions,

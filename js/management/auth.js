@@ -79,6 +79,42 @@ export const managementAuth = {
 		});
 	},
 
+	async getEmailSettings() {
+		const cached = state.account.user?.emailSettings;
+		if (cached) return { settings: cached };
+		const userId = state.account.user?.id;
+		const response = await request('email-settings');
+		if (state.account.user?.id === userId) state.account.user.emailSettings = response.settings;
+		return response;
+	},
+
+	async sendTestEmail(settings) {
+		return request('test-email', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ settings }),
+		});
+	},
+
+	async previewEmail(settings) {
+		return request('preview-email', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ settings }),
+		});
+	},
+
+	async updateEmailSettings(settings) {
+		const userId = state.account.user?.id;
+		const response = await request('email-settings', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ settings }),
+		});
+		if (state.account.user?.id === userId) state.account.user.emailSettings = response.settings;
+		return response;
+	},
+
 	async listUsers() {
 		const response = await request('users');
 		return Array.isArray(response.users) ? response.users : [];

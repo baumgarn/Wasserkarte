@@ -28,9 +28,6 @@
 							<div class="name">
 								{{ nfk_label }}
 							</div>
-							<div class="nameoverlay">
-								{{ nfk_label }}
-							</div>
 						</div>
 
 					</template>
@@ -168,7 +165,7 @@ export default {
 			return dataModel.get_nfk_label(this.nfk);
 		},
 		nfk_color() {
-			return dataModel.get_nfk_color(this.nfk);
+			return dataModel.get_nfk_label_color(this.nfk);
 		},
 		usageObj() {
 			return dataModel.get_usage_obj(this.device);
@@ -346,12 +343,6 @@ body.sensor-Bodenfeuchte .popupcontent
 		.name
 			color var(--nfk_color)
 			position relative
-		.nameoverlay
-			position absolute
-			left 0
-			top 0
-			right 0
-			opacity .15
 	.filteritems
 		display flex
 		flex-direction row

@@ -40,6 +40,9 @@
 					<button :class="{ active: state.accountDetailsOpen }" type="button" @click="toggleAccountModal('accountDetailsOpen')">
 						<Icon type="person" :size="20" />Konto
 					</button>
+					<button :class="{ active: state.emailSettingsOpen }" type="button" @click="toggleAccountModal('emailSettingsOpen')">
+						<Icon type="email" :size="20" />Benachrichtigungen
+					</button>
 					<button v-if="isAdmin" :class="{ active: state.accountsOpen }" type="button" @click="toggleAccountModal('accountsOpen')">
 						<Icon type="accounts" :size="20" />Accounts
 					</button>
@@ -215,7 +218,7 @@ export default {
 
 .account-actions button
 	flex 0 0 auto
-	width 150px
+	width 180px
 
 .account-locations-divider
 	border-top var(--thinline)

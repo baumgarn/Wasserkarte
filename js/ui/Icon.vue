@@ -421,6 +421,9 @@ export default {
 .icon.type-save
 	background-image url(/img/save.png)
 	background-size 75%
+.icon.type-check
+	background-image url(/img/check.png)
+	background-size 75%
 .icon.type-password
 	background-image url(/img/password.png)
 	background-size 75%
@@ -428,6 +431,10 @@ export default {
 	background-image url(/img/send.png)
 	background-size 85%
 	margin-right -.15em
+.icon.type-email
+	// Google Material Icons: communication/email (Apache-2.0).
+	background-image url(/img/email.svg)
+	background-size 80%
 .icon.type-postbw
 	background-image url(/img/postbw.png)
 	background-size 85%

@@ -34,6 +34,21 @@ try {
 	dailyLog('Tägliche Aufgaben gestartet: Tagesmittelwerte.');
 	require __DIR__ . '/telemetry/dailyaverages.php';
 
+	set_time_limit(0);
+	require_once __DIR__ . '/notifications/service.php';
+	$notificationToken = getThingsBoardAuthorization();
+	if (!is_string($notificationToken) || $notificationToken === '') {
+		throw new RuntimeException('ThingsBoard-Authentifizierung fehlgeschlagen.');
+	}
+	try {
+		$notificationResult = notificationDaily($notificationToken);
+		dailyLog('E-Mails versendet: ' . $notificationResult['sent'] . ', Fehler: ' . $notificationResult['errors']);
+		if ($notificationResult['errors'] > 0) $dailyExitCode = 1;
+	} catch (Throwable $notificationError) {
+		$dailyExitCode = 1;
+		error_log('E-Mail-Versand fehlgeschlagen: ' . $notificationError->getMessage());
+	}
+
 	// Posts neu laden.
 	set_time_limit(0);
 	require_once __DIR__ . '/posts/service.php';

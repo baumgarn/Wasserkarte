@@ -21,9 +21,6 @@
 							{{ nfk_label }}
 						</div>
 
-						<div class="nameoverlay">
-							{{ nfk_label }}
-						</div>
 
 					</template>
 				</div>
@@ -69,7 +66,7 @@ export default {
 			return this.hoverOrLastData.vol_avg ? dataModel.get_nfk_label(this.nfk) : '';
 		},
 		nfk_color() {
-			return dataModel.get_nfk_color(this.nfk);
+			return dataModel.get_nfk_label_color(this.nfk);
 		},
 		hoursSinceLastTelemetry() {
 			return dataStore.hoursSinceLastTelemetry(this.device.id);
@@ -132,11 +129,6 @@ export default {
 		letter-spacing 0.03em;
 		position relative
 		text-transform uppercase
-		> *
-			position absolute
-		.nameoverlay
-			opacity .1
-			text-shadow none
 	.notelemetry
 		width 100%
 		color var(--warningred)

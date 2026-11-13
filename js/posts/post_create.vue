@@ -2,17 +2,20 @@
 	<Modal :title="isEditing ? 'Post bearbeiten' : 'Neuer Post'" @close="close">
 		<template #titlebar><span class="post-title-location">{{ locationName }}</span></template>
 		<form class="management-panel management-window-size-mid management-form post-form" @submit.prevent="savePost">
-			<div ref="categoryPicker" class="post-category-picker" @focusout="closeCategoryOutside">
-				<button ref="categoryTrigger" class="post-category-trigger" type="button" :disabled="saving" @click="categoryOpen = !categoryOpen">
+			<div class="post-category-picker">
+				<button ref="categoryTrigger" class="post-category-trigger" type="button" :disabled="saving" @click="toggleCategory">
 					<PostCategoryIcon :category="category" inline />
 					<span>{{ category || 'Unkategorisiert' }}</span>
+					<span class="arrow">▾</span>
 				</button>
-				<div v-if="categoryOpen && !saving" class="post-category-options">
-					<button v-for="option in categoryOptions" :key="option" type="button" :class="{ selected: option === category }" @click="selectCategory(option)">
-						<PostCategoryIcon :category="option" inline />
-						<span>{{ option || 'Unkategorisiert' }}</span>
-					</button>
-				</div>
+				<Teleport to="body">
+					<PopoverMenu ref="categoryMenu" class="post-category-menu" :items="categoryItems">
+						<template #select="{ item }">
+							<span v-if="item.value" class="post-category-menu-icon"><PostCategoryIcon :category="item.value" inline /></span>
+							<span>{{ item.label }}</span>
+						</template>
+					</PopoverMenu>
+				</Teleport>
 			</div>
 		
 			<label class="management-field">
@@ -46,7 +49,7 @@
 					<input v-model="date" type="date" required>
 				</label>
 				<div class="management-actions">
-					<button type="submit" :disabled="saving || discarding || uploading || hasUploadErrors"><Icon v-if="!isEditing" type="send" :size="20" />{{ isEditing ? 'Speichern' : 'Abschicken' }}</button>
+					<button :class="{ 'save-button': isEditing }" type="submit" :disabled="saving || discarding || uploading || hasUploadErrors || (isEditing && !hasChanges)"><Icon v-if="!isEditing" type="send" :size="20" />{{ isEditing ? 'Speichern' : 'Abschicken' }}</button>
 				</div>
 			</div>
 		</form>
@@ -57,6 +60,7 @@
 import { state } from '@/state.js';
 import Modal from '@/views/modal.vue';
 import Icon from '@/ui/Icon.vue';
+import PopoverMenu from '@/ui/popovermenu.vue';
 import { postsApi } from '@/posts/api.js';
 import PostCategoryIcon, { postCategories } from '@/posts/post_category_icon.vue';
 import { markRaw } from 'vue';
@@ -66,7 +70,7 @@ import { loadMedia, removeMedia, upsertMedia } from '@/media/store.js';
 
 export default {
 	name: 'PostCreate',
-	components: { Modal, Icon, PostCategoryIcon },
+	components: { Modal, Icon, PostCategoryIcon, PopoverMenu },
 	emits: ['close', 'create', 'saved'],
 	props: {
 		device: {
@@ -85,8 +89,6 @@ export default {
 			time: initialDate && !Number.isNaN(initialDate.getTime()) ? [String(initialDate.getHours()).padStart(2, '0'), String(initialDate.getMinutes()).padStart(2, '0')].join(':') : '',
 			content: this.post?.content || '',
 			category: this.post?.category || '',
-			categoryOptions: ['', ...postCategories],
-			categoryOpen: false,
 			postId: this.post?.id || draftId(),
 			attachments: (this.post?.mediaIds || []).map((id) => ({ key: id, id, existing: true, status: 'ready' })),
 			processingQueue: false,
@@ -94,6 +96,7 @@ export default {
 			queueRequest: null,
 			closed: false,
 			saved: false,
+			initialSnapshot: null,
 			discardRequest: null,
 			discarding: false,
 			saveTimestamp: null,
@@ -106,6 +109,22 @@ export default {
 		};
 	},
 	computed: {
+		categoryItems() {
+			return ['', ...postCategories].map(value => ({
+				type: 'select', value, label: value || 'Unkategorisiert',
+				active: value === this.category, closeOnSelect: true,
+				onSelect: () => {
+					this.category = value;
+					this.$refs.categoryTrigger.focus();
+				},
+			}));
+		},
+		postSnapshot() {
+			return JSON.stringify({ content: this.content, category: this.category, date: this.date, time: this.time, mediaIds: this.attachments.map(item => item.id || item.key) });
+		},
+		hasChanges() {
+			return this.initialSnapshot !== null && this.postSnapshot !== this.initialSnapshot;
+		},
 		media() { return state.media; },
 		deviceId() { return this.post?.deviceId || this.device?.id; },
 		canUploadVideo() { return ['TENANT_ADMIN', 'SYS_ADMIN'].includes(state.account.user?.thingsboardAuthority) || state.account.user?.wasserkarteRole === 'super_wassermeister'; },
@@ -126,13 +145,12 @@ export default {
 		},
 	},
 	mounted() {
+		this.initialSnapshot = this.postSnapshot;
 		loadMedia().catch(() => {});
 		window.addEventListener('keydown', this.guardEscape, true);
-		document.addEventListener('pointerdown', this.closeCategoryOutside, true);
 	},
 	beforeUnmount() {
 		window.removeEventListener('keydown', this.guardEscape, true);
-		document.removeEventListener('pointerdown', this.closeCategoryOutside, true);
 		if (!this.saved) {
 			this.discardUploads().catch(error => { state.mediaManagerError = error.message; });
 		}
@@ -144,21 +162,17 @@ export default {
 	},
 	methods: {
 		videoDuration,
-		selectCategory(category) {
-			this.category = category;
-			this.categoryOpen = false;
-			this.$refs.categoryTrigger.focus();
-		},
-		closeCategoryOutside(event) {
-			const target = event.type === 'focusout' ? event.relatedTarget : event.target;
-			if (target && !this.$refs.categoryPicker.contains(target)) this.categoryOpen = false;
+		toggleCategory() {
+			if (this.saving) return;
+			const rect = this.$refs.categoryTrigger.getBoundingClientRect();
+			this.$refs.categoryMenu.open({ fixed: true, left: rect.left, bottom: window.innerHeight - rect.bottom });
 		},
 		guardEscape(event) {
-			if (event.key !== 'Escape' || (!this.saving && !this.categoryOpen)) return;
+			if (event.key !== 'Escape' || (!this.saving && !this.$refs.categoryMenu?.isOpen)) return;
 			event.preventDefault();
 			event.stopImmediatePropagation();
-			if (this.categoryOpen) {
-				this.categoryOpen = false;
+			if (this.$refs.categoryMenu?.isOpen) {
+				this.$refs.categoryMenu.close();
 				this.$refs.categoryTrigger.focus();
 			}
 		},
@@ -398,7 +412,7 @@ export default {
 			}
 		},
 		async savePost() {
-			if (this.saving || this.discarding || this.uploading || this.hasUploadErrors) return;
+			if (this.saving || this.discarding || this.uploading || this.hasUploadErrors || (this.isEditing && !this.hasChanges)) return;
 			this.error = '';
 			const mediaIds = this.attachments.map((item) => item.id);
 			if (!this.content.trim() && mediaIds.length === 0) {
@@ -412,7 +426,7 @@ export default {
 			}
 
 			this.saving = true;
-			this.categoryOpen = false;
+			this.$refs.categoryMenu.close();
 			this.saveTimestamp = timestamp;
 			try {
 				const response = this.isEditing
@@ -445,7 +459,7 @@ export default {
 	grid-template-columns minmax(0, 1fr)
 	.management-field
 		input, textarea
-			background transparent
+			background #fff
 	textarea
 		resize vertical
 	.post-actions
@@ -462,6 +476,11 @@ export default {
 				min-width 0
 				padding-left 4px
 				padding-right 4px
+				box-sizing border-box
+				height calc(1.3em + 16px)
+				border 1px solid #00000033
+				border-radius 4px
+				background #fff
 		position sticky
 		bottom 0
 		z-index 1
@@ -469,49 +488,59 @@ export default {
 
 .post-category-picker
 	position relative
-	justify-self start
+	width calc(100% / 3)
 	button
 		display flex
 		align-items center
 		gap 4px
 		min-width 0
-		height auto
-		padding 7px
+		box-sizing border-box
+		height calc(1.3em + 16px)
+		padding 4px 22px 4px 7px
 		border-radius 4px
-		background transparent
+		background #fff
 		font inherit
+		line-height 16px
 		color inherit
 		:deep(.post-category-inline)
 			margin-right 0
-			transform scale(1.2)
+			line-height 18px
 	.post-category-trigger
-		min-width 124px
-		border 1px solid #00000033
-		&::after
-			content ''
-			width 5px
-			height 5px
-			margin -3px 2px 0 auto
-			border solid currentColor
-			border-width 0 1px 1px 0
-			transform rotate(45deg)
-
-.post-category-options
-	position absolute
-	top calc(100% + 2px)
-	left 0
-	z-index 2
-	min-width 100%
-	box-sizing border-box
-	padding 2px
-	border 1px solid #00000033
-	border-radius 4px
-	background #fff
-	box-shadow 0 2px 8px #0002
-	button
+		position relative
 		width 100%
-		&:hover, &.selected
-			background var(--activecolorgreybrighter)
+		border 1px solid #00000033
+		.arrow
+			position absolute
+			right 6px
+			width 8px
+			text-align center
+			line-height 16px
+			color #666
+
+.post-category-menu
+	box-sizing border-box
+	:deep(.popovericon)
+		flex 0 0 16px
+		margin-right 0
+	:deep(.item)
+		gap 2px
+		box-sizing border-box
+		min-height 28px
+		padding-top 5px
+		padding-bottom 5px
+		text-align left
+
+.post-category-menu-icon
+	display flex
+	align-items center
+	justify-content center
+	flex 0 0 18px
+	margin-right 2px
+	height 18px
+	line-height 18px
+	:deep(.post-category-inline)
+		left 0
+		margin-right 0
 
 .video-badge
 	position absolute
